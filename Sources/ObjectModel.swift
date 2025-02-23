@@ -180,9 +180,9 @@ final public class ObjectModel: TcpProcessor {
       
       // send Wan Validate & wait for the reply
       log.debug("ObjectModel: Wan validate sent for handle=\(self._wanHandle!)")
-      sendTcp("wan validate handle=\(_wanHandle!)", replyHandler: wanValidationReplyHandler)
-      let reply = await wanValidation()
-      log.debug("ObjectModel: Wan validation = \(reply)")
+      let replyComponents = await sendTcpAwaitReply("wan validate handle=\(_wanHandle!)")
+//      let reply = await wanValidation()
+      log.debug("ObjectModel: Wan validation = \(replyComponents)")
     }
     
     // bind UDP
@@ -201,9 +201,10 @@ final public class ObjectModel: TcpProcessor {
       log.debug("ObjectModel: UDP registration sent")
       
       // send Client Ip & wait for the reply
-      sendTcp("client ip", replyHandler: ipReplyHandler)
-      let reply = await clientIpValidation()
-      log.debug("ObjectModel: Client ip = \(reply)")
+      let replyComponents = await sendTcpAwaitReply("client ip")
+//      sendTcp("client ip", replyHandler: ipReplyHandler)
+//      let reply = await clientIpValidation()
+      log.debug("ObjectModel: Client ip = \(replyComponents)")
     }
     
     // send the initial commands
@@ -245,6 +246,7 @@ final public class ObjectModel: TcpProcessor {
     removeAllObjects()
     
     await _replyDictionary.removeAll()
+    await _sequencer.reset()
     log.debug("ApiModel: Disconnect, Objects removed")
   }
   
@@ -282,10 +284,9 @@ final public class ObjectModel: TcpProcessor {
     Task {
       // assign sequenceNumber
       let sequenceNumber = await _sequencer.next()
-      if let replyHandler {
-        // register to be notified when reply received
-        await _replyDictionary.add(sequenceNumber, ReplyEntry(command, replyHandler))
-      }
+        
+      // register to be notified when reply received
+      await _replyDictionary.add(sequenceNumber, ReplyEntry(command, replyHandler))
 
       // assemble the command
       let command = "C" + "\(diagnostic ? "D" : "")" + "\(sequenceNumber)|" + command
@@ -299,24 +300,29 @@ final public class ObjectModel: TcpProcessor {
   }
  
   
-  private var _tcpReply: CheckedContinuation<String, Never>?
+  private var _tcpReply: CheckedContinuation<(Int, String, String), Never>?
   
-  public func sendTcpAwaitReply(_ cmd: String, diagnostic: Bool = false) async -> String  {
-      // assign sequenceNumber
-      let sequenceNumber = await _sequencer.next()
-//      // register to be notified when reply received
-//      await _replyDictionary.add(sequenceNumber, ReplyEntry(cmd, replyHandler))
-
-      // assemble the command
-      let command =  "C" + "\(diagnostic ? "D" : "")" + "\(sequenceNumber)|" + cmd
-      
-      // tell TCP to send it
-      _tcp.send(command + "\n", sequenceNumber)
-      
-      // sent messages provided to the Tester (if Tester exists)
-      testDelegate?.tcpProcessor(command, isInput: true)
+  public func sendTcpAwaitReply(_ cmd: String, diagnostic: Bool = false) async -> (Int, String, String)  {
+    // assign sequenceNumber
+    let sequenceNumber = await _sequencer.next()
+    //      // register to be notified when reply received
+    //      await _replyDictionary.add(sequenceNumber, ReplyEntry(cmd, replyHandler))
     
-    return await tcpReply()
+    // assemble the command
+    let command =  "C" + "\(diagnostic ? "D" : "")" + "\(sequenceNumber)|" + cmd
+    
+    // tell TCP to send it
+    _tcp.send(command + "\n", sequenceNumber)
+    
+    // sent messages provided to the Tester (if Tester exists)
+    testDelegate?.tcpProcessor(command, isInput: true)
+    
+    // wait for the reply
+    let replyComponents = await tcpReply()
+    _tcpReply = nil
+    log.debug("Api: TCP reply = \(replyComponents)")
+    
+    return replyComponents
   }
 
   
@@ -344,11 +350,61 @@ final public class ObjectModel: TcpProcessor {
   // ----------------------------------------------------------------------------
   // MARK: - Public Packet methods
   
+  
+  
+  private func parseGuiClients(_ properties: KeyValuesArray) -> [GuiClient] {
+    var guiClients = [GuiClient]()
+    var handles = [String]()
+    var hosts = [String]()
+    var ips = [String]()
+    var programs = [String]()
+    var stations = [String]()
+    
+    enum Property: String {
+      case guiClientHandles           = "gui_client_handles"
+      case guiClientHosts             = "gui_client_hosts"
+      case guiClientIps               = "gui_client_ips"
+      case guiClientPrograms          = "gui_client_programs"
+      case guiClientStations          = "gui_client_stations"
+    }
+    
+    // process each key/value pair, <key=value>
+    for property in properties {
+      // check for unknown Keys
+      switch Property(rawValue: property.key) {
+        
+      case .guiClientHandles:           handles = property.value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
+      case .guiClientHosts:             hosts = property.value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
+      case .guiClientIps:               ips = property.value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
+      case .guiClientPrograms:          programs = property.value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
+      case .guiClientStations:          stations = property.value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
+      default:                          break
+      }
+    }
+    // all three must be populated
+    if (programs.isEmpty || stations.isEmpty || handles.isEmpty || ips.isEmpty || hosts.isEmpty) == false {
+      // must be an equal number of entries in each
+      if programs.count == stations.count && programs.count == handles.count && programs.count == ips.count && programs.count == hosts.count {
+        for (i, handle) in handles.enumerated() {
+          guiClients.append( GuiClient( handle: handle, station: stations[i], program: programs[i], ip: ips[i], host: hosts[i] ) )
+        }
+      }
+    }
+    return guiClients
+  }
+
+  
+  
+  
+  
+  
   /// Process an incoming DiscoveryPacket
   /// - Parameter packet: a received packet
-  public func process(_ packet: Packet, _ guiClients: [GuiClient], _ data: Data) {
+  public func process(_ source: PacketSource, _ properties: KeyValuesArray, _ discoveryData: Data?) {
     
 //    print("----->>>>>", guiClients)
+    let packet = Packet(source, properties)
+    let guiClients = parseGuiClients(properties)
     
     let name = packet.nickname.isEmpty ? packet.model : packet.nickname
     
@@ -362,7 +418,7 @@ final public class ObjectModel: TcpProcessor {
       }
       // update the TimeStamp
       radios[index].lastSeen = Date()
-      radios[index].discoveryData = data
+      radios[index].discoveryData = discoveryData
 
 
       // KNOWN RADIO, has it's guiClients changed?
@@ -389,7 +445,7 @@ final public class ObjectModel: TcpProcessor {
     } else {
             
       // UNKNOWN radio, add it
-      radios.append(Radio(packet, guiClients, data))
+      radios.append(Radio(packet, guiClients, discoveryData))
       log.info("ObjectModel: Radio <\(name)>, Serial <\(packet.serial)>, Source <\(packet.source == .local ? "Local" : "Smartlink")> - ADDED")
 
       // log the GuiClients
@@ -447,7 +503,7 @@ final public class ObjectModel: TcpProcessor {
 
   public func startSmartlinkListener() async {
     // start smartlink listener
-    await _listenerSmartlink?.start()
+    await _listenerSmartlink?.start("douglas.adams@me.com", "fleX!20Comm")
   }
 
   public func startSmartlinkListener(_ user: String, _ password: String) async {
@@ -910,7 +966,7 @@ final public class ObjectModel: TcpProcessor {
     }
   }
   
-  private func tcpReply() async -> (String) {
+  private func tcpReply() async -> (Int, String, String) {
     return await withCheckedContinuation{ continuation in
       _tcpReply = continuation
       log.debug("Api: awaiting a TCP reply")
@@ -926,42 +982,95 @@ final public class ObjectModel: TcpProcessor {
   private func replyProcessor(_ replyMessage: String) {
     
     // separate it into its components
-    let components = replyMessage.dropFirst().components(separatedBy: "|")
-    // ignore incorrectly formatted replies
-    if components.count < 2 {
-      log.warning("ApiModel: incomplete reply, r\(replyMessage)")
-      return
-    }
-    // get the sequence number, reply and any additional data
-    let sequenceNumber = components[0].sequenceNumber
-    let replyValue = components[1]
-    let suffix = components.count < 3 ? "" : components[2]
-    
-
-    if _tcpReply != nil {
-      _tcpReply!.resume(returning: replyValue)
-      
-    } else {
-      
-      // is the sequence number in the reply handlers?
-      Task {
-        if let replyEntry = await _replyDictionary[ sequenceNumber ] {
+    if let components = replyParser(replyMessage) {
+      // are we waiting for this reply?
+      if _tcpReply != nil {
+        // YES, resume
+        log.debug( "ApiModel: resuming tcpReply" )
+        _tcpReply!.resume(returning: components)
+        
+      } else {
+        
+        Task {
+          var keyValues: KeyValuesArray
           
-          // Remove the object from the notification list
-          await _replyDictionary.remove(sequenceNumber)
+          let sequenceNumber = components.0
+          let replyValue = components.1
+          let suffix = components.2
           
-          // Anything other than kNoError is an error, log it
-          // ignore non-zero reply from "client program" command
-          if replyValue != kNoError && !replyEntry.command.hasPrefix("client program ") {
-            log.error("ApiModel: replyValue >\(replyValue)<, to c\(sequenceNumber), \(replyEntry.command), \(flexErrorString(errorCode: replyValue)), \(suffix)")
+          // is there a ReplyEntry for the sequence number (in the ReplyDictionary)?
+          if let replyEntry = await _replyDictionary[ sequenceNumber ] {
+            
+            // YES, remove that entry in the ReplyDictionary
+            await _replyDictionary.remove(sequenceNumber)
+            
+            // Anything other than kNoError is an error, log it
+            // ignore non-zero reply from "client program" command
+            if replyValue != kNoError && !replyEntry.command.hasPrefix("client program ") {
+              log.error("ApiModel: replyValue >\(replyValue)<, to c\(sequenceNumber), \(replyEntry.command), \(flexErrorString(errorCode: replyValue)), \(suffix)")
+            }
+            
+            if replyEntry.replyHandler == nil {
+              
+              // process replies to the internal "sendCommands"?
+              switch replyEntry.command {
+              case "radio uptime":  keyValues = "uptime=\(suffix)".keyValuesArray()
+              case "version":       keyValues = suffix.keyValuesArray(delimiter: "#")
+              case "ant list":      keyValues = "ant_list=\(suffix)".keyValuesArray()
+              case "mic list":      keyValues = "mic_list=\(suffix)".keyValuesArray()
+              case "info":          keyValues = suffix.keyValuesArray(delimiter: ",")
+              default: return
+              }
+              activeSelection?.radio.parse(keyValues)
+              
+            } else {
+              // call the sender's Handler
+              replyEntry.replyHandler?(replyEntry.command, replyMessage)
+            }
+          } else {
+            // no reply entry for this sequence number
+            log.error("ApiModel: sequenceNumber \(sequenceNumber) not found in the ReplyDictionary")
           }
-          // call the sender's Handler
-          replyEntry.replyHandler(replyEntry.command, replyValue)
         }
       }
     }
   }
 
+  
+  
+  
+  
+  
+  private func replyParser(_ replyMessage: String) -> (Int, String, String)? {
+    // separate it into its components
+    let components = replyMessage.dropFirst().components(separatedBy: "|")
+    // ignore incorrectly formatted replies
+    if components.count < 2 {
+      log.warning("ApiModel: incomplete reply, R\(replyMessage)")
+      return nil
+    }
+    // get the sequence number, reply and any additional data
+    let sequenceNumber = components[0].sequenceNumber
+    let replyValue = components[1]
+    let suffix = components.count < 3 ? "" : components[2]
+    return (sequenceNumber, replyValue, suffix)
+  }
+  
+  
+  private func replyInfo(_ replyMessage: String) -> String? {
+    if let components = replyParser(replyMessage) {
+      return components.2
+    } else {
+      return nil
+    }
+  }
+  
+  
+  
+  
+  
+  
+  
   public func commandsReplyHandler(_ command: String, _ reply: String) {
     var keyValues: KeyValuesArray
     
@@ -990,10 +1099,13 @@ final public class ObjectModel: TcpProcessor {
       case "info":          keyValues = additionalData.keyValuesArray(delimiter: ",")
       default: return
       }
-//      radio?.parse(keyValues)
       activeSelection?.radio.parse(keyValues)
     }
   }
+
+  
+  
+  
   
  private func ipReplyHandler(_ command: String, _ reply: String) {
     // YES, resume it

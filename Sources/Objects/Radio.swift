@@ -22,7 +22,7 @@ public final class Radio: Identifiable, Equatable {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization & Dependencies
   
-  public init(_ packet: Packet, _ guiClients: [GuiClient], _ discoveryData: Data) {
+  public init(_ packet: Packet, _ guiClients: [GuiClient], _ discoveryData: Data?) {
     self.packet = packet
     self.guiClients = guiClients
     self.discoveryData = discoveryData

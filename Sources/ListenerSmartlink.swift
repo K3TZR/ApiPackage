@@ -683,8 +683,8 @@ extension ListenerSmartlink {
         packet.localInterfaceIP = localAddr
       }
       // processs the packet
-//      _objectModel?.processPacket(packet)
-      // FIXME:
+      let guiClients: [GuiClient] = []
+      _objectModel?.process(.smartlink, message.keyValuesArray() ,nil)
 
       log.debug("Smartlink Listener: RadioList RECEIVED, \(packet.nickname)")
     }
