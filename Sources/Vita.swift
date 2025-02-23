@@ -375,7 +375,7 @@ extension Vita {
     case ifContext          = 0x04
     case extContext         = 0x05
     
-    func description() -> String {
+    public func description() -> String {
       switch self {
       case .ifData:             return "IfData"
       case .ifDataWithStream:   return "IfDataWithStream"
@@ -394,7 +394,7 @@ extension Vita {
     case gps    = 0x02
     case other  = 0x03
     
-    func description() -> String {
+    public func description() -> String {
       switch self {
       case .none:   return "None"
       case .utc:    return "Utc"
@@ -411,7 +411,7 @@ extension Vita {
     case realtime     = 0x02
     case freeRunning  = 0x03
     
-    func description() -> String {
+    public func description() -> String {
       switch self {
       case .none:         return "None"
       case .sampleCount:  return "SampleCount"
