@@ -121,18 +121,18 @@ public class Vita {
   // filled with defaults, values are changed when created
   //      Types are shown for clarity
   
-  var packetType                            : PacketTypes = .extDataWithStream    // Packet type
-  var trailerPresent                        : Bool = false                        // Trailer present
-  var tsiType                               : TsiTypes = .utc                     // Integer timestamp type
-  var tsfType                               : TsfTypes = .sampleCount             // Fractional timestamp type
+  public var packetType                     : PacketTypes = .extDataWithStream    // Packet type
+  public var trailerPresent                 : Bool = false                        // Trailer present
+  public var tsiType                        : TsiTypes = .utc                     // Integer timestamp type
+  public var tsfType                        : TsfTypes = .sampleCount             // Fractional timestamp type
   public var sequence                       : Int = 0                             // Mod 16 packet sequence number
-  var integerTimestamp                      : UInt32 = 0                          // Integer portion
-  var fracTimeStampMsb                      : UInt32 = 0                          // fractional portion - MSB 32 bits
-  var fracTimeStampLsb                      : UInt32 = 0                          // fractional portion -LSB 32 bits
-  var oui                                   : UInt32 = kFlexOui                   // Flex Radio oui
-  var informationClassCode                  : UInt32 = kFlexInformationClassCode  // Flex Radio classCode
-  var trailer                               : UInt32 = 0                          // Trailer, 4 bytes (if used)
-  var headerSize                            : Int = MemoryLayout<VitaHeader>.size // Header size (bytes)
+  public var integerTimestamp               : UInt32 = 0                          // Integer portion
+  public var fracTimeStampMsb               : UInt32 = 0                          // fractional portion - MSB 32 bits
+  public var fracTimeStampLsb               : UInt32 = 0                          // fractional portion -LSB 32 bits
+  public var oui                            : UInt32 = kFlexOui                   // Flex Radio oui
+  public var informationClassCode           : UInt32 = kFlexInformationClassCode  // Flex Radio classCode
+  public var trailer                        : UInt32 = 0                          // Trailer, 4 bytes (if used)
+  public var headerSize                     : Int = MemoryLayout<VitaHeader>.size // Header size (bytes)
   
   /// Decode a Data type into a Vita class
   /// - Parameter data:         a Data type containing a Vita stream
