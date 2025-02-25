@@ -25,36 +25,6 @@ public final class Cwx {
   public init() {
     macros = [String](repeating: "", count: kMaxNumberOfMacros)
   }
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  public internal(set) var breakInDelay = 0
-  public internal(set) var qskEnabled = false
-  public internal(set) var wpm = 0
-  
-  public var charSentEventHandler: ((_ index: Int) -> Void)?
-  public var eraseSentEventHandler: ((_ start: Int, _ stop: Int) -> Void)?
-  public var messageQueuedEventHandler: ((_ sequence: Int, _ bufferIndex: Int) -> Void)?
-
-  public enum Property: String {
-    case breakInDelay   = "break_in_delay"
-    case qskEnabled     = "qsk_enabled"
-    case erase
-    case sent
-    case wpm            = "wpm"
-  }
-
-  // ------------------------------------------------------------------------------
-  // MARK: - Internal properties
-  
-  var macros: [String]
-  let kMaxNumberOfMacros = 12
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized = false
 
   // ----------------------------------------------------------------------------
   // MARK: - Public Static command methods
@@ -73,7 +43,7 @@ public final class Cwx {
   // TODO:
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public methods
+  // MARK: - Public parse method
   
   /// Parse Cwx key/value pairs, called by Radio
   ///   PropertiesParser protocol method, executes on the parseQ
@@ -295,4 +265,28 @@ public final class Cwx {
   //            _api.send("cwx macro " + "send \(index)", replyTo: replyHandler)
   //        }
   //    }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public internal(set) var breakInDelay = 0
+  public internal(set) var qskEnabled = false
+  public internal(set) var wpm = 0
+  
+  public var charSentEventHandler: ((_ index: Int) -> Void)?
+  public var eraseSentEventHandler: ((_ start: Int, _ stop: Int) -> Void)?
+  public var messageQueuedEventHandler: ((_ sequence: Int, _ bufferIndex: Int) -> Void)?
+
+  public enum Property: String {
+    case breakInDelay   = "break_in_delay"
+    case qskEnabled     = "qsk_enabled"
+    case erase
+    case sent
+    case wpm            = "wpm"
+  }
+  
+  var macros: [String]
+  let kMaxNumberOfMacros = 12
+
+  private var _initialized = false
 }

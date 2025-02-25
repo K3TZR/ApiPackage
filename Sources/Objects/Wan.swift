@@ -18,38 +18,14 @@ public final class Wan {
   // MARK: - Initialization
   
   public init() {}
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public properties
   
-  public internal(set) var radioAuthenticated: Bool = false
-  public internal(set) var serverConnected: Bool = false
-  public internal(set) var publicTlsPort: Int = -1
-  public internal(set) var publicUdpPort: Int = -1
-  public internal(set) var publicUpnpTlsPort: Int = -1
-  public internal(set) var publicUpnpUdpPort: Int = -1
-  public internal(set) var upnpSupported: Bool = false
-
   // ----------------------------------------------------------------------------
-  // MARK: - Public types
+  // MARK: - Public Static command methods
   
-  public enum Property: String {
-    case publicTlsPort      = "public_tls_port"
-    case publicUdpPort      = "public_udp_port"
-    case publicUpnpTlsPort  = "public_upnp_tls_port"
-    case publicUpnpUdpPort  = "public_upnp_udp_port"
-    case radioAuthenticated = "radio_authenticated"
-    case serverConnected    = "server_connected"
-    case upnpSupported      = "upnp_supported"
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
+  // TODO:
   
-  private var _initialized = false
-
   // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public parse method
   
   /// Parse status message
   /// - Parameter properties:       a KeyValuesArray
@@ -81,4 +57,28 @@ public final class Wan {
       log.debug("Wan: initialized ServerConnected = \(self.serverConnected), RadioAuthenticated = \(self.radioAuthenticated)")
     }
   }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public internal(set) var radioAuthenticated: Bool = false
+  public internal(set) var serverConnected: Bool = false
+  public internal(set) var publicTlsPort: Int = -1
+  public internal(set) var publicUdpPort: Int = -1
+  public internal(set) var publicUpnpTlsPort: Int = -1
+  public internal(set) var publicUpnpUdpPort: Int = -1
+  public internal(set) var upnpSupported: Bool = false
+  
+  public enum Property: String {
+    case publicTlsPort      = "public_tls_port"
+    case publicUdpPort      = "public_udp_port"
+    case publicUpnpTlsPort  = "public_upnp_tls_port"
+    case publicUpnpUdpPort  = "public_upnp_udp_port"
+    case radioAuthenticated = "radio_authenticated"
+    case serverConnected    = "server_connected"
+    case upnpSupported      = "upnp_supported"
+  }
+  
+  private var _initialized = false
+
 }

@@ -8,37 +8,6 @@
 import CocoaAsyncSocket
 import Foundation
 
-//import SharedFeature
-//import VitaFeature
-
-// ----------------------------------------------------------------------------
-// MARK: - Public structs and enums
-
-public enum UdpStatusType: Sendable {
-  case didUnBind
-  case failedToBind
-  case readError
-}
-
-public struct UdpStatus: Identifiable, Equatable, Sendable {
-  public static func == (lhs: UdpStatus, rhs: UdpStatus) -> Bool {
-    lhs.id == rhs.id
-  }
-
-  public init(_ statusType: UdpStatusType, receivePort: UInt16, sendPort: UInt16, error: Error? = nil) {
-    self.statusType = statusType
-    self.receivePort = receivePort
-    self.sendPort = sendPort
-    self.error = error
-  }
-
-  public var id = UUID()
-  public var statusType: UdpStatusType = .didUnBind
-  public var receivePort: UInt16 = 0
-  public var sendPort: UInt16 = 0
-  public var error: Error?
-}
-
 ///  UDP Stream Class implementation
 ///      manages all Udp communication with a Radio
 public final class Udp: NSObject {
@@ -57,27 +26,6 @@ public final class Udp: NSObject {
     _socket.setIPv6Enabled(false)
     
   }
-  // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  public var sendIp = ""
-  public var sendPort: UInt16 = 4991 // default port number
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-
-  private var _statusStream: (UdpStatus) -> Void = { _ in }
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _delegate: StreamProcessor
-  private var _isBound = false
-  private var _receivePort: UInt16 = 0
-  private let _receiveQ = DispatchQueue(label: "UdpStream.ReceiveQ", qos: .userInteractive)
-  private var _socket: GCDAsyncUdpSocket!
-
-  private let kMaxBindAttempts = 20
   
   // ----------------------------------------------------------------------------
   // MARK: - Public methods
@@ -181,6 +129,22 @@ public final class Udp: NSObject {
       send(data)
     }
   }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public var sendIp = ""
+  public var sendPort: UInt16 = 4991 // default port number
+  
+  private var _statusStream: (UdpStatus) -> Void = { _ in }
+  
+  private var _delegate: StreamProcessor
+  private var _isBound = false
+  private var _receivePort: UInt16 = 0
+  private let _receiveQ = DispatchQueue(label: "UdpStream.ReceiveQ", qos: .userInteractive)
+  private var _socket: GCDAsyncUdpSocket!
+
+  private let kMaxBindAttempts = 20
 }
 
 // ----------------------------------------------------------------------------
@@ -227,4 +191,32 @@ extension Udp {
       }
     }
   }
+}
+
+// ----------------------------------------------------------------------------
+// MARK: - Public structs and enums
+
+public enum UdpStatusType: Sendable {
+  case didUnBind
+  case failedToBind
+  case readError
+}
+
+public struct UdpStatus: Identifiable, Equatable, Sendable {
+  public static func == (lhs: UdpStatus, rhs: UdpStatus) -> Bool {
+    lhs.id == rhs.id
+  }
+
+  public init(_ statusType: UdpStatusType, receivePort: UInt16, sendPort: UInt16, error: Error? = nil) {
+    self.statusType = statusType
+    self.receivePort = receivePort
+    self.sendPort = sendPort
+    self.error = error
+  }
+
+  public var id = UUID()
+  public var statusType: UdpStatusType = .didUnBind
+  public var receivePort: UInt16 = 0
+  public var sendPort: UInt16 = 0
+  public var error: Error?
 }

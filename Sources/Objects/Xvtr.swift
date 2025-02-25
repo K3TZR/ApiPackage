@@ -19,74 +19,7 @@ public final class Xvtr {
   public init(_ id: UInt32) {
     self.id = id
   }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public propertie
   
-  public let id: UInt32
-  
-  public private(set) var isValid = false
-  public private(set) var preferred = false
-  public private(set) var twoMeterInt = 0
-  public private(set) var ifFrequency: Hz = 0
-  public private(set) var loError = 0
-  public private(set) var name = ""
-  public private(set) var maxPower = 0
-  public private(set) var order = 0
-  public private(set) var rfFrequency: Hz = 0
-  public private(set) var rxGain = 0
-  public private(set) var rxOnly = false
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Property: String {
-    case create
-    case ifFrequency    = "if_freq"
-    case isValid        = "is_valid"
-    case loError        = "lo_error"
-    case maxPower       = "max_power"
-    case name
-    case order
-    case preferred
-    case remove
-    case rfFrequency    = "rf_freq"
-    case rxGain         = "rx_gain"
-    case rxOnly         = "rx_only"
-    case twoMeterInt    = "two_meter_int"
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized = false
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static status method
-  
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
-    // get the id
-    if let id = UInt32(properties[0].key, radix: 10) {
-      let index = objectModel.xvtrs.firstIndex(where: { $0.id == id })
-      // is it in use?
-      if inUse {
-        // YES, add it if not already present
-        if index == nil {
-          objectModel.xvtrs.append(Xvtr(id))
-          objectModel.xvtrs.last!.parse(Array(properties.dropFirst(1)) )
-        } else {
-          // parse the properties
-          objectModel.xvtrs[index!].parse(Array(properties.dropFirst(1)) )
-        }
-        
-      } else {
-        // NO, remove it
-        objectModel.xvtrs.remove(at: index!)
-        log.debug("Tnf \(id): REMOVED")
-      }
-    }
-  }
-
   // ----------------------------------------------------------------------------
   // MARK: - Public Static command methods
   
@@ -112,9 +45,35 @@ public final class Xvtr {
   public static func set(id: UInt32, property: Property, value: String) -> String {
     "xvtr set \(id.hex) \(property.rawValue)=\(value)"
   }
-
+  
   // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public Static status method
+  
+  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+    // get the id
+    if let id = UInt32(properties[0].key, radix: 10) {
+      let index = objectModel.xvtrs.firstIndex(where: { $0.id == id })
+      // is it in use?
+      if inUse {
+        // YES, add it if not already present
+        if index == nil {
+          objectModel.xvtrs.append(Xvtr(id))
+          objectModel.xvtrs.last!.parse(Array(properties.dropFirst(1)) )
+        } else {
+          // parse the properties
+          objectModel.xvtrs[index!].parse(Array(properties.dropFirst(1)) )
+        }
+        
+      } else {
+        // NO, remove it
+        objectModel.xvtrs.remove(at: index!)
+        log.debug("Tnf \(id): REMOVED")
+      }
+    }
+  }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public parse method
   
   /// Parse Xvtr key/value pairs
   /// - Parameter properties:       a KeyValuesArray
@@ -153,4 +112,39 @@ public final class Xvtr {
       log.debug("Xvtr: ADDED, name = \(self.name)")
     }
   }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public let id: UInt32
+  
+  public private(set) var isValid = false
+  public private(set) var preferred = false
+  public private(set) var twoMeterInt = 0
+  public private(set) var ifFrequency: Hz = 0
+  public private(set) var loError = 0
+  public private(set) var name = ""
+  public private(set) var maxPower = 0
+  public private(set) var order = 0
+  public private(set) var rfFrequency: Hz = 0
+  public private(set) var rxGain = 0
+  public private(set) var rxOnly = false
+  
+  public enum Property: String {
+    case create
+    case ifFrequency    = "if_freq"
+    case isValid        = "is_valid"
+    case loError        = "lo_error"
+    case maxPower       = "max_power"
+    case name
+    case order
+    case preferred
+    case remove
+    case rfFrequency    = "rf_freq"
+    case rxGain         = "rx_gain"
+    case rxOnly         = "rx_only"
+    case twoMeterInt    = "two_meter_int"
+  }
+
+  private var _initialized = false
 }

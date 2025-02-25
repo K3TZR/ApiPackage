@@ -6,38 +6,6 @@
 
 import Foundation
 
-public protocol StreamProcessor: AnyObject {
-  func streamProcessor(_ vita: Vita) async
-}
-
-public protocol AudioProcessor: AnyObject {
-  func audioProcessor(_ vita: Vita)
-}
-
-
-///  VITA header struct implementation
-///      provides decoding and encoding services for Vita encoding
-///      see http://www.vita.com
-public struct VitaHeader {
-  // this struct mirrors the structure of a Vita Header
-  //      some of these fields are optional in a generic Vita-49 header
-  //      however they are always present in the Flex usage of Vita-49
-  //
-  //      all of the UInt16 & UInt32 fields must be BigEndian
-  //
-  //      This header is 28 bytes / 4 UInt32's
-  //
-  public var packetDesc                            : UInt8 = 0
-  public var timeStampDesc                         : UInt8 = 0   // the lsb four bits are used for sequence number
-  public var packetSize                            : UInt16 = 0
-  public var streamId                              : UInt32 = 0
-  public var oui                                   : UInt32 = 0
-  public var classCodes                            : UInt32 = 0
-  public var integerTimeStamp                      : UInt32 = 0
-  public var fractionalTimeStampMsb                : UInt32 = 0
-  public var fractionalTimeStampLsb                : UInt32 = 0
-}
-
 ///  VITA class implementation
 ///     this class includes, in a more readily inspectable form, all of the properties
 ///     needed to populate a Vita Data packet. The "encode" instance method converts this
@@ -92,47 +60,6 @@ public class Vita {
       self.integerTimestamp = CFSwapInt32HostToBig(UInt32(Date().timeIntervalSince1970))
     }
   }
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  public static let DiscoveryStreamId              : UInt32 = 0x00000800
-  public var classCode                             : ClassCode = .panadapter      // Packet class code
-  public var classIdPresent                        : Bool = true                         // Class ID present
-  public var packetSize                            : Int = 0                             // Size of packet (32 bit chunks)
-  public var payloadData                           = [UInt8]()                           // Array of bytes in payload
-  public var payloadSize                           : Int = 0                             // Size of payload (bytes)
-  public var streamId                              : UInt32 = 0                          // Stream ID
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Static properties
-  
-  // Flex specific codes
-  static let kFlexOui                       : UInt32 = 0x1c2d
-  static let kOuiMask                       : UInt32 = 0x00ffffff
-  static let kFlexInformationClassCode      : UInt32 = 0x534c
-  
-  static let kClassIdPresentMask            : UInt8 = 0x08
-  static let kTrailerPresentMask            : UInt8 = 0x04
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Internal properties
-  
-  // filled with defaults, values are changed when created
-  //      Types are shown for clarity
-  
-  public var packetType                     : PacketTypes = .extDataWithStream    // Packet type
-  public var trailerPresent                 : Bool = false                        // Trailer present
-  public var tsiType                        : TsiTypes = .utc                     // Integer timestamp type
-  public var tsfType                        : TsfTypes = .sampleCount             // Fractional timestamp type
-  public var sequence                       : Int = 0                             // Mod 16 packet sequence number
-  public var integerTimestamp               : UInt32 = 0                          // Integer portion
-  public var fracTimeStampMsb               : UInt32 = 0                          // fractional portion - MSB 32 bits
-  public var fracTimeStampLsb               : UInt32 = 0                          // fractional portion -LSB 32 bits
-  public var oui                            : UInt32 = kFlexOui                   // Flex Radio oui
-  public var informationClassCode           : UInt32 = kFlexInformationClassCode  // Flex Radio classCode
-  public var trailer                        : UInt32 = 0                          // Trailer, 4 bytes (if used)
-  public var headerSize                     : Int = MemoryLayout<VitaHeader>.size // Header size (bytes)
   
   /// Decode a Data type into a Vita class
   /// - Parameter data:         a Data type containing a Vita stream
@@ -351,12 +278,71 @@ public class Vita {
     // return the encoded Vita class as Data
     return Vita.encodeAsData(vita, sequenceNumber: sequenceNumber)
   }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public static let DiscoveryStreamId              : UInt32 = 0x00000800
+
+  public var classCode                             : ClassCode = .panadapter      // Packet class code
+  public var classIdPresent                        : Bool = true                  // Class ID present
+  public var packetSize                            : Int = 0                      // Size of packet (32 bit chunks)
+  public var payloadData                           = [UInt8]()                    // Array of bytes in payload
+  public var payloadSize                           : Int = 0                      // Size of payload (bytes)
+  public var streamId                              : UInt32 = 0                   // Stream ID
+  
+  // filled with defaults, values are changed when created
+  //      Types are shown for clarity
+  
+  public var packetType                     : PacketTypes = .extDataWithStream    // Packet type
+  public var trailerPresent                 : Bool = false                        // Trailer present
+  public var tsiType                        : TsiTypes = .utc                     // Integer timestamp type
+  public var tsfType                        : TsfTypes = .sampleCount             // Fractional timestamp type
+  public var sequence                       : Int = 0                             // Mod 16 packet sequence number
+  public var integerTimestamp               : UInt32 = 0                          // Integer portion
+  public var fracTimeStampMsb               : UInt32 = 0                          // fractional portion - MSB 32 bits
+  public var fracTimeStampLsb               : UInt32 = 0                          // fractional portion -LSB 32 bits
+  public var oui                            : UInt32 = kFlexOui                   // Flex Radio oui
+  public var informationClassCode           : UInt32 = kFlexInformationClassCode  // Flex Radio classCode
+  public var trailer                        : UInt32 = 0                          // Trailer, 4 bytes (if used)
+  public var headerSize                     : Int = MemoryLayout<VitaHeader>.size // Header size (bytes)
+
+  // Flex specific codes
+  static let kFlexOui                       : UInt32 = 0x1c2d
+  static let kOuiMask                       : UInt32 = 0x00ffffff
+  static let kFlexInformationClassCode      : UInt32 = 0x534c
+  
+  static let kClassIdPresentMask            : UInt8 = 0x08
+  static let kTrailerPresentMask            : UInt8 = 0x04
 }
 
 // ----------------------------------------------------------------------------
 // MARK: - Vita types
 
 extension Vita {
+  ///  VITA header struct implementation
+  ///      provides decoding and encoding services for Vita encoding
+  ///      see http://www.vita.com
+  public struct VitaHeader {
+    // this struct mirrors the structure of a Vita Header
+    //      some of these fields are optional in a generic Vita-49 header
+    //      however they are always present in the Flex usage of Vita-49
+    //
+    //      all of the UInt16 & UInt32 fields must be BigEndian
+    //
+    //      This header is 28 bytes / 4 UInt32's
+    //
+    public var packetDesc                            : UInt8 = 0
+    public var timeStampDesc                         : UInt8 = 0   // the lsb four bits are used for sequence number
+    public var packetSize                            : UInt16 = 0
+    public var streamId                              : UInt32 = 0
+    public var oui                                   : UInt32 = 0
+    public var classCodes                            : UInt32 = 0
+    public var integerTimeStamp                      : UInt32 = 0
+    public var fractionalTimeStampMsb                : UInt32 = 0
+    public var fractionalTimeStampLsb                : UInt32 = 0
+  }
+
   /// Types
   public  enum VitaTypes {
     case discovery
@@ -452,3 +438,15 @@ extension Vita {
     }
   }
 }
+
+// ----------------------------------------------------------------------------
+// MARK: - Protocols
+
+public protocol StreamProcessor: AnyObject {
+  func streamProcessor(_ vita: Vita) async
+}
+
+public protocol AudioProcessor: AnyObject {
+  func audioProcessor(_ vita: Vita)
+}
+

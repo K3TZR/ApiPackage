@@ -21,28 +21,33 @@ public final class Profile {
   public init(_ id: String) {
     self.id = id
   }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-
-  public let id: String
   
-  public var current: String = ""
-  public var list = [String]()
-
   // ----------------------------------------------------------------------------
-  // MARK: - Public types
+  // MARK: - Public Static command methods
   
-  public enum Property: String {
-    case list = "list"
-    case current = "current"
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
+  /* ----- from the FlexApi source -----
+   "profile transmit save \"" + profile_name.Replace("*","") + "\""
+   "profile transmit create \"" + profile_name.Replace("*", "") + "\""
+   "profile transmit reset \"" + profile_name.Replace("*", "") + "\""
+   "profile transmit delete \"" + profile_name.Replace("*", "") + "\""
+   "profile mic delete \"" + profile_name.Replace("*","") + "\""
+   "profile mic save \"" + profile_name.Replace("*", "") + "\""
+   "profile mic reset \"" + profile_name.Replace("*", "") + "\""
+   "profile mic create \"" + profile_name.Replace("*", "") + "\""
+   "profile global save \"" + profile_name + "\""
+   "profile global delete \"" + profile_name + "\""
+   
+   "profile mic load \"" + _profileMICSelection + "\""
+   "profile tx load \"" + _profileTXSelection + "\""
+   "profile global load \"" + _profileGlobalSelection + "\""
+   
+   "profile global info"
+   "profile tx info"
+   "profile mic info"
+   */
   
-  private var _initialized = false
-
+  // TODO:
+  
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
@@ -67,39 +72,15 @@ public final class Profile {
       log.debug("Tnf \(id): REMOVED")
     }
   }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
   
-  /* ----- from the FlexApi source -----
-   "profile transmit save \"" + profile_name.Replace("*","") + "\""
-   "profile transmit create \"" + profile_name.Replace("*", "") + "\""
-   "profile transmit reset \"" + profile_name.Replace("*", "") + "\""
-   "profile transmit delete \"" + profile_name.Replace("*", "") + "\""
-   "profile mic delete \"" + profile_name.Replace("*","") + "\""
-   "profile mic save \"" + profile_name.Replace("*", "") + "\""
-   "profile mic reset \"" + profile_name.Replace("*", "") + "\""
-   "profile mic create \"" + profile_name.Replace("*", "") + "\""
-   "profile global save \"" + profile_name + "\""
-   "profile global delete \"" + profile_name + "\""
-   
-   "profile mic load \"" + _profileMICSelection + "\""
-   "profile tx load \"" + _profileTXSelection + "\""
-   "profile global load \"" + _profileGlobalSelection + "\""
-   
-   "profile global info"
-   "profile tx info"
-   "profile mic info"
-   */
-
   // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public parse method
   
   /// Parse Profile key/value pairs
   /// - Parameter statusMessage:       String
   public func parse(_ properties: KeyValuesArray) {
     let components = properties[0].key.components(separatedBy: " ")
-
+    
     // check for unknown Key
     guard let token = Profile.Property(rawValue: components[1]) else {
       // log it and ignore the Key
@@ -114,16 +95,16 @@ public final class Profile {
       } else {
         list = properties[1].key.valuesArray(delimiter: "^")
       }
-//      print("---->>>> list =", list)
-
+      //      print("---->>>> list =", list)
+      
     case .current:
       if properties.count < 2 {
         current = ""
       } else {
         current = properties[1].key
       }
-//      print("---->>>> current =", current)
-
+      //      print("---->>>> current =", current)
+      
     }
     // is it initialized?
     if _initialized == false {
@@ -132,4 +113,19 @@ public final class Profile {
       log.debug("Profile: ADDED")
     }
   }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+
+  public let id: String
+  
+  public var current: String = ""
+  public var list = [String]()
+  
+  public enum Property: String {
+    case list = "list"
+    case current = "current"
+  }
+  
+  private var _initialized = false
 }

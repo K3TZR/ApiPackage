@@ -16,17 +16,6 @@ import CocoaAsyncSocket
 @MainActor
 public final class ListenerLocal: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  nonisolated private let _objectModel: ObjectModel
-  
-  private var _checkTimer: DispatchSourceTimer?
-  private let _formatter = DateFormatter()
-  private let _timerQ = DispatchQueue(label: "ListenerLocal" + ".timerQ", attributes: .concurrent)
-  private let _udpQ = DispatchQueue(label: "ListenerLocal" + ".udpQ")
-  private var _udpSocket: GCDAsyncUdpSocket!
-  
-  // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
   init(_ objectModel: ObjectModel, port: UInt16 = 4992) {
@@ -82,6 +71,17 @@ public final class ListenerLocal: NSObject, ObservableObject {
     _udpSocket?.close()
     log.info("Local Listener: STOPPED")
   }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  nonisolated private let _objectModel: ObjectModel
+  
+  private var _checkTimer: DispatchSourceTimer?
+  private let _formatter = DateFormatter()
+  private let _timerQ = DispatchQueue(label: "ListenerLocal" + ".timerQ", attributes: .concurrent)
+  private let _udpQ = DispatchQueue(label: "ListenerLocal" + ".udpQ")
+  private var _udpSocket: GCDAsyncUdpSocket!
 }
 
 // ----------------------------------------------------------------------------

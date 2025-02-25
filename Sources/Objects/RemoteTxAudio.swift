@@ -23,34 +23,14 @@ public final class RemoteTxAudio: Identifiable {
   // MARK: - Initialization
   
   public init(_ id: UInt32) { self.id = id }
-  
-  // ------------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  public let id : UInt32
-  
-  public var clientHandle: UInt32 = 0
-  public var compression = ""
-  public var ip = ""
-  
-  // ------------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Property: String {
-    case clientHandle = "client_handle"
-    case compression
-    case ip
-  }
-  
-  // ------------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized = false
-  private var _txSequenceNumber = 0
-  private var _vita: Vita?
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static methods
+  // MARK: - Public Static command methods
+  
+  //TODO:
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static status method
   
   public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray) {
     // get the id
@@ -65,7 +45,7 @@ public final class RemoteTxAudio: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Instance methods
+  // MARK: - Public parse method
   
   ///  Parse  key/value pairs
   /// - Parameter properties: a KeyValuesArray
@@ -120,7 +100,7 @@ public final class RemoteTxAudio: Identifiable {
     
     // set the length of the packet
     _vita!.payloadSize = samples                                              // 8-Bit encoded samples
-    _vita!.packetSize = _vita!.payloadSize + MemoryLayout<VitaHeader>.size    // payload size + header size
+    _vita!.packetSize = _vita!.payloadSize + MemoryLayout<Vita.VitaHeader>.size    // payload size + header size
     
     // set the sequence number
     _vita!.sequence = _txSequenceNumber
@@ -135,4 +115,23 @@ public final class RemoteTxAudio: Identifiable {
     // increment the sequence number (mod 16)
     _txSequenceNumber = (_txSequenceNumber + 1) % 16    
   }
+  
+  // ------------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public let id : UInt32
+  
+  public var clientHandle: UInt32 = 0
+  public var compression = ""
+  public var ip = ""
+  
+  public enum Property: String {
+    case clientHandle = "client_handle"
+    case compression
+    case ip
+  }
+  
+  private var _initialized = false
+  private var _txSequenceNumber = 0
+  private var _vita: Vita?
 }

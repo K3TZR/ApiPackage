@@ -29,7 +29,6 @@ public final class Pinger {
 
     // set the event handler
     _pingTimer.setEventHandler(handler: { [self] in
-//      Task { await MainActor.run {_objectModel.sendTcp("ping") }}
         Task { _objectModel.sendTcp("ping") }
     })
     // start the timer
@@ -37,9 +36,8 @@ public final class Pinger {
   }
   
   // ----------------------------------------------------------------------------
-  // MARK: - Private properties
+  // MARK: - Properties
   
-//  private nonisolated let _objectModel: ObjectModel
   private let _objectModel: ObjectModel
   private let _pingQ = DispatchQueue(label: "PingQ")
   private let _pingTimer: DispatchSourceTimer!

@@ -22,76 +22,6 @@ public enum ListenerError: String, Error {
 ///
 @MainActor
 public final class ListenerSmartlink: NSObject, ObservableObject {
-//  // ----------------------------------------------------------------------------
-//  // MARK: - Public static constants
-//  
-//  public static let kTimeout: Double = 5.0
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _appName: String?
-  private var _awaitWanHandle: CheckedContinuation<String, Error>?
-  private var _callsign: String?
-  private var _currentTokens: Tokens?
-  private var _domain: String?
-  private var _firstName: String?
-  private var _host: String?
-  private var _lastName: String?
-  private let _objectModel: ObjectModel!
-  private let _pingQ = DispatchQueue(label: "SmartlinkListener.pingQ")
-  private var _pingTimer: DispatchSourceTimer!
-  private var _platform: String?
-  private var _previousIdToken: IdToken?
-  private var _publicIp: String?
-  private var _pwd: String?
-  private var _serial: String?
-  private var _smartlinkImage: Image?
-  private let _socketQ = DispatchQueue(label: "WanListener.socketQ")
-  private var _tcpSocket: GCDAsyncSocket!
-  private var _timeout = 0.0                // seconds
-  private var _user: String?
-  private var _wanHandle: String?
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private constants
-  
-  private let kSmartlinkHost = "smartlink.flexradio.com"
-  private let kSmartlinkPort: UInt16 = 443
-  private let kPlatform = "macOS"
-
-  private let kDomain             = "https://frtest.auth0.com/"
-  private let kClientId           = "4Y9fEIIsVYyQo5u6jr7yBWc4lV5ugC2m"
-  private let kServiceName        = ".oauth-token"
-  
-  private let kApplicationJson    = "application/json"
-  private let kAuth0Authenticate  = "https://frtest.auth0.com/oauth/ro"
-  private let kAuth0AuthenticateURL = URL(string: "https://frtest.auth0.com/oauth/ro")!
-  
-  private let kAuth0Delegation    = "https://frtest.auth0.com/delegation"
-  private let kClaimEmail         = "email"
-  private let kClaimPicture       = "picture"
-  private let kGrantType          = "password"
-  private let kGrantTypeRefresh   = "urn:ietf:params:oauth:grant-type:jwt-bearer"
-  private let kHttpHeaderField    = "content-type"
-  private let kHttpPost           = "POST"
-  private let kConnection         = "Username-Password-Authentication"
-  private let kDevice             = "any"
-  private let kScope              = "openid offline_access email picture"
-  
-  private let kKeyClientId        = "client_id"       // dictionary keys
-  private let kKeyConnection      = "connection"
-  private let kKeyDevice          = "device"
-  private let kKeyGrantType       = "grant_type"
-  private let kKeyIdToken         = "id_token"
-  private let kKeyPassword        = "password"
-  private let kKeyRefreshToken    = "refresh_token"
-  private let kKeyScope           = "scope"
-  private let kKeyTarget          = "target"
-  private let kKeyUserName        = "username"
-  
-  private let kDefaultPicture     = "person.fill"
-  
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
@@ -212,10 +142,144 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
     _pingTimer.resume()
     log.debug("Smartlink Listener: STARTED pinging \(self._host ?? "????")")
   }
+    
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  private var _appName: String?
+  private var _awaitWanHandle: CheckedContinuation<String, Error>?
+  private var _callsign: String?
+  private var _currentTokens: Tokens?
+  private var _domain: String?
+  private var _firstName: String?
+  private var _host: String?
+  private var _lastName: String?
+  private let _objectModel: ObjectModel!
+  private let _pingQ = DispatchQueue(label: "SmartlinkListener.pingQ")
+  private var _pingTimer: DispatchSourceTimer!
+  private var _platform: String?
+  private var _previousIdToken: IdToken?
+  private var _publicIp: String?
+  private var _pwd: String?
+  private var _serial: String?
+  private var _smartlinkImage: Image?
+  private let _socketQ = DispatchQueue(label: "WanListener.socketQ")
+  private var _tcpSocket: GCDAsyncSocket!
+  private var _timeout = 0.0                // seconds
+  private var _user: String?
+  private var _wanHandle: String?
+
+  private let kSmartlinkHost = "smartlink.flexradio.com"
+  private let kSmartlinkPort: UInt16 = 443
+  private let kPlatform = "macOS"
+
+  private let kDomain             = "https://frtest.auth0.com/"
+  private let kClientId           = "4Y9fEIIsVYyQo5u6jr7yBWc4lV5ugC2m"
+  private let kServiceName        = ".oauth-token"
+  
+  private let kApplicationJson    = "application/json"
+  private let kAuth0Authenticate  = "https://frtest.auth0.com/oauth/ro"
+  private let kAuth0AuthenticateURL = URL(string: "https://frtest.auth0.com/oauth/ro")!
+  
+  private let kAuth0Delegation    = "https://frtest.auth0.com/delegation"
+  private let kClaimEmail         = "email"
+  private let kClaimPicture       = "picture"
+  private let kGrantType          = "password"
+  private let kGrantTypeRefresh   = "urn:ietf:params:oauth:grant-type:jwt-bearer"
+  private let kHttpHeaderField    = "content-type"
+  private let kHttpPost           = "POST"
+  private let kConnection         = "Username-Password-Authentication"
+  private let kDevice             = "any"
+  private let kScope              = "openid offline_access email picture"
+  
+  private let kKeyClientId        = "client_id"       // dictionary keys
+  private let kKeyConnection      = "connection"
+  private let kKeyDevice          = "device"
+  private let kKeyGrantType       = "grant_type"
+  private let kKeyIdToken         = "id_token"
+  private let kKeyPassword        = "password"
+  private let kKeyRefreshToken    = "refresh_token"
+  private let kKeyScope           = "scope"
+  private let kKeyTarget          = "target"
+  private let kKeyUserName        = "username"
+  
+  private let kDefaultPicture     = "person.fill"
 }
 
 // ----------------------------------------------------------------------------
-// MARK: - ListenerSmartlink extension - Tokens Authentication
+// MARK: - ListenerSmartlink extension - GCDAsyncSocketDelegate
+
+extension ListenerSmartlink: @preconcurrency GCDAsyncSocketDelegate {
+  //      All are called on the _socketQ
+  //
+  //      1. A TCP connection is opened to the SmartLink server
+  //      2. A TLS connection is then initiated over the TCP connection
+  //      3. The TLS connection "secures" and is now ready for use
+  //
+  //      If a TLS negotiation fails (invalid certificate, etc) then the socket will immediately close,
+  //      and the socketDidDisconnect:withError: delegate method will be called with an error code.
+  //
+  public func socket(_ sock: GCDAsyncSocket,
+                     didConnectToHost host: String,
+                     port: UInt16) {
+    _host = host
+    log.debug("Smartlink Listener: TCP Socket didConnectToHost, \(host):\(port)")
+    
+    // initiate a secure (TLS) connection to the Smartlink server
+    var tlsSettings = [String : NSObject]()
+    tlsSettings[kCFStreamSSLPeerName as String] = kSmartlinkHost as NSObject
+    _tcpSocket.startTLS(tlsSettings)
+    
+    log.debug("Smartlink Listener: TLS Socket connection initiated")
+  }
+  
+  public func socketDidSecure(_ sock: GCDAsyncSocket) {
+    log.debug("Smartlink Listener: TLS socketDidSecure")
+    
+    // start pinging SmartLink server
+    startPinging()
+    
+    // register the Application / token pair with the SmartLink server
+    sendTlsCommand("application register name=\(_appName!) platform=\(kPlatform) token=\(_currentTokens!.idToken)", timeout: _timeout, tag: 0)
+    log.debug("Smartlink Listener: Application registered, name=\(self._appName!) platform=\(self.kPlatform)")
+    
+    // start reading
+    _tcpSocket.readData(to: GCDAsyncSocket.lfData(), withTimeout: -1, tag: 0)
+    log.info("Smartlink Listener: STARTED")
+  }
+  
+  public func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
+    // get the bytes that were read
+    if let msg = String(data: data, encoding: .ascii) {
+      // process the message
+      parseVitaPayload(msg)
+    }
+    // trigger the next read
+    _tcpSocket.readData(to: GCDAsyncSocket.lfData(), withTimeout: -1, tag: 0)
+  }
+  
+  public func socketDidDisconnect(_ sock: GCDAsyncSocket, withError err: Error?) {
+    // Disconnected from the Smartlink server
+    let error = (err == nil ? "" : " with error: " + err!.localizedDescription)
+    if err == nil {
+      log.debug("SmartlinkListener: TCP socketDidDisconnect \(error)")
+    } else {
+      log.error("SmartlinkListener: TCP socketDidDisconnect \(error)")
+    }
+    if err != nil { stop() }
+  }
+  
+  public func socket(_ sock: GCDAsyncSocket, shouldTimeoutWriteWithTag tag: Int, elapsed: TimeInterval, bytesDone length: UInt) -> TimeInterval {
+    return 0
+  }
+  
+  public func socket(_ sock: GCDAsyncSocket, shouldTimeoutReadWithTag tag: Int, elapsed: TimeInterval, bytesDone length: UInt) -> TimeInterval {
+    return 30.0
+  }
+}
+
+// ----------------------------------------------------------------------------
+// MARK: - ListenerSmartlink extension - Smartlink authentication
 
 extension ListenerSmartlink {
   
@@ -364,93 +428,28 @@ extension ListenerSmartlink {
   /// - Parameter idToken:    the Id Token
   private func updateClaims(from idToken: IdToken?) {
     if let idToken = idToken, let jwt = try? decode(jwt: idToken) {
-      _smartlinkImage = getImage(jwt.claim(name: kClaimPicture).string)
+      Task {
+        await _smartlinkImage = getImage(jwt.claim(name: kClaimPicture).string)
+      }
       //      settingModel.shared.smartlinkUser = jwt.claim(name: kClaimEmail).string ?? ""
     }
   }
   
-  /// Given a claim, retrieve the gravatar image
-  /// - Parameter claimString:    a "picture" claim string
-  /// - Returns:                  the image
-  private func getImage(_ claimString: String?) -> Image {
-    if let urlString = claimString, let url = URL(string: urlString) {
-      if let data = try? Data(contentsOf: url), let theImage = NSImage(data: data) {
-        return Image(nsImage: theImage)
+  private func getImage(_ claimString: String?) async -> Image {
+    guard let urlString = claimString, let url = URL(string: urlString) else {
+      return Image(systemName: kDefaultPicture)
+    }
+    
+    do {
+      let (data, _) = try await URLSession.shared.data(from: url)
+      if let nsImage = NSImage(data: data) {
+        return Image(nsImage: nsImage)
       }
+    } catch {
+      log.error("Error loading image: \(error)")
     }
-    return Image( systemName: kDefaultPicture)
-  }
-}
-
-// ----------------------------------------------------------------------------
-// MARK: - ListenerSmartlink extension - GCDAsyncSocketDelegate
-
-extension ListenerSmartlink: @preconcurrency GCDAsyncSocketDelegate {
-  //      All are called on the _socketQ
-  //
-  //      1. A TCP connection is opened to the SmartLink server
-  //      2. A TLS connection is then initiated over the TCP connection
-  //      3. The TLS connection "secures" and is now ready for use
-  //
-  //      If a TLS negotiation fails (invalid certificate, etc) then the socket will immediately close,
-  //      and the socketDidDisconnect:withError: delegate method will be called with an error code.
-  //
-  public func socket(_ sock: GCDAsyncSocket,
-                     didConnectToHost host: String,
-                     port: UInt16) {
-    _host = host
-    log.debug("Smartlink Listener: TCP Socket didConnectToHost, \(host):\(port)")
     
-    // initiate a secure (TLS) connection to the Smartlink server
-    var tlsSettings = [String : NSObject]()
-    tlsSettings[kCFStreamSSLPeerName as String] = kSmartlinkHost as NSObject
-    _tcpSocket.startTLS(tlsSettings)
-    
-    log.debug("Smartlink Listener: TLS Socket connection initiated")
-  }
-  
-  public func socketDidSecure(_ sock: GCDAsyncSocket) {
-    log.debug("Smartlink Listener: TLS socketDidSecure")
-    
-    // start pinging SmartLink server
-    startPinging()
-    
-    // register the Application / token pair with the SmartLink server
-    sendTlsCommand("application register name=\(_appName!) platform=\(kPlatform) token=\(_currentTokens!.idToken)", timeout: _timeout, tag: 0)
-    log.debug("Smartlink Listener: Application registered, name=\(self._appName!) platform=\(self.kPlatform)")
-    
-    // start reading
-    _tcpSocket.readData(to: GCDAsyncSocket.lfData(), withTimeout: -1, tag: 0)
-    log.info("Smartlink Listener: STARTED")
-  }
-  
-  public func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
-    // get the bytes that were read
-    if let msg = String(data: data, encoding: .ascii) {
-      // process the message
-      parseVitaPayload(msg)
-    }
-    // trigger the next read
-    _tcpSocket.readData(to: GCDAsyncSocket.lfData(), withTimeout: -1, tag: 0)
-  }
-  
-  public func socketDidDisconnect(_ sock: GCDAsyncSocket, withError err: Error?) {
-    // Disconnected from the Smartlink server
-    let error = (err == nil ? "" : " with error: " + err!.localizedDescription)
-    if err == nil {
-      log.debug("SmartlinkListener: TCP socketDidDisconnect \(error)")
-    } else {
-      log.error("SmartlinkListener: TCP socketDidDisconnect \(error)")
-    }
-    if err != nil { stop() }
-  }
-  
-  public func socket(_ sock: GCDAsyncSocket, shouldTimeoutWriteWithTag tag: Int, elapsed: TimeInterval, bytesDone length: UInt) -> TimeInterval {
-    return 0
-  }
-  
-  public func socket(_ sock: GCDAsyncSocket, shouldTimeoutReadWithTag tag: Int, elapsed: TimeInterval, bytesDone length: UInt) -> TimeInterval {
-    return 30.0
+    return Image(systemName: kDefaultPicture)
   }
 }
 
@@ -683,7 +682,6 @@ extension ListenerSmartlink {
         packet.localInterfaceIP = localAddr
       }
       // processs the packet
-      let guiClients: [GuiClient] = []
       _objectModel?.process(.smartlink, message.keyValuesArray() ,nil)
 
       log.debug("Smartlink Listener: RadioList RECEIVED, \(packet.nickname)")

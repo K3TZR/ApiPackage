@@ -24,43 +24,14 @@ public final class DaxRxAudio {
   // MARK: - Initialization
   
   public init() {}
-  
-  // ------------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-//  public var audioOutput: RxAudioOutput?
-
-  public var clientHandle: UInt32 = 0
-  public var ip = ""
-  public var sliceLetter = ""
-  public var daxChannel = 0
-  public var rxGain = 0
-    
-  // ------------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Property: String {
-    case clientHandle   = "client_handle"
-    case daxChannel     = "dax_channel"
-    case ip
-    case sliceLetter    = "slice"
-    case type
-  }
-  
-  // ------------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized = false
-  private var _rxPacketCount      = 0
-  private var _rxLostPacketCount  = 0
-  private var _rxSequenceNumber   = -1
-
-  private static let elementSizeStandard = MemoryLayout<Float>.size
-  private static let elementSizeReduced = MemoryLayout<Int16>.size
-  private static let channelCount = 2
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static methods
+  // MARK: - Public Static command methods
+  
+  //TODO:
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static status method
   
   public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray) {
     // get the id
@@ -73,7 +44,7 @@ public final class DaxRxAudio {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public methods
+  // MARK: - Public parse method
   
   /// Parse key/value pairs
   /// - Parameter properties:       a KeyValuesArray
@@ -115,4 +86,32 @@ public final class DaxRxAudio {
       log.debug("DaxRxAudio ADDED: channel = \(self.daxChannel), handle = \(self.clientHandle.hex)")
     }
   }
+  
+  // ------------------------------------------------------------------------------
+  // MARK: - Properties
+  
+//  public var audioOutput: RxAudioOutput?
+
+  public var clientHandle: UInt32 = 0
+  public var ip = ""
+  public var sliceLetter = ""
+  public var daxChannel = 0
+  public var rxGain = 0
+    
+  public enum Property: String {
+    case clientHandle   = "client_handle"
+    case daxChannel     = "dax_channel"
+    case ip
+    case sliceLetter    = "slice"
+    case type
+  }
+  
+  private var _initialized = false
+  private var _rxPacketCount      = 0
+  private var _rxLostPacketCount  = 0
+  private var _rxSequenceNumber   = -1
+
+  private static let elementSizeStandard = MemoryLayout<Float>.size
+  private static let elementSizeReduced = MemoryLayout<Int16>.size
+  private static let channelCount = 2
 }

@@ -20,74 +20,6 @@ public final class Meter: ObservableObject, Identifiable {
   public init(_ id: UInt32) {
     self.id = id
   }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  @Published public var value: Float = 0    // uses ObservableObject to facilitate throttling
-
-  public let id: UInt32
-
-  public var desc: String = ""
-  public var fps: Int = 0
-  public var high: Float = 0
-  public var low: Float = 0
-  public var group: String = ""
-  public var name: String = ""
-  public var peak: Float = 0
-  public var source: String = ""
-  public var units: String = ""
-  
-//  public static var streamId: UInt32?
-//  public static var isStreaming = false
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Source: String {
-    case codec      = "cod"
-    case tx
-    case slice      = "slc"
-    case radio      = "rad"
-    case amplifier  = "amp"
-  }
-  public enum ShortName: String, CaseIterable {
-    case codecOutput            = "codec"
-    case hwAlc                  = "hwalc"
-    case microphoneAverage      = "mic"
-    case microphoneOutput       = "sc_mic"
-    case microphonePeak         = "micpeak"
-    case postClipper            = "comppeak"
-    case postFilter1            = "sc_filt_1"
-    case postFilter2            = "sc_filt_2"
-    case postGain               = "gain"
-    case postRamp               = "aframp"
-    case postSoftwareAlc        = "alc"
-    case powerForward           = "fwdpwr"
-    case powerReflected         = "refpwr"
-    case preRamp                = "b4ramp"
-    case preWaveAgc             = "pre_wave_agc"
-    case preWaveShim            = "pre_wave"
-    case signal24Khz            = "24khz"
-    case signalPassband         = "level"
-    case signalPostNrAnf        = "nr/anf"
-    case signalPostAgc          = "agc+"
-    case swr                    = "swr"
-    case temperaturePa          = "patemp"
-    case voltageAfterFuse       = "+13.8b"
-    case voltageBeforeFuse      = "+13.8a"
-  }
-  
-  public enum Property: String {
-    case desc
-    case fps
-    case high       = "hi"
-    case low
-    case name       = "nam"
-    case group      = "num"
-    case source     = "src"
-    case units      = "unit"
-  }
   
   // ----------------------------------------------------------------------------
   // MARK: - Private properties
@@ -166,4 +98,67 @@ public final class Meter: ObservableObject, Identifiable {
   public func setValue(_ value: Float) {
     self.value = value
   }  
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  @Published public var value: Float = 0    // uses ObservableObject to facilitate throttling
+
+  public let id: UInt32
+
+  public var desc: String = ""
+  public var fps: Int = 0
+  public var high: Float = 0
+  public var low: Float = 0
+  public var group: String = ""
+  public var name: String = ""
+  public var peak: Float = 0
+  public var source: String = ""
+  public var units: String = ""
+  
+  
+  public enum Source: String {
+    case codec      = "cod"
+    case tx
+    case slice      = "slc"
+    case radio      = "rad"
+    case amplifier  = "amp"
+  }
+  public enum ShortName: String, CaseIterable {
+    case codecOutput            = "codec"
+    case hwAlc                  = "hwalc"
+    case microphoneAverage      = "mic"
+    case microphoneOutput       = "sc_mic"
+    case microphonePeak         = "micpeak"
+    case postClipper            = "comppeak"
+    case postFilter1            = "sc_filt_1"
+    case postFilter2            = "sc_filt_2"
+    case postGain               = "gain"
+    case postRamp               = "aframp"
+    case postSoftwareAlc        = "alc"
+    case powerForward           = "fwdpwr"
+    case powerReflected         = "refpwr"
+    case preRamp                = "b4ramp"
+    case preWaveAgc             = "pre_wave_agc"
+    case preWaveShim            = "pre_wave"
+    case signal24Khz            = "24khz"
+    case signalPassband         = "level"
+    case signalPostNrAnf        = "nr/anf"
+    case signalPostAgc          = "agc+"
+    case swr                    = "swr"
+    case temperaturePa          = "patemp"
+    case voltageAfterFuse       = "+13.8b"
+    case voltageBeforeFuse      = "+13.8a"
+  }
+  
+  public enum Property: String {
+    case desc
+    case fps
+    case high       = "hi"
+    case low
+    case name       = "nam"
+    case group      = "num"
+    case source     = "src"
+    case units      = "unit"
+  }
 }

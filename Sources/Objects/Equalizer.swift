@@ -21,71 +21,41 @@ public final class Equalizer: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public properties
+  // MARK: - Public Static command methods
   
-  public let id: String
+  /* ----- from the FlexApi source -----
+   eq " + id + "mode="   + 1/0
+   eq " + id + "32Hz="   + hz32
+   eq " + id + "63Hz="   + hz63
+   eq " + id + "125Hz="  + hz125
+   eq " + id + "250Hz="  + hz250
+   eq " + id + "500Hz="  + hz500
+   eq " + id + "1000Hz=" + hz1000
+   eq " + id + "2000Hz=" + hz2000
+   eq " + id + "4000Hz=" + hz4000
+   eq " + id + "8000Hz=" + hz8000
+   eq " + id + "info"
+   eq apf gain=" + apfGain
+   eq apf mode=" + apfMode
+   eq apf qfactor=" + apfQFactor
+   */
 
-  public var eqEnabled = false
-  public var hz63: Int = 0
-  public var hz125: Int = 0
-  public var hz250: Int = 0
-  public var hz500: Int = 0
-  public var hz1000: Int = 0
-  public var hz2000: Int = 0
-  public var hz4000: Int = 0
-  public var hz8000: Int = 0
-  
-//  public enum Kind: String {
-//    case rx = "rxsc"
-//    case tx = "txsc"
-//  }
+  //  static let altProperty: [Property : String] = [
+  //    // alternate properties REQUIRED when sending to the radio
+  //    .hz63 : "63Hz",
+  //    .hz125 : "125Hz",
+  //    .hz250 : "250Hz",
+  //    .hz500 : "500Hz",
+  //    .hz1000 : "1000Hz",
+  //    .hz2000 : "2000Hz",
+  //    .hz4000 : "4000Hz",
+  //    .hz8000 : "8000Hz"
+  //  ]
 
-  // ----------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Property: String {
-    // properties received from the radio
-    case hz63   = "63hz"
-    case hz125  = "125hz"
-    case hz250  = "250hz"
-    case hz500  = "500hz"
-    case hz1000 = "1000hz"
-    case hz2000 = "2000hz"
-    case hz4000 = "4000hz"
-    case hz8000 = "8000hz"
-    case eqEnabled = "mode"
+  public static func set(id: String, property: Property, value: String) -> String {
+    "eq \(id) \(property.rawValue)=\(value)"
   }
-
-  public enum AltProperty: String {
-    // properties sent to the radio
-    case hz63   = "63Hz"
-    case hz125  = "125Hz"
-    case hz250  = "250Hz"
-    case hz500  = "500Hz"
-    case hz1000 = "1000Hz"
-    case hz2000 = "2000Hz"
-    case hz4000 = "4000Hz"
-    case hz8000 = "8000Hz"
-    case eqEnabled = "mode"
-  }
-
-//  static let altProperty: [Property : String] = [
-//    // alternate properties REQUIRED when sending to the radio
-//    .hz63 : "63Hz",
-//    .hz125 : "125Hz",
-//    .hz250 : "250Hz",
-//    .hz500 : "500Hz",
-//    .hz1000 : "1000Hz",
-//    .hz2000 : "2000Hz",
-//    .hz4000 : "4000Hz",
-//    .hz8000 : "8000Hz"
-//  ]
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
   
-  private var _initialized = false
-
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
@@ -113,31 +83,7 @@ public final class Equalizer: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-  
-  /* ----- from the FlexApi source -----
-   eq " + id + "mode="   + 1/0
-   eq " + id + "32Hz="   + hz32
-   eq " + id + "63Hz="   + hz63
-   eq " + id + "125Hz="  + hz125
-   eq " + id + "250Hz="  + hz250
-   eq " + id + "500Hz="  + hz500
-   eq " + id + "1000Hz=" + hz1000
-   eq " + id + "2000Hz=" + hz2000
-   eq " + id + "4000Hz=" + hz4000
-   eq " + id + "8000Hz=" + hz8000
-   eq " + id + "info"
-   eq apf gain=" + apfGain
-   eq apf mode=" + apfMode
-   eq apf qfactor=" + apfQFactor
-   */
-
-  public static func set(id: String, property: Property, value: String) -> String {
-    "eq \(id) \(property.rawValue)=\(value)"
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public parse method
   
   /// Parse key/value pairs
   /// - Parameter properties:       a KeyValuesArray
@@ -173,20 +119,48 @@ public final class Equalizer: Identifiable {
     }
   }
 
-  /* ----- from FlexApi -----
-   eq " + id + "mode="   + 1/0
-   eq " + id + "32Hz="   + hz32
-   eq " + id + "63Hz="   + hz63
-   eq " + id + "125Hz="  + hz125
-   eq " + id + "250Hz="  + hz250
-   eq " + id + "500Hz="  + hz500
-   eq " + id + "1000Hz=" + hz1000
-   eq " + id + "2000Hz=" + hz2000
-   eq " + id + "4000Hz=" + hz4000
-   eq " + id + "8000Hz=" + hz8000
-   eq " + id + "info"
-   eq apf gain=" + apfGain
-   eq apf mode=" + apfMode
-   eq apf qfactor=" + apfQFactor
-   */
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public let id: String
+
+  public var eqEnabled = false
+  public var hz63: Int = 0
+  public var hz125: Int = 0
+  public var hz250: Int = 0
+  public var hz500: Int = 0
+  public var hz1000: Int = 0
+  public var hz2000: Int = 0
+  public var hz4000: Int = 0
+  public var hz8000: Int = 0
+  
+  
+  public enum Property: String {
+    // properties received from the radio
+    case hz63   = "63hz"
+    case hz125  = "125hz"
+    case hz250  = "250hz"
+    case hz500  = "500hz"
+    case hz1000 = "1000hz"
+    case hz2000 = "2000hz"
+    case hz4000 = "4000hz"
+    case hz8000 = "8000hz"
+    case eqEnabled = "mode"
+  }
+
+  public enum AltProperty: String {
+    // properties sent to the radio
+    case hz63   = "63Hz"
+    case hz125  = "125Hz"
+    case hz250  = "250Hz"
+    case hz500  = "500Hz"
+    case hz1000 = "1000Hz"
+    case hz2000 = "2000Hz"
+    case hz4000 = "4000Hz"
+    case hz8000 = "8000Hz"
+    case eqEnabled = "mode"
+  }
+  
+  private var _initialized = false
+
 }

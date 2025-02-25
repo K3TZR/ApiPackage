@@ -25,53 +25,13 @@ public final class DaxMicAudio: Identifiable {
   
   public init(_ id: UInt32) { self.id = id }
   
-  // ------------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  public let id: UInt32
-
-  public var clientHandle: UInt32 = 0
-  public var ip = ""
-  public var micGain = 0 {
-    didSet { if micGain != oldValue {
-      var newGain = micGain
-      // check limits
-      if newGain > 100 { newGain = 100 }
-      if newGain < 0 { newGain = 0 }
-      if micGain != newGain {
-        micGain = newGain
-        if micGain == 0 {
-          micGainScalar = 0.0
-          return
-        }
-        let db_min:Float = -10.0;
-        let db_max:Float = +10.0;
-        let db:Float = db_min + (Float(micGain) / 100.0) * (db_max - db_min);
-        micGainScalar = pow(10.0, db / 20.0);
-      }
-    }}}
-  public internal(set) var micGainScalar: Float = 0
-  
-  // ------------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Property: String {
-    case clientHandle = "client_handle"
-    case ip
-    case type
-  }
-  
-  // ------------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized = false
-  private var _rxLostPacketCount = 0
-  private var _rxPacketCount = 0
-  private var _rxSequenceNumber = -1
-  private var _streamActive = false
-
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static methods
+  // MARK: - Public Static command methods
+  
+  //TODO:
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static status method
 
   public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray) {
     // get the id
@@ -84,7 +44,7 @@ public final class DaxMicAudio: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public methods
+  // MARK: - Public parse method
 
   /// Parse key/value pairs
   /// - Parameter properties:       a KeyValuesArray
@@ -112,4 +72,43 @@ public final class DaxMicAudio: Identifiable {
       log.debug("DaxMicAudio \(self.id.hex) ADDED: handle = \(self.clientHandle.hex)")
     }
   }
+
+  // ------------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public let id: UInt32
+
+  public var clientHandle: UInt32 = 0
+  public var ip = ""
+  public var micGain = 0 {
+    didSet { if micGain != oldValue {
+      var newGain = micGain
+      // check limits
+      if newGain > 100 { newGain = 100 }
+      if newGain < 0 { newGain = 0 }
+      if micGain != newGain {
+        micGain = newGain
+        if micGain == 0 {
+          micGainScalar = 0.0
+          return
+        }
+        let db_min:Float = -10.0;
+        let db_max:Float = +10.0;
+        let db:Float = db_min + (Float(micGain) / 100.0) * (db_max - db_min);
+        micGainScalar = pow(10.0, db / 20.0);
+      }
+    }}}
+  public internal(set) var micGainScalar: Float = 0
+  
+  public enum Property: String {
+    case clientHandle = "client_handle"
+    case ip
+    case type
+  }
+  
+  private var _initialized = false
+  private var _rxLostPacketCount = 0
+  private var _rxPacketCount = 0
+  private var _rxSequenceNumber = -1
+  private var _streamActive = false
 }

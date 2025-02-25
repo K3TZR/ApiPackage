@@ -22,91 +22,6 @@ public final class Memory: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  public let id: UInt32
-
-  public var digitalLowerOffset = 0
-  public var digitalUpperOffset = 0
-  public var filterHigh = 0
-  public var filterLow = 0
-  public var frequency: Hz = 0
-  public var group = ""
-  public var mode = ""
-  public var name = ""
-  public var offset = 0
-  public var offsetDirection = ""
-  public var owner = ""
-  public var rfPower = 0
-  public var rttyMark = 0
-  public var rttyShift = 0
-  public var squelchEnabled = false
-  public var squelchLevel = 0
-  public var step = 0
-  public var toneMode = ""
-  public var toneValue: Float = 0
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Property: String {
-    case apply
-    case create
-    case digitalLowerOffset         = "digl_offset"
-    case digitalUpperOffset         = "digu_offset"
-    case frequency                  = "freq"
-    case group
-    case highlight
-    case highlightColor             = "highlight_color"
-    case mode
-    case name
-    case owner
-    case remove
-    case repeaterOffsetDirection    = "repeater"
-    case repeaterOffset             = "repeater_offset"
-    case rfPower                    = "power"
-    case rttyMark                   = "rtty_mark"
-    case rttyShift                  = "rtty_shift"
-    case rxFilterHigh               = "rx_filter_high"
-    case rxFilterLow                = "rx_filter_low"
-    case step
-    case squelchEnabled             = "squelch"
-    case squelchLevel               = "squelch_level"
-    case toneMode                   = "tone_mode"
-    case toneValue                  = "tone_value"
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized = false
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static status method
-  
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
-    // get the id
-    if let id = properties[0].key.objectId {
-      let index = objectModel.memories.firstIndex(where: { $0.id == id })
-      // is it in use?
-      if inUse {
-        if index == nil {
-          objectModel.memories.append(Memory(id))
-          objectModel.memories.last!.parse(Array(properties.dropFirst(1)) )
-        } else {
-          // parse the properties
-          objectModel.memories[index!].parse(Array(properties.dropFirst(1)) )
-        }
-
-      } else {
-        // NO, remove it
-        objectModel.memories.remove(at: index!)
-        log.debug("Memory \(id): REMOVED")
-      }
-    }
-  }
-
-  // ----------------------------------------------------------------------------
   // MARK: - Public Static command methods
 
   /* ----- from the FlexApi source -----
@@ -148,9 +63,34 @@ public final class Memory: Identifiable {
   public static func set(id: Int, property: Property, value: String) -> String {
     "memory set \(id) \(property.rawValue)=\(value)"
   }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static status method
+  
+  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+    // get the id
+    if let id = properties[0].key.objectId {
+      let index = objectModel.memories.firstIndex(where: { $0.id == id })
+      // is it in use?
+      if inUse {
+        if index == nil {
+          objectModel.memories.append(Memory(id))
+          objectModel.memories.last!.parse(Array(properties.dropFirst(1)) )
+        } else {
+          // parse the properties
+          objectModel.memories[index!].parse(Array(properties.dropFirst(1)) )
+        }
+
+      } else {
+        // NO, remove it
+        objectModel.memories.remove(at: index!)
+        log.debug("Memory \(id): REMOVED")
+      }
+    }
+  }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public Parse method
   
   /// Parse key/value pairs
   /// - Parameter properties:       a KeyValuesArray
@@ -198,4 +138,58 @@ public final class Memory: Identifiable {
       }
     }
   }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public let id: UInt32
+
+  public var digitalLowerOffset = 0
+  public var digitalUpperOffset = 0
+  public var filterHigh = 0
+  public var filterLow = 0
+  public var frequency: Hz = 0
+  public var group = ""
+  public var mode = ""
+  public var name = ""
+  public var offset = 0
+  public var offsetDirection = ""
+  public var owner = ""
+  public var rfPower = 0
+  public var rttyMark = 0
+  public var rttyShift = 0
+  public var squelchEnabled = false
+  public var squelchLevel = 0
+  public var step = 0
+  public var toneMode = ""
+  public var toneValue: Float = 0
+
+  public enum Property: String {
+    case apply
+    case create
+    case digitalLowerOffset         = "digl_offset"
+    case digitalUpperOffset         = "digu_offset"
+    case frequency                  = "freq"
+    case group
+    case highlight
+    case highlightColor             = "highlight_color"
+    case mode
+    case name
+    case owner
+    case remove
+    case repeaterOffsetDirection    = "repeater"
+    case repeaterOffset             = "repeater_offset"
+    case rfPower                    = "power"
+    case rttyMark                   = "rtty_mark"
+    case rttyShift                  = "rtty_shift"
+    case rxFilterHigh               = "rx_filter_high"
+    case rxFilterLow                = "rx_filter_low"
+    case step
+    case squelchEnabled             = "squelch"
+    case squelchLevel               = "squelch_level"
+    case toneMode                   = "tone_mode"
+    case toneValue                  = "tone_value"
+  }
+  
+  private var _initialized = false
 }

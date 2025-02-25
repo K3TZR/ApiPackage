@@ -7,19 +7,8 @@
 
 import Foundation
 
-public typealias ReplyHandler = @MainActor @Sendable (String, String) -> Void
-
-public struct ReplyEntry: Sendable {
-  public let command: String
-  public let replyHandler: ReplyHandler?
-  
-  public init(_ command: String, _ replyHandler: ReplyHandler? = nil) {
-    self.command = command
-    self.replyHandler = replyHandler
-  }
-}
-
-
+// ----------------------------------------------------------------------------
+// MARK: - ReplyDictionary actor
 
 final public actor ReplyDictionary {
   private var replyEntries = [Int: ReplyEntry]()
@@ -42,7 +31,8 @@ final public actor ReplyDictionary {
   }
 }
 
-
+// ----------------------------------------------------------------------------
+// MARK: - Sequencer actor
 
 final public actor Sequencer {
   private var sequenceNumber: Int = 0
@@ -54,5 +44,20 @@ final public actor Sequencer {
   
   public func reset() {
     sequenceNumber = 0
+  }
+}
+
+// ----------------------------------------------------------------------------
+// MARK: - Public structs and enums
+
+public typealias ReplyHandler = @MainActor @Sendable (String, String) -> Void
+
+public struct ReplyEntry: Sendable {
+  public let command: String
+  public let replyHandler: ReplyHandler?
+  
+  public init(_ command: String, _ replyHandler: ReplyHandler? = nil) {
+    self.command = command
+    self.replyHandler = replyHandler
   }
 }

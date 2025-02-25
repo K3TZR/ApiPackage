@@ -20,44 +20,12 @@ public final class Gps {
   public init() {}
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public properties
+  // MARK: - Public Static command methods
   
-  public var altitude = ""
-  public var frequencyError: Double = 0
-  public var grid = ""
-  public var installed = false
-  public var latitude = ""
-  public var longitude = ""
-  public var speed = ""
-  public var time = ""
-  public var track: Double = 0
-  public var tracked = false
-  public var visible = false
+  //TODO:
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public  enum Property: String {
-    case altitude
-    case frequencyError = "freq_error"
-    case grid
-    case latitude = "lat"
-    case longitude = "lon"
-    case speed
-    case installed = "status"
-    case time
-    case track
-    case tracked
-    case visible
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  public var _initialized = false
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public parse method
   
   /// Parse a Gps status message
   /// - Parameter properties:       a KeyValuesArray
@@ -92,4 +60,35 @@ public final class Gps {
       log.debug("Gps: initialized")
     }
   }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public var altitude = ""
+  public var frequencyError: Double = 0
+  public var grid = ""
+  public var installed = false
+  public var latitude = ""
+  public var longitude = ""
+  public var speed = ""
+  public var time = ""
+  public var track: Double = 0
+  public var tracked = false
+  public var visible = false
+
+  public  enum Property: String {
+    case altitude
+    case frequencyError = "freq_error"
+    case grid
+    case latitude = "lat"
+    case longitude = "lon"
+    case speed
+    case installed = "status"
+    case time
+    case track
+    case tracked
+    case visible
+  }
+  
+  public var _initialized = false
 }

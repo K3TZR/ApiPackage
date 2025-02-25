@@ -24,48 +24,14 @@ public final class DaxTxAudio {
   // MARK: - Initialization
   
   public init(_ id: UInt32) { self.id = id}
-  
-  // ------------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  public var id: UInt32
-  public var delegate: DaxAudioInputHandler?
-  
-  public var clientHandle: UInt32 = 0
-  public var ip = ""
-  public var isTransmitChannel = false
-  public var txGain = 0 {
-    didSet { if txGain != oldValue {
-      if txGain == 0 {
-        txGainScalar = 0.0
-        return
-      }
-      let db_min:Float = -10.0
-      let db_max:Float = +10.0
-      let db:Float = db_min + (Float(txGain) / 100.0) * (db_max - db_min)
-      txGainScalar = pow(10.0, db / 20.0)
-    }}}
-  public var txGainScalar: Float = 0
-  
-  // ------------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Property: String {
-    case clientHandle      = "client_handle"
-    case ip
-    case isTransmitChannel = "tx"
-    case type
-  }
-  
-  // ------------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized = false
-  private var _txSequenceNumber: UInt8 = 0
-  private var _vita: Vita?
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static methods
+  // MARK: - Public Static command methods
+  
+  //TODO:
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static status method
   
   public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray) {
     // get the id
@@ -78,7 +44,7 @@ public final class DaxTxAudio {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public methods
+  // MARK: - Public parse method
   
   /// Parse key/value pairs
   /// - Parameter properties:       a KeyValuesArray
@@ -107,4 +73,37 @@ public final class DaxTxAudio {
       log.debug("DaxTxAudio ADDED: handle = \(self.clientHandle.hex)")
     }
   }
+  
+  // ------------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public var id: UInt32
+  public var delegate: DaxAudioInputHandler?
+  
+  public var clientHandle: UInt32 = 0
+  public var ip = ""
+  public var isTransmitChannel = false
+  public var txGain = 0 {
+    didSet { if txGain != oldValue {
+      if txGain == 0 {
+        txGainScalar = 0.0
+        return
+      }
+      let db_min:Float = -10.0
+      let db_max:Float = +10.0
+      let db:Float = db_min + (Float(txGain) / 100.0) * (db_max - db_min)
+      txGainScalar = pow(10.0, db / 20.0)
+    }}}
+  public var txGainScalar: Float = 0
+    
+  public enum Property: String {
+    case clientHandle      = "client_handle"
+    case ip
+    case isTransmitChannel = "tx"
+    case type
+  }
+  
+  private var _initialized = false
+  private var _txSequenceNumber: UInt8 = 0
+  private var _vita: Vita?
 }

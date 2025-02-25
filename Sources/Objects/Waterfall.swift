@@ -16,101 +16,11 @@ import Foundation
 public final class Waterfall: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
-
+  
   public init(_ id: UInt32) {
     self.id = id
   }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public properties
   
-  public let id: UInt32
-
-  public var autoBlackEnabled = false
-  public var autoBlackLevel: UInt32 = 0
-  public var blackLevel = 0
-  public var clientHandle: UInt32 = 0
-  public var colorGain = 0
-  public var gradientIndex = 0
-  public var lineDuration = 0
-  public var panadapterId: UInt32?
-  
-  public var selectedGradient = Waterfall.gradients[0]
-
-  public static let gradients = [
-    "Basic",
-    "Dark",
-    "Deuteranopia",
-    "Grayscale",
-    "Purple",
-    "Tritanopia"
-  ]
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized = false
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public types
-    
-  public enum Property: String {
-    case clientHandle         = "client_handle"   // New Api only
-    
-    // on Waterfall
-    case autoBlackEnabled     = "auto_black"
-    case blackLevel           = "black_level"
-    case colorGain            = "color_gain"
-    case gradientIndex        = "gradient_index"
-    case lineDuration         = "line_duration"
-    
-    // unused here
-    case available
-    case band
-    case bandZoomEnabled      = "band_zoom"
-    case bandwidth
-    case capacity
-    case center
-    case daxIq                = "daxiq"
-    case daxIqChannel         = "daxiq_channel"
-    case daxIqRate            = "daxiq_rate"
-    case loopA                = "loopa"
-    case loopB                = "loopb"
-    case panadapterId         = "panadapter"
-    case rfGain               = "rfgain"
-    case rxAnt                = "rxant"
-    case segmentZoomEnabled   = "segment_zoom"
-    case wide
-    case xPixels              = "x_pixels"
-    case xvtr
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static status method
-  
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
-    // get the id
-    if let id = properties[0].key.streamId {
-      let index = objectModel.waterfalls.firstIndex(where: { $0.id == id })
-      // is it in use?
-      if inUse {
-        // YES, add it if not already present
-        if index == nil {
-          objectModel.waterfalls.append(Waterfall(id))
-          objectModel.waterfalls.last!.parse(Array(properties.dropFirst(1)) )
-        } else {
-          // parse the properties
-          objectModel.waterfalls[index!].parse(Array(properties.dropFirst(1)) )
-        }
-
-      } else {
-        // NO, remove it
-        objectModel.waterfalls.remove(at: index!)
-        log.debug("Waterfall \(id.hex): REMOVED")
-      }
-    }
-  }
-
   // ----------------------------------------------------------------------------
   // MARK: - Public Static command methods
   
@@ -130,16 +40,42 @@ public final class Waterfall: Identifiable {
    display panafall set 0x" + _stream_id.ToString("X") + " gradient_index=" + _fallGradientIndex.ToString());
    display panafall remove 0x" + _stream_id.ToString("X"));
    */
-
+  
   public static func remove(id: UInt32) -> String {
     "display panafall remove \(id.hex)"
   }
   public static func set(id: UInt32, property: Property, value: String) -> String {
     "display panafall set \(id.hex) \(property.rawValue)=\(value)"
   }
-
+  
   // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public Static status method
+  
+  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+    // get the id
+    if let id = properties[0].key.streamId {
+      let index = objectModel.waterfalls.firstIndex(where: { $0.id == id })
+      // is it in use?
+      if inUse {
+        // YES, add it if not already present
+        if index == nil {
+          objectModel.waterfalls.append(Waterfall(id))
+          objectModel.waterfalls.last!.parse(Array(properties.dropFirst(1)) )
+        } else {
+          // parse the properties
+          objectModel.waterfalls[index!].parse(Array(properties.dropFirst(1)) )
+        }
+        
+      } else {
+        // NO, remove it
+        objectModel.waterfalls.remove(at: index!)
+        log.debug("Waterfall \(id.hex): REMOVED")
+      }
+    }
+  }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public parse method
   
   /// Parse Waterfall properties
   /// - Parameter properties:       a KeyValuesArray
@@ -174,4 +110,62 @@ public final class Waterfall: Identifiable {
       log.debug("Waterfall: ADDED handle = \(self.clientHandle.hex)")
     }
   }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public let id: UInt32
+
+  public var autoBlackEnabled = false
+  public var autoBlackLevel: UInt32 = 0
+  public var blackLevel = 0
+  public var clientHandle: UInt32 = 0
+  public var colorGain = 0
+  public var gradientIndex = 0
+  public var lineDuration = 0
+  public var panadapterId: UInt32?
+  
+  public var selectedGradient = Waterfall.gradients[0]
+
+  public static let gradients = [
+    "Basic",
+    "Dark",
+    "Deuteranopia",
+    "Grayscale",
+    "Purple",
+    "Tritanopia"
+  ]
+    
+  public enum Property: String {
+    case clientHandle         = "client_handle"   // New Api only
+    
+    // on Waterfall
+    case autoBlackEnabled     = "auto_black"
+    case blackLevel           = "black_level"
+    case colorGain            = "color_gain"
+    case gradientIndex        = "gradient_index"
+    case lineDuration         = "line_duration"
+    
+    // unused here
+    case available
+    case band
+    case bandZoomEnabled      = "band_zoom"
+    case bandwidth
+    case capacity
+    case center
+    case daxIq                = "daxiq"
+    case daxIqChannel         = "daxiq_channel"
+    case daxIqRate            = "daxiq_rate"
+    case loopA                = "loopa"
+    case loopB                = "loopb"
+    case panadapterId         = "panadapter"
+    case rfGain               = "rfgain"
+    case rxAnt                = "rxant"
+    case segmentZoomEnabled   = "segment_zoom"
+    case wide
+    case xPixels              = "x_pixels"
+    case xvtr
+  }
+  
+  private var _initialized = false
 }

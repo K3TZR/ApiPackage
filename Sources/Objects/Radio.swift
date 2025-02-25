@@ -103,211 +103,7 @@ public final class Radio: Identifiable, Equatable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  public let id: RadioId
-
-  
-  public var discoveryData: Data?
-  public var packet: Packet
-  public var guiClients: [GuiClient] = []
-  public var lastSeen = Date()
-  
-  public var addressType = "DHCP"
-  public internal(set) var alpha = false
-  public internal(set) var calFreq: Hz = 0
-  public internal(set) var freqErrorPpb = 0
-  public internal(set) var mox = false
-  public internal(set) var rfGainList = [String]()
-  public var tnfsEnabled = false
-  
-  public nonisolated static let kDaxChannels = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-  public nonisolated static let kDaxIqChannels = [0, 1, 2, 3, 4]
-  
-  // FIXME: needs to be dynamic
-  public var pingerEnabled = true
-  
-  public internal(set) var atuPresent = false
-  public internal(set) var availablePanadapters = 0
-  public internal(set) var availableSlices = 0
-  public internal(set) var backlight = 0
-  public internal(set) var bandPersistenceEnabled = false
-  public internal(set) var binauralRxEnabled = false
-  public internal(set) var callsign = ""
-  public internal(set) var chassisSerial = ""
-  public internal(set) var daxIqAvailable = 0
-  public internal(set) var daxIqCapacity = 0
-  public var enforcePrivateIpEnabled = false
-  public internal(set) var extPresent = false
-  public internal(set) var filterCwAutoEnabled = false
-  public internal(set) var filterDigitalAutoEnabled = false
-  public internal(set) var filterVoiceAutoEnabled = false
-  public internal(set) var filterCwLevel = 0
-  public internal(set) var filterDigitalLevel = 0
-  public internal(set) var filterVoiceLevel = 0
-  public internal(set) var flexControlEnabled = false
-  public internal(set) var frontSpeakerMute = false
-  public var fullDuplexEnabled = false
-  public internal(set) var gateway = ""
-  public internal(set) var gpsPresent = false
-  public internal(set) var gpsdoPresent = false
-  public var headphoneGain = 0
-  public var headphoneMute = false
-  public internal(set) var ipAddress = ""
-  public var lineoutGain = 0
-  public var lineoutMute = false
-  public internal(set) var localPtt = false
-  public internal(set) var location = ""
-  public internal(set) var locked = false
-  public internal(set) var lowLatencyDigital = false
-  public internal(set) var macAddress = ""
-  public internal(set) var multiflexEnabled = false
-  public internal(set) var muteLocalAudio = false
-  public internal(set) var netmask = ""
-  public internal(set) var name = ""
-  public internal(set) var numberOfScus = 0
-  public internal(set) var numberOfSlices = 0
-  public internal(set) var numberOfTx = 0
-  public internal(set) var oscillator = ""
-  public var program = ""
-  public internal(set) var radioAuthenticated = false
-  public internal(set) var radioModel = ""
-  public internal(set) var radioOptions = ""
-  public internal(set) var region = ""
-  public internal(set) var radioScreenSaver = ""
-  public internal(set) var remoteOnEnabled = false
-  public internal(set) var rttyMark = 0
-  public internal(set) var serverConnected = false
-  public internal(set) var setting = ""
-  public internal(set) var snapTuneEnabled = false
-  public internal(set) var softwareVersion = ""
-  public internal(set) var startCalibration = false
-  public internal(set) var state = ""
-  public internal(set) var staticGateway = ""
-  public internal(set) var staticIp = ""
-  public internal(set) var staticMask = ""
-  public internal(set) var station = ""
-  public internal(set) var tcxoPresent = false
-  
-  public var regionList = ["USA"]
-
-  public var fpgaMbVersion = ""
-  public var picDecpuVersion = ""
-  public var psocMbPa100Version = ""
-  public var psocMbtrxVersion = ""
-  public var smartSdrMB = ""
-
-  public internal(set) var antList = [String]()
-  public internal(set) var sliceList = [UInt32]()               // FIXME: may not belong here
-  public internal(set) var micList = [String]()
-  
-  public internal(set) var uptime = 0
-
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Property: String {
-    case alpha
-    case antList                  = "ant_list"
-    case atuPresent               = "atu_present"
-    case backlight
-    case bandPersistenceEnabled   = "band_persistence_enabled"
-    case binauralRxEnabled        = "binaural_rx"
-    case calFreq                  = "cal_freq"
-    case calibrate
-    case callsign
-    case chassisSerial            = "chassis_serial"
-    case daxIqAvailable           = "daxiq_available"
-    case daxIqCapacity            = "daxiq_capacity"
-    case enforcePrivateIpEnabled  = "enforce_private_ip_connections"
-    case flexControlEnabled
-    case freqErrorPpb             = "freq_error_ppb"
-    case frontSpeakerMute         = "front_speaker_mute"
-    case fullDuplexEnabled        = "full_duplex_enabled"
-    case gateway
-    case gps
-    case headphoneGain            = "headphone_gain"
-    case headphoneMute            = "headphone_mute"
-    case ipAddress                = "ip"
-    case lineoutGain              = "lineout_gain"
-    case lineoutMute              = "lineout_mute"
-    case location
-    case lowLatencyDigital        = "low_latency_digital_modes"
-    case macAddress               = "mac"
-    case micList                  = "mic_list"
-    case model
-    case multiflexEnabled         = "mf_enable"
-    case muteLocalAudio           = "mute_local_audio_when_remote"
-    case name
-    case netmask
-    case nickname   
-    case numberOfScus             = "num_scu"
-    case numberOfSlices           = "num_slice"
-    case numberOfTx               = "num_tx"
-    case options
-    case panadapters
-    case pllDone                  = "pll_done"
-    case radioAuthenticated       = "radio_authenticated"
-    case reboot
-    case region
-    case remoteOnEnabled          = "remote_on_enabled"
-    case rttyMark                 = "rtty_mark_default"
-    case screensaver
-    case serverConnected          = "server_connected"
-    case slices
-    case snapTuneEnabled          = "snap_tune_enabled"
-    case softwareVersion          = "software_ver"
-    case tnfsEnabled              = "tnf_enabled"
-    case uptime
-
-    case cw                       = "CW"
-    case digital                  = "DIGITAL"
-    case voice                    = "VOICE"
-    case autoLevel                = "auto_level"
-    case level
-
-    case filterSharpness          = "filter_sharpness"
-    case staticNetParams          = "static_net_params"
-    case oscillator
-
-    case staticGateway
-    case staticIp
-    case staticMask
-    
-    case extPresent               = "ext_present"
-    case gpsdoPresent             = "gpsdo_present"
-    case locked
-    case setting
-    case state
-    case tcxoPresent              = "tcxo_present"
-
-
-    case headphonegain            = "headphone gain"
-    case headphonemute            = "headphone mute"
-    case lineoutgain              = "lineout gain"
-    case lineoutmute              = "lineout mute"
-    
-    case addressType
-    
-    case fpgaMb                   = "fpga-mb"
-    case psocMbPa100              = "psoc-mbpa100"
-    case psocMbTrx                = "psoc-mbtrx"
-    case smartSdrMB               = "smartsdr-mb"
-    case picDecpu                 = "pic-decpu"
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-
-  private var _cw = false
-  private var _digital = false
-  private var _initialized = false
-//  private let _objectModel: ObjectModel
-  private var _voice = false
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public methods
+  // MARK: - Public parse method
   
   /// Parse a Radio status message
   /// - Parameters:
@@ -483,4 +279,200 @@ public final class Radio: Identifiable, Equatable {
       break
     }
   }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public let id: RadioId
+
+  public var discoveryData: Data?
+  public var packet: Packet
+  public var guiClients: [GuiClient] = []
+  public var lastSeen = Date()
+  
+  public var addressType = "DHCP"
+  public internal(set) var alpha = false
+  public internal(set) var calFreq: Hz = 0
+  public internal(set) var freqErrorPpb = 0
+  public internal(set) var mox = false
+  public internal(set) var rfGainList = [String]()
+  public var tnfsEnabled = false
+  
+  public nonisolated static let kDaxChannels = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+  public nonisolated static let kDaxIqChannels = [0, 1, 2, 3, 4]
+  
+  // FIXME: needs to be dynamic
+  public var pingerEnabled = true
+  
+  public internal(set) var atuPresent = false
+  public internal(set) var availablePanadapters = 0
+  public internal(set) var availableSlices = 0
+  public internal(set) var backlight = 0
+  public internal(set) var bandPersistenceEnabled = false
+  public internal(set) var binauralRxEnabled = false
+  public internal(set) var callsign = ""
+  public internal(set) var chassisSerial = ""
+  public internal(set) var daxIqAvailable = 0
+  public internal(set) var daxIqCapacity = 0
+  public var enforcePrivateIpEnabled = false
+  public internal(set) var extPresent = false
+  public internal(set) var filterCwAutoEnabled = false
+  public internal(set) var filterDigitalAutoEnabled = false
+  public internal(set) var filterVoiceAutoEnabled = false
+  public internal(set) var filterCwLevel = 0
+  public internal(set) var filterDigitalLevel = 0
+  public internal(set) var filterVoiceLevel = 0
+  public internal(set) var flexControlEnabled = false
+  public internal(set) var frontSpeakerMute = false
+  public var fullDuplexEnabled = false
+  public internal(set) var gateway = ""
+  public internal(set) var gpsPresent = false
+  public internal(set) var gpsdoPresent = false
+  public var headphoneGain = 0
+  public var headphoneMute = false
+  public internal(set) var ipAddress = ""
+  public var lineoutGain = 0
+  public var lineoutMute = false
+  public internal(set) var localPtt = false
+  public internal(set) var location = ""
+  public internal(set) var locked = false
+  public internal(set) var lowLatencyDigital = false
+  public internal(set) var macAddress = ""
+  public internal(set) var multiflexEnabled = false
+  public internal(set) var muteLocalAudio = false
+  public internal(set) var netmask = ""
+  public internal(set) var name = ""
+  public internal(set) var numberOfScus = 0
+  public internal(set) var numberOfSlices = 0
+  public internal(set) var numberOfTx = 0
+  public internal(set) var oscillator = ""
+  public var program = ""
+  public internal(set) var radioAuthenticated = false
+  public internal(set) var radioModel = ""
+  public internal(set) var radioOptions = ""
+  public internal(set) var region = ""
+  public internal(set) var radioScreenSaver = ""
+  public internal(set) var remoteOnEnabled = false
+  public internal(set) var rttyMark = 0
+  public internal(set) var serverConnected = false
+  public internal(set) var setting = ""
+  public internal(set) var snapTuneEnabled = false
+  public internal(set) var softwareVersion = ""
+  public internal(set) var startCalibration = false
+  public internal(set) var state = ""
+  public internal(set) var staticGateway = ""
+  public internal(set) var staticIp = ""
+  public internal(set) var staticMask = ""
+  public internal(set) var station = ""
+  public internal(set) var tcxoPresent = false
+  
+  public var regionList = ["USA"]
+
+  public var fpgaMbVersion = ""
+  public var picDecpuVersion = ""
+  public var psocMbPa100Version = ""
+  public var psocMbtrxVersion = ""
+  public var smartSdrMB = ""
+
+  public internal(set) var antList = [String]()
+  public internal(set) var sliceList = [UInt32]()               // FIXME: may not belong here
+  public internal(set) var micList = [String]()
+  
+  public internal(set) var uptime = 0
+
+  public enum Property: String {
+    case alpha
+    case antList                  = "ant_list"
+    case atuPresent               = "atu_present"
+    case backlight
+    case bandPersistenceEnabled   = "band_persistence_enabled"
+    case binauralRxEnabled        = "binaural_rx"
+    case calFreq                  = "cal_freq"
+    case calibrate
+    case callsign
+    case chassisSerial            = "chassis_serial"
+    case daxIqAvailable           = "daxiq_available"
+    case daxIqCapacity            = "daxiq_capacity"
+    case enforcePrivateIpEnabled  = "enforce_private_ip_connections"
+    case flexControlEnabled
+    case freqErrorPpb             = "freq_error_ppb"
+    case frontSpeakerMute         = "front_speaker_mute"
+    case fullDuplexEnabled        = "full_duplex_enabled"
+    case gateway
+    case gps
+    case headphoneGain            = "headphone_gain"
+    case headphoneMute            = "headphone_mute"
+    case ipAddress                = "ip"
+    case lineoutGain              = "lineout_gain"
+    case lineoutMute              = "lineout_mute"
+    case location
+    case lowLatencyDigital        = "low_latency_digital_modes"
+    case macAddress               = "mac"
+    case micList                  = "mic_list"
+    case model
+    case multiflexEnabled         = "mf_enable"
+    case muteLocalAudio           = "mute_local_audio_when_remote"
+    case name
+    case netmask
+    case nickname
+    case numberOfScus             = "num_scu"
+    case numberOfSlices           = "num_slice"
+    case numberOfTx               = "num_tx"
+    case options
+    case panadapters
+    case pllDone                  = "pll_done"
+    case radioAuthenticated       = "radio_authenticated"
+    case reboot
+    case region
+    case remoteOnEnabled          = "remote_on_enabled"
+    case rttyMark                 = "rtty_mark_default"
+    case screensaver
+    case serverConnected          = "server_connected"
+    case slices
+    case snapTuneEnabled          = "snap_tune_enabled"
+    case softwareVersion          = "software_ver"
+    case tnfsEnabled              = "tnf_enabled"
+    case uptime
+
+    case cw                       = "CW"
+    case digital                  = "DIGITAL"
+    case voice                    = "VOICE"
+    case autoLevel                = "auto_level"
+    case level
+
+    case filterSharpness          = "filter_sharpness"
+    case staticNetParams          = "static_net_params"
+    case oscillator
+
+    case staticGateway
+    case staticIp
+    case staticMask
+    
+    case extPresent               = "ext_present"
+    case gpsdoPresent             = "gpsdo_present"
+    case locked
+    case setting
+    case state
+    case tcxoPresent              = "tcxo_present"
+
+
+    case headphonegain            = "headphone gain"
+    case headphonemute            = "headphone mute"
+    case lineoutgain              = "lineout gain"
+    case lineoutmute              = "lineout mute"
+    
+    case addressType
+    
+    case fpgaMb                   = "fpga-mb"
+    case psocMbPa100              = "psoc-mbpa100"
+    case psocMbTrx                = "psoc-mbtrx"
+    case smartSdrMB               = "smartsdr-mb"
+    case picDecpu                 = "pic-decpu"
+  }
+
+  private var _cw = false
+  private var _digital = false
+  private var _initialized = false
+//  private let _objectModel: ObjectModel
+  private var _voice = false
 }

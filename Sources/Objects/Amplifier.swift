@@ -22,36 +22,9 @@ public final class Amplifier: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public properties
+  // MARK: - Public Static command methods
   
-  public let id: UInt32
-
-  public var ant: String = ""
-  public var antennaDict = [String:String]()
-  public var handle: UInt32 = 0
-  public var ip: String = ""
-  public var model: String = ""
-  public var port: Int = 0
-  public var serialNumber: String = ""
-  public var state: String = ""
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Property: String {
-    case ant
-    case handle
-    case ip
-    case model
-    case port
-    case serialNumber  = "serial_num"
-    case state
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  public var _initialized = false
+  //TODO:
 
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
@@ -77,14 +50,9 @@ public final class Amplifier: Identifiable {
       }
     }
   }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-  
-  //TODO:
   
   // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public parse method
   
   /// Parse Tnf key/value pairs
   /// - Parameter properties:       a KeyValuesArray
@@ -136,4 +104,30 @@ public final class Amplifier: Identifiable {
     }
     return antDict
   }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public let id: UInt32
+
+  public var ant: String = ""
+  public var antennaDict = [String:String]()
+  public var handle: UInt32 = 0
+  public var ip: String = ""
+  public var model: String = ""
+  public var port: Int = 0
+  public var serialNumber: String = ""
+  public var state: String = ""
+  
+  public enum Property: String {
+    case ant
+    case handle
+    case ip
+    case model
+    case port
+    case serialNumber  = "serial_num"
+    case state
+  }
+  
+  public var _initialized = false
 }

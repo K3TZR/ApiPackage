@@ -26,40 +26,14 @@ public final class RemoteRxAudio: Identifiable {
   public init(_ id: UInt32) {
     self.id = id
   }
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  public let id: UInt32
-  
-  public var clientHandle: UInt32 = 0
-  public var compression = ""
-  public var ip = ""
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Compression : String {
-    case opus
-    case none
-  }
-  
-  public enum Property: String {
-    case clientHandle = "client_handle"
-    case compression
-    case ip
-  }
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized = false
-  private var _rxLostPacketCount = 0
-  private var _rxPacketCount = 0
-  private var _rxSequenceNumber = -1
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static methods
+  // MARK: - Public Static command methods
+  
+  //TODO:
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static status method
   
   public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray) {
     // get the id
@@ -72,7 +46,7 @@ public final class RemoteRxAudio: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public methods
+  // MARK: - Public parse method
   
   ///  Parse RemoteRxAudio key/value pairs
   /// - Parameter properties: a KeyValuesArray
@@ -100,4 +74,29 @@ public final class RemoteRxAudio: Identifiable {
       log.debug("RemoteRxAudio \(self.id.hex) ADDED: compression = \(self.compression), handle = \(self.clientHandle.hex)")
     }
   }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public let id: UInt32
+  
+  public var clientHandle: UInt32 = 0
+  public var compression = ""
+  public var ip = ""
+  
+  public enum Compression : String {
+    case opus
+    case none
+  }
+  
+  public enum Property: String {
+    case clientHandle = "client_handle"
+    case compression
+    case ip
+  }
+  
+  private var _initialized = false
+  private var _rxLostPacketCount = 0
+  private var _rxPacketCount = 0
+  private var _rxSequenceNumber = -1
 }

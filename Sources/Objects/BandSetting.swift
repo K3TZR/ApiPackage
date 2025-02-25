@@ -22,47 +22,31 @@ public final class BandSetting: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  public let id: UInt32
-  
-  public var accTxEnabled: Bool = false
-  public var accTxReqEnabled: Bool = false
-  public var name = 999
-  public var hwAlcEnabled: Bool = false
-  public var inhibit: Bool = false
-  public var rcaTxReqEnabled: Bool = false
-  public var rfPower: Int = 0
-  public var tunePower: Int = 0
-  public var tx1Enabled: Bool = false
-  public var tx2Enabled: Bool = false
-  public var tx3Enabled: Bool  = false
+  // MARK: - Public Static command methods
 
-  // ------------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Property: String {
-    // transmit
-    case hwAlcEnabled       = "hwalc_enabled" //
-    case inhibit            //
-    case rfPower            = "rfpower" //
-    case tunePower          = "tunepower" //
-    // interlock
-    case accTxEnabled       = "acc_tx_enabled"
-    case accTxReqEnabled    = "acc_txreq_enable"
-    case rcaTxReqEnabled    = "rca_txreq_enable"
-    case tx1Enabled         = "tx1_enabled"
-    case tx2Enabled         = "tx2_enabled"
-    case tx3Enabled         = "tx3_enabled"
+  /* ----- from the FlexApi source -----
+   "transmit bandset {BandId} hwalc_enabled={Convert.ToByte(_isHwAlcEnabled)}"
+   "transmit bandset {BandId} inhibit={Convert.ToByte(_isPttInhibit)}"
+   "transmit bandset {BandId} rfpower={_powerLevel}"
+   "transmit bandset {BandId} tunepower={_tuneLevel}"
+   
+   "interlock bandset {BandId} acc_tx_enabled={Convert.ToByte(_isAccTxEnabled)}"
+   "interlock bandset {BandId} acc_txreq_enable={Convert.ToByte(_isAccTxReqEnabled)}")
+   "interlock bandset {BandId} rca_txreq_enable={Convert.ToByte(_isRcaTxReqEnabled)}"
+   "interlock bandset {BandId} tx1_enabled={Convert.ToByte(_isRcaTx1Enabled)}"
+   "interlock bandset {BandId} tx2_enabled={Convert.ToByte(_isRcaTx2Enabled)}"
+   "interlock bandset {BandId} tx3_enabled={Convert.ToByte(_isRcaTx3Enabled)}"
+   */
 
-    case name               = "band_name"
+  public static func set(id: UInt32, property: Property, value: String) -> String {
+    switch property {
+    case .hwAlcEnabled, .inhibit, .rfPower, .tunePower:
+      "transmit bandset \(id) \(property.rawValue)=\(value)"
+    default:
+      "interlock bandset \(id) \(property.rawValue)=\(value)"
+    }
   }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
   
-  public var _initialized = false
-
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
@@ -89,33 +73,7 @@ public final class BandSetting: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-
-  /* ----- from the FlexApi source -----
-   "transmit bandset {BandId} hwalc_enabled={Convert.ToByte(_isHwAlcEnabled)}"
-   "transmit bandset {BandId} inhibit={Convert.ToByte(_isPttInhibit)}"
-   "transmit bandset {BandId} rfpower={_powerLevel}"
-   "transmit bandset {BandId} tunepower={_tuneLevel}"
-   
-   "interlock bandset {BandId} acc_tx_enabled={Convert.ToByte(_isAccTxEnabled)}"
-   "interlock bandset {BandId} acc_txreq_enable={Convert.ToByte(_isAccTxReqEnabled)}")
-   "interlock bandset {BandId} rca_txreq_enable={Convert.ToByte(_isRcaTxReqEnabled)}"
-   "interlock bandset {BandId} tx1_enabled={Convert.ToByte(_isRcaTx1Enabled)}"
-   "interlock bandset {BandId} tx2_enabled={Convert.ToByte(_isRcaTx2Enabled)}"
-   "interlock bandset {BandId} tx3_enabled={Convert.ToByte(_isRcaTx3Enabled)}"
-   */
-
-  public static func set(id: UInt32, property: Property, value: String) -> String {
-    switch property {
-    case .hwAlcEnabled, .inhibit, .rfPower, .tunePower: 
-      "transmit bandset \(id) \(property.rawValue)=\(value)"
-    default:  
-      "interlock bandset \(id) \(property.rawValue)=\(value)"
-    }
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public parse method
   
   /// Parse BandSetting key/value pairs
   /// - Parameter properties:       a KeyValuesArray
@@ -151,4 +109,40 @@ public final class BandSetting: Identifiable {
       }
     }
   }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public let id: UInt32
+  
+  public var accTxEnabled: Bool = false
+  public var accTxReqEnabled: Bool = false
+  public var name = 999
+  public var hwAlcEnabled: Bool = false
+  public var inhibit: Bool = false
+  public var rcaTxReqEnabled: Bool = false
+  public var rfPower: Int = 0
+  public var tunePower: Int = 0
+  public var tx1Enabled: Bool = false
+  public var tx2Enabled: Bool = false
+  public var tx3Enabled: Bool  = false
+
+  public enum Property: String {
+    // transmit
+    case hwAlcEnabled       = "hwalc_enabled" //
+    case inhibit            //
+    case rfPower            = "rfpower" //
+    case tunePower          = "tunepower" //
+    // interlock
+    case accTxEnabled       = "acc_tx_enabled"
+    case accTxReqEnabled    = "acc_txreq_enable"
+    case rcaTxReqEnabled    = "rca_txreq_enable"
+    case tx1Enabled         = "tx1_enabled"
+    case tx2Enabled         = "tx2_enabled"
+    case tx3Enabled         = "tx3_enabled"
+
+    case name               = "band_name"
+  }
+  
+  private var _initialized = false
 }

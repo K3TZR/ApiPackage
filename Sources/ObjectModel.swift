@@ -320,7 +320,12 @@ final public class ObjectModel: TcpProcessor {
     // wait for the reply
     let replyComponents = await tcpReply()
     _tcpReply = nil
-    log.debug("Api: TCP reply = \(replyComponents)")
+    
+    if replyComponents.0 != sequenceNumber {
+      fatalError("sendTcpAwaitReply wrong reply: \(replyComponents)")
+    } else {
+      log.debug("Api: TCP reply = \(replyComponents)")
+    }
     
     return replyComponents
   }
@@ -1007,7 +1012,7 @@ final public class ObjectModel: TcpProcessor {
             // Anything other than kNoError is an error, log it
             // ignore non-zero reply from "client program" command
             if replyValue != kNoError && !replyEntry.command.hasPrefix("client program ") {
-              log.error("ApiModel: replyValue >\(replyValue)<, to c\(sequenceNumber), \(replyEntry.command), \(flexErrorString(errorCode: replyValue)), \(suffix)")
+              log.error("ApiModel: replyValue >\(replyValue)<, to c\(sequenceNumber), \(replyEntry.command), \(FlexError.description(replyValue)), \(suffix)")
             }
             
             if replyEntry.replyHandler == nil {
@@ -1134,7 +1139,7 @@ final public class ObjectModel: TcpProcessor {
     }
     
     // log it
-    logFlexError(errorCode: components[0], msgText:  components[1])
+    FlexError.logError(errorCode: components[0], msgText:  components[1])
     
     // FIXME: Take action on some/all errors?
   }

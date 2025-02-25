@@ -19,23 +19,6 @@ public final class Waveform {
   public init() {}
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-
-  public var list = ""
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Property: String {
-    case list = "installed_list"
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized  = false
-
-  // ----------------------------------------------------------------------------
   // MARK: - Public Static command methods
   
   /* ----- from the FlexApi source -----
@@ -47,7 +30,7 @@ public final class Waveform {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public parse method
   
   /// Parse a Waveform status message
   /// - Parameter properties:       a KeyValuesArray
@@ -73,4 +56,15 @@ public final class Waveform {
       log.debug("Waveform: initialized")
     }
   }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+
+  public var list = ""
+  
+  public enum Property: String {
+    case list = "installed_list"
+  }
+  
+  private var _initialized  = false
 }

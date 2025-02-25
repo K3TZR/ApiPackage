@@ -23,148 +23,6 @@ public final class Panadapter: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  public let id: UInt32
-
-  public var antList = [String]()
-  public var clientHandle: UInt32 = 0
-  public var dbmValues = [LegendValue]()
-  public var fillLevel: Int = 0
-  public var freqLegends = [Legend]()      // FIXME: remove when panadapter draw logic is updated
-  public var freqOffset: CGFloat = 0
-  public var maxBw: Hz = 0
-  public var minBw: Hz = 0
-  public var preamp = ""
-  public var rfGainHigh = 0
-  public var rfGainLow = 0
-  public var rfGainStep = 0
-  public var rfGainValues = ""
-  public var waterfallId: UInt32 = 0
-  public var wide = false
-  public var wnbUpdating = false
-  public var xvtrLabel = ""
-  
-  public var average: Int = 0
-  public var band: String = ""
-  // FIXME: Where does autoCenter come from?
-  public var bandwidth: Hz = 0
-  public var bandZoomEnabled: Bool  = false
-  public var center: Hz = 0
-  public var daxIqChannel: Int = 0
-  public var fps: Int = 0
-  public var loggerDisplayEnabled: Bool = false
-  public var loggerDisplayIpAddress: String = ""
-  public var loggerDisplayPort: Int = 0
-  public var loggerDisplayRadioNumber: Int = 0
-  public var loopAEnabled: Bool = false
-  public var loopBEnabled: Bool = false
-  public var maxDbm: CGFloat = 0
-  public var minDbm: CGFloat = 0
-  public var rfGain: Int = 0
-  public var rxAnt: String = ""
-  public var segmentZoomEnabled: Bool = false
-  public var weightedAverageEnabled: Bool = false
-  public var wnbEnabled: Bool = false
-  public var wnbLevel: Int = 0
-  public var xPixels: CGFloat = 0
-  public var yPixels: CGFloat = 0
-    
-  public let daxIqChoices = Radio.kDaxIqChannels
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Property: String {
-    //   NOTE: the Radio sends these tokens to the API
-    case antList                    = "ant_list"
-    case average
-    case band
-    case bandwidth
-    case bandZoomEnabled            = "band_zoom"
-    case center
-    case clientHandle               = "client_handle"
-    case daxIq                      = "daxiq"
-    case daxIqChannel               = "daxiq_channel"
-//    case fillLevel
-    case fps
-    case loopAEnabled               = "loopa"
-    case loopBEnabled               = "loopb"
-    case maxBw                      = "max_bw"
-    case maxDbm                     = "max_dbm"
-    case minBw                      = "min_bw"
-    case minDbm                     = "min_dbm"
-    case preamp                     = "pre"
-    case rfGain                     = "rfgain"
-    case rxAnt                      = "rxant"
-    case segmentZoomEnabled         = "segment_zoom"
-    case waterfallId                = "waterfall"
-    case weightedAverageEnabled     = "weighted_average"
-    case wide
-    case wnbEnabled                 = "wnb"
-    case wnbLevel                   = "wnb_level"
-    case wnbUpdating                = "wnb_updating"
-    case xvtrLabel                  = "xvtr"
-    
-    //   NOTE: ignored here
-    case available
-    case capacity
-    case daxIqRate                  = "daxiq_rate"
-    case xpixels                    = "x_pixels"
-    case ypixels                    = "y_pixels"
-
-    //   NOTE: the Radio requires these tokens from the API
-    case xPixels                    = "xpixels"
-    case yPixels                    = "ypixels"
-    
-    //   NOTE: not sent in status messages
-    case n1mmSpectrumEnable         = "n1mm_spectrum_enable"
-    case n1mmAddress                = "n1mm_address"
-    case n1mmPort                   = "n1mm_port"
-    case n1mmRadio                  = "n1mm_radio"
-  }
-  
-  public struct LegendValue: Identifiable {
-    public var id: CGFloat         // relative position 0...1
-    public var label: String       // value to display
-    public var value: CGFloat      // actual value
-    public var lineCount: CGFloat
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized = false
-  
-  private static let dbmMax: CGFloat = 20
-  private static let dbmMin: CGFloat = -180
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static status method
-  
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
-    // get the id
-    if let id = properties[0].key.streamId {
-      let index = objectModel.panadapters.firstIndex(where: { $0.id == id })
-      // is it in use?
-      if inUse {
-        if index == nil {
-          objectModel.panadapters.append(Panadapter(id))
-          objectModel.panadapters.last!.parse(Array(properties.dropFirst(1)) )
-        } else {
-          // parse the properties
-          objectModel.panadapters[index!].parse(Array(properties.dropFirst(1)) )
-        }
-
-      } else {
-        // NO, remove it
-        objectModel.panadapters.remove(at: index!)
-        log.debug("Panadapter \(id.hex): REMOVED")
-      }
-    }
-  }
-
-  // ----------------------------------------------------------------------------
   // MARK: - Public Static command methods
   
   /* ----- from the FlexApi source -----
@@ -192,7 +50,32 @@ public final class Panadapter: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public Static status method
+  
+  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+    // get the id
+    if let id = properties[0].key.streamId {
+      let index = objectModel.panadapters.firstIndex(where: { $0.id == id })
+      // is it in use?
+      if inUse {
+        if index == nil {
+          objectModel.panadapters.append(Panadapter(id))
+          objectModel.panadapters.last!.parse(Array(properties.dropFirst(1)) )
+        } else {
+          // parse the properties
+          objectModel.panadapters[index!].parse(Array(properties.dropFirst(1)) )
+        }
+
+      } else {
+        // NO, remove it
+        objectModel.panadapters.remove(at: index!)
+        log.debug("Panadapter \(id.hex): REMOVED")
+      }
+    }
+  }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Public parse method
   
   /// Parse key/value pairs
   /// - Parameter properties:       a KeyValuesArray
@@ -298,6 +181,117 @@ public final class Panadapter: Identifiable {
     freqLegends = legends
     freqOffset = offset
   }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public let id: UInt32
+
+  public var antList = [String]()
+  public var clientHandle: UInt32 = 0
+  public var dbmValues = [LegendValue]()
+  public var fillLevel: Int = 0
+  public var freqLegends = [Legend]()      // FIXME: remove when panadapter draw logic is updated
+  public var freqOffset: CGFloat = 0
+  public var maxBw: Hz = 0
+  public var minBw: Hz = 0
+  public var preamp = ""
+  public var rfGainHigh = 0
+  public var rfGainLow = 0
+  public var rfGainStep = 0
+  public var rfGainValues = ""
+  public var waterfallId: UInt32 = 0
+  public var wide = false
+  public var wnbUpdating = false
+  public var xvtrLabel = ""
+  
+  public var average: Int = 0
+  public var band: String = ""
+  // FIXME: Where does autoCenter come from?
+  public var bandwidth: Hz = 0
+  public var bandZoomEnabled: Bool  = false
+  public var center: Hz = 0
+  public var daxIqChannel: Int = 0
+  public var fps: Int = 0
+  public var loggerDisplayEnabled: Bool = false
+  public var loggerDisplayIpAddress: String = ""
+  public var loggerDisplayPort: Int = 0
+  public var loggerDisplayRadioNumber: Int = 0
+  public var loopAEnabled: Bool = false
+  public var loopBEnabled: Bool = false
+  public var maxDbm: CGFloat = 0
+  public var minDbm: CGFloat = 0
+  public var rfGain: Int = 0
+  public var rxAnt: String = ""
+  public var segmentZoomEnabled: Bool = false
+  public var weightedAverageEnabled: Bool = false
+  public var wnbEnabled: Bool = false
+  public var wnbLevel: Int = 0
+  public var xPixels: CGFloat = 0
+  public var yPixels: CGFloat = 0
+    
+  public let daxIqChoices = Radio.kDaxIqChannels
+
+  public enum Property: String {
+    //   NOTE: the Radio sends these tokens to the API
+    case antList                    = "ant_list"
+    case average
+    case band
+    case bandwidth
+    case bandZoomEnabled            = "band_zoom"
+    case center
+    case clientHandle               = "client_handle"
+    case daxIq                      = "daxiq"
+    case daxIqChannel               = "daxiq_channel"
+//    case fillLevel
+    case fps
+    case loopAEnabled               = "loopa"
+    case loopBEnabled               = "loopb"
+    case maxBw                      = "max_bw"
+    case maxDbm                     = "max_dbm"
+    case minBw                      = "min_bw"
+    case minDbm                     = "min_dbm"
+    case preamp                     = "pre"
+    case rfGain                     = "rfgain"
+    case rxAnt                      = "rxant"
+    case segmentZoomEnabled         = "segment_zoom"
+    case waterfallId                = "waterfall"
+    case weightedAverageEnabled     = "weighted_average"
+    case wide
+    case wnbEnabled                 = "wnb"
+    case wnbLevel                   = "wnb_level"
+    case wnbUpdating                = "wnb_updating"
+    case xvtrLabel                  = "xvtr"
+    
+    //   NOTE: ignored here
+    case available
+    case capacity
+    case daxIqRate                  = "daxiq_rate"
+    case xpixels                    = "x_pixels"
+    case ypixels                    = "y_pixels"
+
+    //   NOTE: the Radio requires these tokens from the API
+    case xPixels                    = "xpixels"
+    case yPixels                    = "ypixels"
+    
+    //   NOTE: not sent in status messages
+    case n1mmSpectrumEnable         = "n1mm_spectrum_enable"
+    case n1mmAddress                = "n1mm_address"
+    case n1mmPort                   = "n1mm_port"
+    case n1mmRadio                  = "n1mm_radio"
+  }
+  
+  public struct LegendValue: Identifiable {
+    public var id: CGFloat         // relative position 0...1
+    public var label: String       // value to display
+    public var value: CGFloat      // actual value
+    public var lineCount: CGFloat
+  }
+  
+  private var _initialized = false
+  
+  private static let dbmMax: CGFloat = 20
+  private static let dbmMin: CGFloat = -180
 }
 
 public struct Legend: Identifiable {

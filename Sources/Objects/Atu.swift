@@ -20,42 +20,6 @@ public final class Atu {
   public init() {}
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-  
-  public var enabled: Bool = false
-  public var memoriesEnabled: Bool = false
-  public var status: Status = .none
-  public var usingMemory: Bool = false
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Public types
-  
-  public enum Status: String {
-    case none             = "NONE"
-    case tuneNotStarted   = "TUNE_NOT_STARTED"
-    case tuneInProgress   = "TUNE_IN_PROGRESS"
-    case tuneBypass       = "TUNE_BYPASS"           // Success Byp
-    case tuneSuccessful   = "TUNE_SUCCESSFUL"       // Success
-    case tuneOK           = "TUNE_OK"
-    case tuneFailBypass   = "TUNE_FAIL_BYPASS"      // Byp
-    case tuneFail         = "TUNE_FAIL"
-    case tuneAborted      = "TUNE_ABORTED"
-    case tuneManualBypass = "TUNE_MANUAL_BYPASS"    // Byp
-  }
-  
-  public enum Property: String {
-    case status
-    case enabled            = "atu_enabled"
-    case memoriesEnabled    = "memories_enabled"
-    case usingMemory        = "using_mem"
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized = false
-
-  // ----------------------------------------------------------------------------
   // MARK: - Public Static command methods
 
   /* ----- from the FlexApi source -----
@@ -79,7 +43,7 @@ public final class Atu {
   }
   
   // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public parse method
   
   /// Parse status message
   /// - Parameter properties:       a KeyValuesArray
@@ -108,4 +72,34 @@ public final class Atu {
       log.debug("Atu: initialized")
     }
   }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
+  public var enabled: Bool = false
+  public var memoriesEnabled: Bool = false
+  public var status: Status = .none
+  public var usingMemory: Bool = false
+  
+  public enum Status: String {
+    case none             = "NONE"
+    case tuneNotStarted   = "TUNE_NOT_STARTED"
+    case tuneInProgress   = "TUNE_IN_PROGRESS"
+    case tuneBypass       = "TUNE_BYPASS"           // Success Byp
+    case tuneSuccessful   = "TUNE_SUCCESSFUL"       // Success
+    case tuneOK           = "TUNE_OK"
+    case tuneFailBypass   = "TUNE_FAIL_BYPASS"      // Byp
+    case tuneFail         = "TUNE_FAIL"
+    case tuneAborted      = "TUNE_ABORTED"
+    case tuneManualBypass = "TUNE_MANUAL_BYPASS"    // Byp
+  }
+  
+  public enum Property: String {
+    case status
+    case enabled            = "atu_enabled"
+    case memoriesEnabled    = "memories_enabled"
+    case usingMemory        = "using_mem"
+  }
+  
+  private var _initialized = false
 }

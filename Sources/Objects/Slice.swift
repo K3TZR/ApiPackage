@@ -12,152 +12,72 @@ import Foundation
 
 @MainActor
 @Observable
-public final class Slice {
+public final class Slice: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
-
+  
   public init(_ id: UInt32) {
     self.id = id
     // set filterLow & filterHigh to default values
     setupDefaultFilters(mode)
   }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public properties
   
-  public let id: UInt32
-  
-  public var autoPan: Bool = false
-  public var clientHandle: UInt32 = 0
-  public var daxClients: Int = 0
-  public var daxTxEnabled: Bool = false
-  public var detached: Bool = false
-  public var diversityChild: Bool = false
-  public var diversityIndex: Int = 0
-  public var diversityParent: Bool = false
-  public var inUse: Bool = false
-  public var modeList = [String]()
-  public var nr2: Int = 0
-  public var owner: Int = 0
-  public var panadapterId: UInt32 = 0
-  public var postDemodBypassEnabled: Bool = false
-  public var postDemodHigh: Int = 0
-  public var postDemodLow: Int = 0
-  public var qskEnabled: Bool = false
-  public var recordLength: Float = 0
-  public var rxAntList = [String]()
-  public var sliceLetter: String?
-  public var txAntList = [String]()
-  public var wide: Bool = false
-  
-  public var active: Bool = false
-  public var agcMode: String = AgcMode.off.rawValue
-  public var agcOffLevel: Int = 0
-  public var agcThreshold = 0
-  public var anfEnabled: Bool = false
-  public var anfLevel = 0
-  public var apfEnabled: Bool = false
-  public var apfLevel: Int = 0
-  public var audioGain = 0
-  public var audioMute: Bool = false
-  public var audioPan = 0
-  public var daxChannel = 0
-  public var dfmPreDeEmphasisEnabled: Bool = false
-  public var digitalLowerOffset: Int = 0
-  public var digitalUpperOffset: Int = 0
-  public var diversityEnabled: Bool = false
-  public var filterHigh: Int = 0
-  public var filterLow: Int = 0
-  public var fmDeviation: Int = 0
-  public var fmRepeaterOffset: Float = 0
-  public var fmToneBurstEnabled: Bool = false
-  public var fmToneFreq: Float = 0
-  public var fmToneMode: String = ""
-  public var frequency: Hz = 0
-  public var locked: Bool = false
-  public var loopAEnabled: Bool = false
-  public var loopBEnabled: Bool = false
-  public var mode: String = ""
-  public var nbEnabled: Bool = false
-  public var nbLevel = 0
-  public var nrEnabled: Bool = false
-  public var nrLevel = 0
-  public var playbackEnabled: Bool = false
-  public var recordEnabled: Bool = false
-  public var repeaterOffsetDirection: String = ""
-  public var rfGain: Int = 0
-  public var ritEnabled: Bool = false
-  public var ritOffset: Int = 0
-  public var rttyMark: Int = 0
-  public var rttyShift: Int = 0
-  public var rxAnt: String = ""
-  public var sampleRate: Int = 0
-  public var splitId: UInt32?
-  public var step: Int = 0
-  public var stepList: String = "1, 10, 50, 100, 500, 1000, 2000, 3000"
-  public var squelchAvgFactor = 0  
-  public var squelchEnabled: Bool = false
-  public var squelchHangDelay = 0
-  public var squelchLevel: Int = 0
-  public var squelchTriggeredWeight = 0
-  public var txAnt: String = ""
-  public var txEnabled: Bool = false
-  public var txOffsetFreq: Float = 0
-  public var wnbEnabled: Bool = false
-  public var wnbLevel = 0
-  public var xitEnabled: Bool = false
-  public var xitOffset: Int = 0
-  
-  public let daxChoices = Radio.kDaxChannels
-  public var filters = [(low: Int, high: Int)]()
-  
-  let filterDefaults =     // Values of filters (by mode) (low, high)
-  [
-    "AM":   [(-1500,1500), (-2000,2000), (-2800,2800), (-3000,3000), (-4000,4000), (-5000,5000), (-6000,6000), (-7000,7000), (-8000,8000), (-10000,10000)],
-    "SAM":  [(-1500,1500), (-2000,2000), (-2800,2800), (-3000,3000), (-4000,4000), (-5000,5000), (-6000,6000), (-7000,7000), (-8000,8000), (-10000,10000)],
-    "CW":   [(450,500), (450,525), (450,550), (450,600), (450,700), (450,850), (450,1250), (450,1450), (450,1950), (450,3450)],
-    "USB":  [(300,1500), (300,1700), (300,1900), (300,2100), (300,2400), (300,2700), (300,3000), (300,3200), (300,3600), (300,4300)],
-    "LSB":  [(-1500,-300), (-1700,-300), (-1900,-300), (-2100,-300), (-2400,-300), (-2700,-300), (-3000,-300), (-3200,-300), (-3600,-300), (-4300,-300)],
-    "FM":   [(-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000)],
-    "NFM":  [(-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000)],
-    "DFM":  [(-1500,1500), (-2000,2000), (-2800,2800), (-3000,3000), (-4000,4000), (-5000,5000), (-6000,6000), (-7000,7000), (-8000,8000), (-10000,10000)],
-    "DIGU": [(300,1500), (300,1700), (300,1900), (300,2100), (300,2400), (300,2700), (300,3000), (300,3200), (300,3600), (300,4300)],
-    "DIGL": [(-1500,-300), (-1700,-300), (-1900,-300), (-2100,-300), (-2400,-300), (-2700,-300), (-3000,-300), (-3200,-300), (-3600,-300), (-4300,-300)],
-    "RTTY": [(-285, 115), (-285, 115), (-285, 115), (-285, 115), (-285, 115), (-285, 115), (-285, 115), (-285, 115), (-285, 115), (-285, 115)]
-  ]
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-  
-  private var _initialized = false
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static status method
-  
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
-    // get the id
-    if let id = properties[0].key.objectId {
-      let index = objectModel.slices.firstIndex(where: { $0.id == id })
-      // is it in use?
-      if inUse {
-        if index == nil {
-          objectModel.slices.append(Slice(id))
-          objectModel.slices.last!.parse(Array(properties.dropFirst(1)) )
-        } else {
-          // parse the properties
-          objectModel.slices[index!].parse(Array(properties.dropFirst(1)) )
-        }
-
-      } else {
-        // NO, remove it
-        objectModel.slices.remove(at: index!)
-        log.debug("Slice \(id) REMOVED")
-      }
-    }
-  }
-
   // ----------------------------------------------------------------------------
   // MARK: - Public Static command methods
+  
+  /* ----- from FlexApi -----
+   "slice m " + StringHelper.DoubleToString(clicked_freq_MHz, "f6") + " pan=0x" + _streamID.ToString("X")
+   "slice create"
+   "slice set " + _index + " active=" + Convert.ToByte(_active)
+   "slice set " + _index + " rxant=" + _rxant
+   "slice set" + _index + " rfgain=" + _rfGain
+   "slice set " + _index + " txant=" + _txant
+   "slice set " + _index + " mode=" + _demodMode
+   "slice set " + _index + " dax=" + _daxChannel
+   "slice set " + _index + " rtty_mark=" + _rttyMark
+   "slice set " + _index + " rtty_shift=" + _rttyShift
+   "slice set " + _index + " digl_offset=" + _diglOffset
+   "slice set " + _index + " digu_offset=" + _diguOffset
+   "slice set " + _index + " audio_pan=" + _audioPan
+   "slice set " + _index + " audio_level=" + _audioGain
+   "slice set " + _index + " audio_mute=" + Convert.ToByte(value)
+   "slice set " + _index + " anf=" + Convert.ToByte(value)
+   "slice set " + _index + " apf=" + Convert.ToByte(value)
+   "slice set " + _index + " anf_level=" + _anf_level
+   "slice set " + _index + " apf_level=" + _apf_level
+   "slice set " + _index + " diversity=" + Convert.ToByte(value)
+   "slice set " + _index + " wnb=" + Convert.ToByte(value)
+   "slice set " + _index + " nb=" + Convert.ToByte(value)
+   "slice set " + _index + " wnb_level=" + _wnb_level)
+   "slice set " + _index + " nb_level=" + _nb_level
+   "slice set " + _index + " nr=" + Convert.ToByte(_nr_on)
+   "slice set " + _index + " nr_level=" + _nr_level
+   "slice set " + _index + " agc_mode=" + AGCModeToString(_agc_mode)
+   "slice set " + _index + " agc_threshold=" + _agc_threshold
+   "slice set " + _index + " agc_off_level=" + _agc_off_level
+   "slice set " + _index + " tx=" + Convert.ToByte(_isTransmitSlice)
+   "slice set " + _index + " loopa=" + Convert.ToByte(_loopA)
+   "slice set " + _index + " loopb=" + Convert.ToByte(_loopB)
+   "slice set " + _index + " rit_on=" + Convert.ToByte(_ritOn)
+   "slice set " + _index + " rit_freq=" + _ritFreq
+   "slice set " + _index + " xit_on=" + Convert.ToByte(_xitOn)
+   "slice set " + _index + " xit_freq=" + _xitFreq
+   "slice set " + _index + " step=" + _tuneStep
+   "slice set " + _index + " record=" + Convert.ToByte(_record_on)
+   "slice set " + _index + " play=" + Convert.ToByte(_playOn)
+   "slice set " + _index + " fm_tone_mode=" + FMToneModeToString(_toneMode)
+   "slice set " + _index + " fm_tone_value=" + _fmToneValue
+   "slice set " + _index + " fm_deviation=" + _fmDeviation
+   "slice set " + _index + " dfm_pre_de_emphasis=" + Convert.ToByte(_dfmPreDeEmphasis)
+   "slice set " + _index + " squelch=" + Convert.ToByte(_squelchOn)
+   "slice set " + _index + " squelch_level=" + _squelchLevel
+   "slice set " + _index + " tx_offset_freq=" + StringHelper.DoubleToString(_txOffsetFreq, "f6")
+   "slice set " + _index + " fm_repeater_offset_freq=" + StringHelper.DoubleToString(_fmRepeaterOffsetFreq, "f6")
+   "slice set " + _index + " repeater_offset_dir=" + FMTXOffsetDirectionToString(_repeaterOffsetDirection)
+   "slice set " + _index + " fm_tone_burst=" + Convert.ToByte(_fmTX1750)
+   "slice remove " + _index
+   "slice waveform_cmd " + _index + " " + s
+   */
   
   public static func add(panadapterId: UInt32? = nil, mode: String = "", frequency: Hz = 0,  rxAntenna: String = "", usePersistence: Bool = false, replyHandler: ReplyHandler? = nil) -> String {
     var cmd = "slice create"
@@ -174,10 +94,34 @@ public final class Slice {
   public static func set(id: UInt32, property: Property, value: String) -> String {
     "tnf set \(id) \(property.rawValue)=\(value)"
   }
-
-
+  
   // ----------------------------------------------------------------------------
-  // MARK: - Public Parse methods
+  // MARK: - Public Static status method
+  
+  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+    // get the id
+    if let id = properties[0].key.objectId {
+      let index = objectModel.slices.firstIndex(where: { $0.id == id })
+      // is it in use?
+      if inUse {
+        if index == nil {
+          objectModel.slices.append(Slice(id))
+          objectModel.slices.last!.parse(Array(properties.dropFirst(1)) )
+        } else {
+          // parse the properties
+          objectModel.slices[index!].parse(Array(properties.dropFirst(1)) )
+        }
+        
+      } else {
+        // NO, remove it
+        objectModel.slices.remove(at: index!)
+        log.debug("Slice \(id) REMOVED")
+      }
+    }
+  }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public parse method
   
   /// Parse key/value pairs
   /// - Parameter properties: a KeyValuesArray
@@ -289,65 +233,6 @@ public final class Slice {
     }
   }
   
-  /* ----- from FlexApi -----
-   "slice m " + StringHelper.DoubleToString(clicked_freq_MHz, "f6") + " pan=0x" + _streamID.ToString("X")
-   "slice create"
-   "slice set " + _index + " active=" + Convert.ToByte(_active)
-   "slice set " + _index + " rxant=" + _rxant
-   "slice set" + _index + " rfgain=" + _rfGain
-   "slice set " + _index + " txant=" + _txant
-   "slice set " + _index + " mode=" + _demodMode
-   "slice set " + _index + " dax=" + _daxChannel
-   "slice set " + _index + " rtty_mark=" + _rttyMark
-   "slice set " + _index + " rtty_shift=" + _rttyShift
-   "slice set " + _index + " digl_offset=" + _diglOffset
-   "slice set " + _index + " digu_offset=" + _diguOffset
-   "slice set " + _index + " audio_pan=" + _audioPan
-   "slice set " + _index + " audio_level=" + _audioGain
-   "slice set " + _index + " audio_mute=" + Convert.ToByte(value)
-   "slice set " + _index + " anf=" + Convert.ToByte(value)
-   "slice set " + _index + " apf=" + Convert.ToByte(value)
-   "slice set " + _index + " anf_level=" + _anf_level
-   "slice set " + _index + " apf_level=" + _apf_level
-   "slice set " + _index + " diversity=" + Convert.ToByte(value)
-   "slice set " + _index + " wnb=" + Convert.ToByte(value)
-   "slice set " + _index + " nb=" + Convert.ToByte(value)
-   "slice set " + _index + " wnb_level=" + _wnb_level)
-   "slice set " + _index + " nb_level=" + _nb_level
-   "slice set " + _index + " nr=" + Convert.ToByte(_nr_on)
-   "slice set " + _index + " nr_level=" + _nr_level
-   "slice set " + _index + " agc_mode=" + AGCModeToString(_agc_mode)
-   "slice set " + _index + " agc_threshold=" + _agc_threshold
-   "slice set " + _index + " agc_off_level=" + _agc_off_level
-   "slice set " + _index + " tx=" + Convert.ToByte(_isTransmitSlice)
-   "slice set " + _index + " loopa=" + Convert.ToByte(_loopA)
-   "slice set " + _index + " loopb=" + Convert.ToByte(_loopB)
-   "slice set " + _index + " rit_on=" + Convert.ToByte(_ritOn)
-   "slice set " + _index + " rit_freq=" + _ritFreq
-   "slice set " + _index + " xit_on=" + Convert.ToByte(_xitOn)
-   "slice set " + _index + " xit_freq=" + _xitFreq
-   "slice set " + _index + " step=" + _tuneStep
-   "slice set " + _index + " record=" + Convert.ToByte(_record_on)
-   "slice set " + _index + " play=" + Convert.ToByte(_playOn)
-   "slice set " + _index + " fm_tone_mode=" + FMToneModeToString(_toneMode)
-   "slice set " + _index + " fm_tone_value=" + _fmToneValue
-   "slice set " + _index + " fm_deviation=" + _fmDeviation
-   "slice set " + _index + " dfm_pre_de_emphasis=" + Convert.ToByte(_dfmPreDeEmphasis)
-   "slice set " + _index + " squelch=" + Convert.ToByte(_squelchOn)
-   "slice set " + _index + " squelch_level=" + _squelchLevel
-   "slice set " + _index + " tx_offset_freq=" + StringHelper.DoubleToString(_txOffsetFreq, "f6")
-   "slice set " + _index + " fm_repeater_offset_freq=" + StringHelper.DoubleToString(_fmRepeaterOffsetFreq, "f6")
-   "slice set " + _index + " repeater_offset_dir=" + FMTXOffsetDirectionToString(_repeaterOffsetDirection)
-   "slice set " + _index + " fm_tone_burst=" + Convert.ToByte(_fmTX1750)
-   "slice remove " + _index
-   "slice waveform_cmd " + _index + " " + s
-   */
-}
-
-// ----------------------------------------------------------------------------
-// MARK: - Private methods
-
-extension Slice {
   /// Set the default Filter widths
   /// - Parameters:
   ///   - mode:       demod mode
@@ -377,20 +262,113 @@ extension Slice {
       }
     }
   }
-}
-
-// ----------------------------------------------------------------------------
-// MARK: - Static properties
-
-extension Slice {
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+  
   static let kMinOffset = -99_999 // frequency offset range
   static let kMaxOffset = 99_999
-}
-
-// ----------------------------------------------------------------------------
-// MARK: - Public enums and structs
-
-extension Slice {
+  
+  public let id: UInt32
+  
+  public var autoPan: Bool = false
+  public var clientHandle: UInt32 = 0
+  public var daxClients: Int = 0
+  public var daxTxEnabled: Bool = false
+  public var detached: Bool = false
+  public var diversityChild: Bool = false
+  public var diversityIndex: Int = 0
+  public var diversityParent: Bool = false
+  public var inUse: Bool = false
+  public var modeList = [String]()
+  public var nr2: Int = 0
+  public var owner: Int = 0
+  public var panadapterId: UInt32 = 0
+  public var postDemodBypassEnabled: Bool = false
+  public var postDemodHigh: Int = 0
+  public var postDemodLow: Int = 0
+  public var qskEnabled: Bool = false
+  public var recordLength: Float = 0
+  public var rxAntList = [String]()
+  public var sliceLetter: String?
+  public var txAntList = [String]()
+  public var wide: Bool = false
+  
+  public var active: Bool = false
+  public var agcMode: String = AgcMode.off.rawValue
+  public var agcOffLevel: Int = 0
+  public var agcThreshold = 0
+  public var anfEnabled: Bool = false
+  public var anfLevel = 0
+  public var apfEnabled: Bool = false
+  public var apfLevel: Int = 0
+  public var audioGain = 0
+  public var audioMute: Bool = false
+  public var audioPan = 0
+  public var daxChannel = 0
+  public var dfmPreDeEmphasisEnabled: Bool = false
+  public var digitalLowerOffset: Int = 0
+  public var digitalUpperOffset: Int = 0
+  public var diversityEnabled: Bool = false
+  public var filterHigh: Int = 0
+  public var filterLow: Int = 0
+  public var fmDeviation: Int = 0
+  public var fmRepeaterOffset: Float = 0
+  public var fmToneBurstEnabled: Bool = false
+  public var fmToneFreq: Float = 0
+  public var fmToneMode: String = ""
+  public var frequency: Hz = 0
+  public var locked: Bool = false
+  public var loopAEnabled: Bool = false
+  public var loopBEnabled: Bool = false
+  public var mode: String = ""
+  public var nbEnabled: Bool = false
+  public var nbLevel = 0
+  public var nrEnabled: Bool = false
+  public var nrLevel = 0
+  public var playbackEnabled: Bool = false
+  public var recordEnabled: Bool = false
+  public var repeaterOffsetDirection: String = ""
+  public var rfGain: Int = 0
+  public var ritEnabled: Bool = false
+  public var ritOffset: Int = 0
+  public var rttyMark: Int = 0
+  public var rttyShift: Int = 0
+  public var rxAnt: String = ""
+  public var sampleRate: Int = 0
+  public var splitId: UInt32?
+  public var step: Int = 0
+  public var stepList: String = "1, 10, 50, 100, 500, 1000, 2000, 3000"
+  public var squelchAvgFactor = 0
+  public var squelchEnabled: Bool = false
+  public var squelchHangDelay = 0
+  public var squelchLevel: Int = 0
+  public var squelchTriggeredWeight = 0
+  public var txAnt: String = ""
+  public var txEnabled: Bool = false
+  public var txOffsetFreq: Float = 0
+  public var wnbEnabled: Bool = false
+  public var wnbLevel = 0
+  public var xitEnabled: Bool = false
+  public var xitOffset: Int = 0
+  
+  public let daxChoices = Radio.kDaxChannels
+  public var filters = [(low: Int, high: Int)]()
+  
+  let filterDefaults =     // Values of filters (by mode) (low, high)
+  [
+    "AM":   [(-1500,1500), (-2000,2000), (-2800,2800), (-3000,3000), (-4000,4000), (-5000,5000), (-6000,6000), (-7000,7000), (-8000,8000), (-10000,10000)],
+    "SAM":  [(-1500,1500), (-2000,2000), (-2800,2800), (-3000,3000), (-4000,4000), (-5000,5000), (-6000,6000), (-7000,7000), (-8000,8000), (-10000,10000)],
+    "CW":   [(450,500), (450,525), (450,550), (450,600), (450,700), (450,850), (450,1250), (450,1450), (450,1950), (450,3450)],
+    "USB":  [(300,1500), (300,1700), (300,1900), (300,2100), (300,2400), (300,2700), (300,3000), (300,3200), (300,3600), (300,4300)],
+    "LSB":  [(-1500,-300), (-1700,-300), (-1900,-300), (-2100,-300), (-2400,-300), (-2700,-300), (-3000,-300), (-3200,-300), (-3600,-300), (-4300,-300)],
+    "FM":   [(-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000)],
+    "NFM":  [(-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000), (-8000,8000)],
+    "DFM":  [(-1500,1500), (-2000,2000), (-2800,2800), (-3000,3000), (-4000,4000), (-5000,5000), (-6000,6000), (-7000,7000), (-8000,8000), (-10000,10000)],
+    "DIGU": [(300,1500), (300,1700), (300,1900), (300,2100), (300,2400), (300,2700), (300,3000), (300,3200), (300,3600), (300,4300)],
+    "DIGL": [(-1500,-300), (-1700,-300), (-1900,-300), (-2100,-300), (-2400,-300), (-2700,-300), (-3000,-300), (-3200,-300), (-3600,-300), (-4300,-300)],
+    "RTTY": [(-285, 115), (-285, 115), (-285, 115), (-285, 115), (-285, 115), (-285, 115), (-285, 115), (-285, 115), (-285, 115), (-285, 115)]
+  ]
   
   public enum Offset: String {
     case up
@@ -493,7 +471,7 @@ extension Slice {
     case squelchEnabled             = "squelch"
     case squelchLevel               = "squelch_level"
     case squelchTriggeredWeight     = "squelch_triggered_weight"
-
+    
     case step
     case stepList                   = "step_list"
     //    case tune
@@ -507,4 +485,6 @@ extension Slice {
     case xitEnabled                 = "xit_on"
     case xitOffset                  = "xit_freq"
   }
+  
+  private var _initialized = false
 }

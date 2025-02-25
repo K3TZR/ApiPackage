@@ -8,38 +8,6 @@
 import CocoaAsyncSocket
 import Foundation
 
-//import SharedFeature
-
-// ----------------------------------------------------------------------------
-// MARK: - Public structs and enums
-
-public enum TcpStatusType {
-  case didConnect
-  case didSecure
-  case didDisconnect
-}
-
-public struct TcpStatus: Identifiable, Equatable {
-  public static func == (lhs: TcpStatus, rhs: TcpStatus) -> Bool {
-    lhs.id == rhs.id
-  }
-  
-  public init(_ statusType: TcpStatusType, host: String, port: UInt16, error: Error? = nil, reason: String? = nil) {
-    self.statusType = statusType
-    self.host = host
-    self.port = port
-    self.error = error
-    self.reason = reason
-  }
-  
-  public var id = UUID()
-  public var statusType: TcpStatusType = .didDisconnect
-  public var host = ""
-  public var port: UInt16 = 0
-  public var error: Error?
-  public var reason: String?
-}
-
 ///  Tcp Command Class implementation
 ///      manages all Tcp communication with a Radio
 public final class Tcp: NSObject {
@@ -58,20 +26,6 @@ public final class Tcp: NSObject {
     
     log.debug("Tcp: socket initialized")
   }
-  // ----------------------------------------------------------------------------
-  // MARK: - Public properties
-
-  public private(set) var interfaceIpAddress = "0.0.0.0"
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Private properties
-
-  private var _delegate: TcpProcessor
-  private var _isWan: Bool = false
-  private let _receiveQ = DispatchQueue(label: "TcpStream.receiveQ")
-  private var _socket: GCDAsyncSocket!
-  private var _timeout = 0.0   // seconds
-  private var _startTime: Date?
   
   // ----------------------------------------------------------------------------
   // MARK: - Public methods
@@ -137,6 +91,18 @@ public final class Tcp: NSObject {
   public func send(_ command: String, _ sequenceNumber: Int) {
     _socket.write(command.data(using: String.Encoding.utf8, allowLossyConversion: false)!, withTimeout: -1, tag: sequenceNumber)
   }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Properties
+
+  public private(set) var interfaceIpAddress = "0.0.0.0"
+  
+  private var _delegate: TcpProcessor
+  private var _isWan: Bool = false
+  private let _receiveQ = DispatchQueue(label: "TcpStream.receiveQ")
+  private var _socket: GCDAsyncSocket!
+  private var _timeout = 0.0   // seconds
+  private var _startTime: Date?
 }
 
 
@@ -212,4 +178,34 @@ extension Tcp: GCDAsyncSocketDelegate {
       _socket.readData(to: GCDAsyncSocket.lfData(), withTimeout: -1, tag: 0)
     }
   }
+}
+
+// ----------------------------------------------------------------------------
+// MARK: - Public structs and enums
+
+public enum TcpStatusType {
+  case didConnect
+  case didSecure
+  case didDisconnect
+}
+
+public struct TcpStatus: Identifiable, Equatable {
+  public static func == (lhs: TcpStatus, rhs: TcpStatus) -> Bool {
+    lhs.id == rhs.id
+  }
+  
+  public init(_ statusType: TcpStatusType, host: String, port: UInt16, error: Error? = nil, reason: String? = nil) {
+    self.statusType = statusType
+    self.host = host
+    self.port = port
+    self.error = error
+    self.reason = reason
+  }
+  
+  public var id = UUID()
+  public var statusType: TcpStatusType = .didDisconnect
+  public var host = ""
+  public var port: UInt16 = 0
+  public var error: Error?
+  public var reason: String?
 }
