@@ -8,13 +8,6 @@
 
 import Foundation
 
-//public struct GuiClientId: Identifiable, Equatable, Hashable {
-//  public let handle: String
-//  public var clientId: UUID?
-//  
-//  public var id: String {handle }
-//}
-
 public struct GuiClient: Identifiable, Equatable, Hashable, Sendable {  
   public static func == (lhs: GuiClient, rhs: GuiClient) -> Bool {
     return lhs.handle == rhs.handle && lhs.ip == rhs.ip && lhs.host == rhs.host && lhs.station == rhs.station && lhs.program == rhs.program

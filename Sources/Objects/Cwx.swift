@@ -8,15 +8,12 @@
 
 import Foundation
 
-//import SharedFeature
-
-
 // Cwx
 //      creates a Cwx instance to be used by a Client to support the
 //      rendering of a Cwx. Cwx objects are added, removed and updated
 //      by the incoming TCP messages.
 //
-//@MainActor
+@MainActor
 @Observable
 public final class Cwx {
   // ----------------------------------------------------------------------------

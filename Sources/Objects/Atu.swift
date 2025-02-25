@@ -8,10 +8,7 @@
 
 import Foundation
 
-//import SharedFeature
-
-
-//@MainActor
+@MainActor
 @Observable
 public final class Atu {
   // ----------------------------------------------------------------------------
