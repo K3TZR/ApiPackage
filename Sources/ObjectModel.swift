@@ -153,7 +153,6 @@ final public class ObjectModel: TcpProcessor {
     
     self.testDelegate = testDelegate
     
-    
     guard connect(to: selection.radio) else { throw ApiError.connection }
     log.debug("ApiModel: Tcp connection established")
     
