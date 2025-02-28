@@ -37,6 +37,7 @@ final public class ObjectModel: TcpProcessor {
   // ----------------------------------------------------------------------------
   // MARK: - Public properties
     
+  public internal(set) var connectionIsGui = false
   public var activeSelection: ActiveSelection?
   public internal(set) var activeSlice: Slice?
   public internal(set) var boundClientId: String?
@@ -151,6 +152,7 @@ final public class ObjectModel: TcpProcessor {
                       lowBandwidthConnect: Bool = false,
                       testDelegate: TcpProcessor? = nil) async throws {
     
+    self.connectionIsGui = isGui
     self.testDelegate = testDelegate
     
     guard connect(to: selection.radio) else { throw ApiError.connection }
@@ -880,20 +882,20 @@ final public class ObjectModel: TcpProcessor {
         radio.guiClients[index] = newGuiClient
         log.info("ApiModel: Handle <\(handle.hex)>, Station <\(station)>, Program <\(program)>, Ip <\(newGuiClient.ip)>, Host <\(newGuiClient.ip)>, Client Id <\(clientId)> - UPDATED in ApiModel")
         // if needed, bind to the Station
-        //        bind(radio!.isGui, activeSelection?.station, station, clientId)
+        bind(connectionIsGui, activeSelection?.station, station, clientId)
         return
         
       } else {
         radio.guiClients.append(GuiClient(handle: handle.hex, station: station, program: program, clientId: UUID(uuidString: clientId)))
         log.info("ApiModel: Handle <\(handle.hex)>, Station <\(station)>, Program <\(program)>, Client Id <\(clientId)> - ADDED in ApiModel")
         // if needed, bind to the Station
-        //        bind(radio!.isGui, activeSelection?.station, station, clientId)
+        bind(connectionIsGui, activeSelection?.station, station, clientId)
       }
     }
   }
   
-  private func bind(_ isGui: Bool, _ activeStation: String?, _ station: String, _ clientId: String) {
-    if isGui == false && station == activeStation {
+  private func bind(_ connectionIsGui: Bool, _ activeStation: String?, _ station: String, _ clientId: String) {
+    if connectionIsGui == false && station == activeStation {
       boundClientId = clientId
       sendTcp("client bind client_id=\(clientId)")
       log.info("Listener: NonGui bound to <\(station)>, Client ID <\(clientId)>")
