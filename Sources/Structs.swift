@@ -330,87 +330,87 @@ public enum AudioCompression: String {
 }
 
 // Helper struct used by Audio routines
-public struct AudioDevice : Identifiable, Equatable {
-  public var id: AudioDeviceID
-  
-  public init(_ id: AudioDeviceID) {
-    self.id = id
-  }
-  
-  public var hasOutput: Bool {
-    get {
-      var address:AudioObjectPropertyAddress = AudioObjectPropertyAddress(
-        mSelector:AudioObjectPropertySelector(kAudioDevicePropertyStreamConfiguration),
-        mScope:AudioObjectPropertyScope(kAudioDevicePropertyScopeOutput),
-        mElement:0)
-      
-      var propsize: UInt32 = UInt32(MemoryLayout<CFString?>.size);
-      if AudioObjectGetPropertyDataSize(id, &address, 0, nil, &propsize) != 0 {
-        return false;
-      }
-      
-      let bufferList = UnsafeMutablePointer<AudioBufferList>.allocate(capacity:Int(propsize))
-      if AudioObjectGetPropertyData(id, &address, 0, nil, &propsize, bufferList) != 0 {
-        return false
-      }
-      
-      let buffers = UnsafeMutableAudioBufferListPointer(bufferList)
-      for bufferNum in 0..<buffers.count {
-        if buffers[bufferNum].mNumberChannels > 0 { return true }
-      }
-      return false
-    }
-  }
-  
-  public var uid: String? {
-    get {
-      var address:AudioObjectPropertyAddress = AudioObjectPropertyAddress(
-        mSelector:AudioObjectPropertySelector(kAudioDevicePropertyDeviceUID),
-        mScope:AudioObjectPropertyScope(kAudioObjectPropertyScopeGlobal),
-        mElement:AudioObjectPropertyElement(kAudioObjectPropertyElementMain))
-      
-      var deviceUid: CFString? = nil
-      var propSize = UInt32(MemoryLayout<CFString?>.size)
-      guard AudioObjectGetPropertyData(id, &address, 0, nil, &propSize, &deviceUid) == 0 else { return nil }
-      return deviceUid as String?
-    }
-  }
-  
-  public var name: String? {
-    get {
-      var address:AudioObjectPropertyAddress = AudioObjectPropertyAddress(
-        mSelector:AudioObjectPropertySelector(kAudioDevicePropertyDeviceNameCFString),
-        mScope:AudioObjectPropertyScope(kAudioObjectPropertyScopeGlobal),
-        mElement:AudioObjectPropertyElement(kAudioObjectPropertyElementMain))
-      
-      var deviceName: CFString? = nil
-      var propSize = UInt32(MemoryLayout<CFString?>.size)
-      guard AudioObjectGetPropertyData(id, &address, 0, nil, &propSize, &deviceName) == 0 else { return nil }
-      return deviceName as String?
-    }
-  }
-  
-  public static func getDevices() -> [AudioDevice] {
-    var devices = [AudioDevice]()
-    var propsize: UInt32 = 0
-    var address: AudioObjectPropertyAddress = AudioObjectPropertyAddress(mSelector:AudioObjectPropertySelector(kAudioHardwarePropertyDevices),
-                                                                         mScope:AudioObjectPropertyScope(kAudioObjectPropertyScopeGlobal),
-                                                                         mElement:AudioObjectPropertyElement(kAudioObjectPropertyElementMain))
-    
-    if AudioObjectGetPropertyDataSize(AudioObjectID(kAudioObjectSystemObject), &address, UInt32(MemoryLayout<AudioObjectPropertyAddress>.size), nil, &propsize) != 0 {
-      return devices
-    }
-    var deviceIds = [AudioDeviceID](repeating: AudioDeviceID(0), count: Int(propsize / UInt32(MemoryLayout<AudioDeviceID>.size)))
-    if AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &propsize, &deviceIds) != 0 {
-      return devices
-    }
-    for deviceId in deviceIds {
-      devices.append(AudioDevice(deviceId))
-//      print("----->>>>> ", AudioDevice(deviceId).id, AudioDevice(deviceId).name)
-    }
-    return devices
-  }
-}
+//public struct AudioDevice : Identifiable, Equatable {
+//  public var id: AudioDeviceID
+//  
+//  public init(_ id: AudioDeviceID) {
+//    self.id = id
+//  }
+//  
+//  public var hasOutput: Bool {
+//    get {
+//      var address:AudioObjectPropertyAddress = AudioObjectPropertyAddress(
+//        mSelector:AudioObjectPropertySelector(kAudioDevicePropertyStreamConfiguration),
+//        mScope:AudioObjectPropertyScope(kAudioDevicePropertyScopeOutput),
+//        mElement:0)
+//      
+//      var propsize: UInt32 = UInt32(MemoryLayout<CFString?>.size);
+//      if AudioObjectGetPropertyDataSize(id, &address, 0, nil, &propsize) != 0 {
+//        return false;
+//      }
+//      
+//      let bufferList = UnsafeMutablePointer<AudioBufferList>.allocate(capacity:Int(propsize))
+//      if AudioObjectGetPropertyData(id, &address, 0, nil, &propsize, bufferList) != 0 {
+//        return false
+//      }
+//      
+//      let buffers = UnsafeMutableAudioBufferListPointer(bufferList)
+//      for bufferNum in 0..<buffers.count {
+//        if buffers[bufferNum].mNumberChannels > 0 { return true }
+//      }
+//      return false
+//    }
+//  }
+//  
+//  public var uid: String? {
+//    get {
+//      var address:AudioObjectPropertyAddress = AudioObjectPropertyAddress(
+//        mSelector:AudioObjectPropertySelector(kAudioDevicePropertyDeviceUID),
+//        mScope:AudioObjectPropertyScope(kAudioObjectPropertyScopeGlobal),
+//        mElement:AudioObjectPropertyElement(kAudioObjectPropertyElementMain))
+//      
+//      var deviceUid: CFString? = nil
+//      var propSize = UInt32(MemoryLayout<CFString?>.size)
+//      guard AudioObjectGetPropertyData(id, &address, 0, nil, &propSize, &deviceUid) == 0 else { return nil }
+//      return deviceUid as String?
+//    }
+//  }
+//  
+//  public var name: String? {
+//    get {
+//      var address:AudioObjectPropertyAddress = AudioObjectPropertyAddress(
+//        mSelector:AudioObjectPropertySelector(kAudioDevicePropertyDeviceNameCFString),
+//        mScope:AudioObjectPropertyScope(kAudioObjectPropertyScopeGlobal),
+//        mElement:AudioObjectPropertyElement(kAudioObjectPropertyElementMain))
+//      
+//      var deviceName: CFString? = nil
+//      var propSize = UInt32(MemoryLayout<CFString?>.size)
+//      guard AudioObjectGetPropertyData(id, &address, 0, nil, &propSize, &deviceName) == 0 else { return nil }
+//      return deviceName as String?
+//    }
+//  }
+//  
+//  public static func getDevices() -> [AudioDevice] {
+//    var devices = [AudioDevice]()
+//    var propsize: UInt32 = 0
+//    var address: AudioObjectPropertyAddress = AudioObjectPropertyAddress(mSelector:AudioObjectPropertySelector(kAudioHardwarePropertyDevices),
+//                                                                         mScope:AudioObjectPropertyScope(kAudioObjectPropertyScopeGlobal),
+//                                                                         mElement:AudioObjectPropertyElement(kAudioObjectPropertyElementMain))
+//    
+//    if AudioObjectGetPropertyDataSize(AudioObjectID(kAudioObjectSystemObject), &address, UInt32(MemoryLayout<AudioObjectPropertyAddress>.size), nil, &propsize) != 0 {
+//      return devices
+//    }
+//    var deviceIds = [AudioDeviceID](repeating: AudioDeviceID(0), count: Int(propsize / UInt32(MemoryLayout<AudioDeviceID>.size)))
+//    if AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &propsize, &deviceIds) != 0 {
+//      return devices
+//    }
+//    for deviceId in deviceIds {
+//      devices.append(AudioDevice(deviceId))
+////      print("----->>>>> ", AudioDevice(deviceId).id, AudioDevice(deviceId).name)
+//    }
+//    return devices
+//  }
+//}
 
 public struct SignalLevel {
   public init(rms: Float, peak: Float) {

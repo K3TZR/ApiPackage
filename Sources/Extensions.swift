@@ -134,10 +134,14 @@ extension SwiftUI.Color: Swift.RawRepresentable {
       // invalid raw value
       return nil
     }
-    
     do {
+#if os(macOS)
       let color = try NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: data) ?? .systemPink
       self = Color(color)
+#else
+      let color = try NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: data) ?? .systemPink
+      self = Color(color)
+#endif
     } catch {
       self = .pink
     }
@@ -145,7 +149,11 @@ extension SwiftUI.Color: Swift.RawRepresentable {
   
   public var rawValue: String {
     do {
+#if os(macOS)
       let data = try NSKeyedArchiver.archivedData(withRootObject: NSColor(self), requiringSecureCoding: false) as Data
+#else
+      let data = try NSKeyedArchiver.archivedData(withRootObject: UIColor(self), requiringSecureCoding: false) as Data
+#endif
       return data.base64EncodedString()
     } catch {
       return ""

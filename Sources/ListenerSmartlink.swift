@@ -442,15 +442,32 @@ extension ListenerSmartlink {
     
     do {
       let (data, _) = try await URLSession.shared.data(from: url)
-      if let nsImage = NSImage(data: data) {
-        return Image(nsImage: nsImage)
+      if let image = imageFromData(data) {
+        return image
+      } else {
+        return Image(systemName: kDefaultPicture)
       }
+      
     } catch {
       log.error("Error loading image: \(error)")
     }
-    
     return Image(systemName: kDefaultPicture)
   }
+  
+  
+  func imageFromData(_ data: Data) -> Image? {
+      #if os(macOS)
+      if let nsImage = NSImage(data: data) {
+          return Image(nsImage: nsImage)
+      }
+      #else
+      if let uiImage = UIImage(data: data) {
+          return Image(uiImage: uiImage)
+      }
+      #endif
+      return nil
+  }
+  
 }
 
 // ----------------------------------------------------------------------------
