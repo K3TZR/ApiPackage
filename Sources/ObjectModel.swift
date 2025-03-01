@@ -7,7 +7,7 @@
 
 import Foundation
 
-public typealias ActiveSelection = (radio: Radio, station: String, disconnectHandle: String?)
+public typealias ActiveSelection = (radio: Radio, disconnectHandle: String?)
 public typealias IdToken = String
 public typealias RefreshToken = String
 
@@ -39,6 +39,7 @@ final public class ObjectModel: TcpProcessor {
     
   public internal(set) var connectionIsGui = false
   public var activeSelection: ActiveSelection?
+  public var activeStation: String?
   public internal(set) var activeSlice: Slice?
   public internal(set) var boundClientId: String?
   public internal(set) var clientInitialized = false
@@ -204,7 +205,7 @@ final public class ObjectModel: TcpProcessor {
     }
     
     // send the initial commands
-    sendInitialCommands(isGui, programName, selection.station, mtuValue, lowBandwidthDax, lowBandwidthConnect, guiClientId)
+    sendInitialCommands(isGui, programName, activeStation, mtuValue, lowBandwidthDax, lowBandwidthConnect, guiClientId)
     log.info("ObjectModel: initial commands sent (isGui = \(isGui))")
     
     startPinging()
@@ -666,7 +667,7 @@ final public class ObjectModel: TcpProcessor {
   
   private func sendInitialCommands(_ isGui: Bool,
                                    _ programName: String,
-                                   _ stationName: String,
+                                   _ stationName: String?,
                                    _ mtuValue: Int,
                                    _ lowBandwidthDax: Bool,
                                    _ lowBandwidthConnect: Bool,
@@ -674,7 +675,7 @@ final public class ObjectModel: TcpProcessor {
     
     if isGui { sendTcp("client gui \(guiClientId.uuidString)") }
     sendTcp("client program " + programName)
-    if isGui { sendTcp("client station " + stationName) }
+    if isGui { sendTcp("client station \(stationName ?? "Unknown")") }
     if lowBandwidthConnect { lowBandwidthConnectRequest() }
     infoRequest()
     versionRequest()
@@ -875,31 +876,29 @@ final public class ObjectModel: TcpProcessor {
         newGuiClient.program = program
         newGuiClient.station = station
 
-//        radio.guiClients[index].clientId = UUID(uuidString: clientId)
-//        radio.guiClients[index].isLocalPtt = isLocalPtt
-//        radio.guiClients[index].program = program
-//        radio.guiClients[index].station = station
         radio.guiClients[index] = newGuiClient
         log.info("ApiModel: Handle <\(handle.hex)>, Station <\(station)>, Program <\(program)>, Ip <\(newGuiClient.ip)>, Host <\(newGuiClient.ip)>, Client Id <\(clientId)> - UPDATED in ApiModel")
         // if needed, bind to the Station
-        bind(connectionIsGui, activeSelection?.station, station, clientId)
+        if connectionIsGui == false && station == activeStation {
+          bind(clientId)
+        }
         return
         
       } else {
         radio.guiClients.append(GuiClient(handle: handle.hex, station: station, program: program, clientId: UUID(uuidString: clientId)))
         log.info("ApiModel: Handle <\(handle.hex)>, Station <\(station)>, Program <\(program)>, Client Id <\(clientId)> - ADDED in ApiModel")
         // if needed, bind to the Station
-        bind(connectionIsGui, activeSelection?.station, station, clientId)
+        if connectionIsGui == false && station == activeStation {
+          bind(clientId)
+        }
       }
     }
   }
   
-  private func bind(_ connectionIsGui: Bool, _ activeStation: String?, _ station: String, _ clientId: String) {
-    if connectionIsGui == false && station == activeStation {
-      boundClientId = clientId
-      sendTcp("client bind client_id=\(clientId)")
-      log.info("Listener: NonGui bound to <\(station)>, Client ID <\(clientId)>")
-    }
+  private func bind(_ clientId: String) {
+    boundClientId = clientId
+    sendTcp("client bind client_id=\(clientId)")
+    log.info("Listener: NonGui bound to <\(activeStation!)>, Client ID <\(clientId)>")
   }
   
   /// Parse a client disconnect status message
