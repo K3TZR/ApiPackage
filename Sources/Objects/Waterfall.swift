@@ -47,24 +47,24 @@ public final class Waterfall: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
     if let id = properties[0].key.streamId {
-      let index = objectModel.waterfalls.firstIndex(where: { $0.id == id })
+      let index = apiModel.waterfalls.firstIndex(where: { $0.id == id })
       // is it in use?
       if inUse {
         // YES, add it if not already present
         if index == nil {
-          objectModel.waterfalls.append(Waterfall(id))
-          objectModel.waterfalls.last!.parse(Array(properties.dropFirst(1)) )
+          apiModel.waterfalls.append(Waterfall(id))
+          apiModel.waterfalls.last!.parse(Array(properties.dropFirst(1)) )
         } else {
           // parse the properties
-          objectModel.waterfalls[index!].parse(Array(properties.dropFirst(1)) )
+          apiModel.waterfalls[index!].parse(Array(properties.dropFirst(1)) )
         }
         
       } else {
         // NO, remove it
-        objectModel.waterfalls.remove(at: index!)
+        apiModel.waterfalls.remove(at: index!)
         log.debug("Waterfall \(id.hex): REMOVED")
       }
     }

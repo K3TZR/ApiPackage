@@ -26,23 +26,23 @@ public final class Amplifier: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
     if let id = properties[0].key.objectId {
-      let index = objectModel.amplifiers.firstIndex(where: { $0.id == id })
+      let index = apiModel.amplifiers.firstIndex(where: { $0.id == id })
       // is it in use?
       if inUse {
         if index == nil {
-          objectModel.amplifiers.append(Amplifier(id))
-          objectModel.amplifiers.last!.parse(Array(properties.dropFirst(1)) )
+          apiModel.amplifiers.append(Amplifier(id))
+          apiModel.amplifiers.last!.parse(Array(properties.dropFirst(1)) )
         } else {
           // parse the properties
-          objectModel.amplifiers[index!].parse(Array(properties.dropFirst(1)) )
+          apiModel.amplifiers[index!].parse(Array(properties.dropFirst(1)) )
         }
         
       } else {
         // NO, remove it
-        objectModel.amplifiers.remove(at: index!)
+        apiModel.amplifiers.remove(at: index!)
         log.debug("Amplifier \(id.hex): REMOVED")
       }
     }

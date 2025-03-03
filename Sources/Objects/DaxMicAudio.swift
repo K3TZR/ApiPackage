@@ -28,13 +28,13 @@ public final class DaxMicAudio: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
 
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray) {
     // get the id
     if let id = properties[0].key.streamId {
       // add it if not already present
-      if objectModel.daxMicAudio == nil { objectModel.daxMicAudio = DaxMicAudio(id) }
+      if apiModel.daxMicAudio == nil { apiModel.daxMicAudio = DaxMicAudio(id) }
       // parse the properties
-      objectModel.daxMicAudio?.parse( Array(properties.dropFirst(1)) )
+      apiModel.daxMicAudio?.parse( Array(properties.dropFirst(1)) )
     }
   }
 

@@ -64,23 +64,23 @@ public final class Memory: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
     if let id = properties[0].key.objectId {
-      let index = objectModel.memories.firstIndex(where: { $0.id == id })
+      let index = apiModel.memories.firstIndex(where: { $0.id == id })
       // is it in use?
       if inUse {
         if index == nil {
-          objectModel.memories.append(Memory(id))
-          objectModel.memories.last!.parse(Array(properties.dropFirst(1)) )
+          apiModel.memories.append(Memory(id))
+          apiModel.memories.last!.parse(Array(properties.dropFirst(1)) )
         } else {
           // parse the properties
-          objectModel.memories[index!].parse(Array(properties.dropFirst(1)) )
+          apiModel.memories[index!].parse(Array(properties.dropFirst(1)) )
         }
 
       } else {
         // NO, remove it
-        objectModel.memories.remove(at: index!)
+        apiModel.memories.remove(at: index!)
         log.debug("Memory \(id): REMOVED")
       }
     }

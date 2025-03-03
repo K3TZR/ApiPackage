@@ -25,8 +25,8 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
-  public init(_ objectModel: ObjectModel, timeout: Double = 5.0) {
-    _objectModel = objectModel
+  public init(_ apiModel: ApiModel, timeout: Double = 5.0) {
+    _apiModel = apiModel
     
     super.init()
     
@@ -117,6 +117,18 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
     }
   }
 
+  /// Test connection
+  /// - Parameter serialNumber:         the serial number of the Radio
+  ///
+  public func sendSmartlinkTest(for serialNumber: String) {
+    // insure that the WanServer is connected to SmartLink
+//    guard _apiModel.activeSelection != nil else { return }
+    log.info("Smartlink Listener:, smartLink test initiated to serial number: \(serialNumber)")
+    
+    // send a command to SmartLink to test the connection for the specified Radio
+    sendTlsCommand("application test_connection serial=\(serialNumber)", timeout: _timeout)
+  }
+
   /// Send a command to the server using TLS
   /// - Parameter cmd:                command text
   private func sendTlsCommand(_ cmd: String, timeout: TimeInterval = 5.0, tag: Int = 1) {
@@ -154,7 +166,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   private var _firstName: String?
   private var _host: String?
   private var _lastName: String?
-  private let _objectModel: ObjectModel!
+  private let _apiModel: ApiModel!
   private let _pingQ = DispatchQueue(label: "SmartlinkListener.pingQ")
   private var _pingTimer: DispatchSourceTimer!
   private var _platform: String?
@@ -699,7 +711,7 @@ extension ListenerSmartlink {
         packet.localInterfaceIP = localAddr
       }
       // processs the packet
-      _objectModel?.process(.smartlink, message.keyValuesArray() ,nil)
+      _apiModel?.process(.smartlink, message.keyValuesArray() ,nil)
 
       log.debug("Smartlink Listener: RadioList RECEIVED, \(packet.nickname)")
     }
@@ -739,11 +751,11 @@ extension ListenerSmartlink {
       case .upnpUdpPortWorking:         result.upnpUdpPortWorking = property.value.tValue
       }
 
-//      Task { [newResult = result] in
-//        await MainActor.run {
-//          _listenerModel.smartlinkTestResult = newResult
-//        }
-//      }
+      Task { [newResult = result] in
+        await MainActor.run {
+          _apiModel.smartlinkTestResult = newResult
+        }
+      }
     }
     // log the result
     if result.success {

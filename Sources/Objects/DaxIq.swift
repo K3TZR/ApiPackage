@@ -12,7 +12,7 @@ import Foundation
 //      creates an DaxIq instance to be used by a Client to support the
 //      processing of a UDP stream of IQ data from the Radio to the client. DaxIq
 //      objects are added / removed by TCP messages. They are collected
-//      in the objectModel.daxIqs collection.
+//      in the apiModel.daxIqs collection.
 @MainActor
 @Observable
 public final class DaxIq {
@@ -29,13 +29,13 @@ public final class DaxIq {
   // ----------------------------------------------------------------------------
   // MARK: - Public static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray) {
     // get the id
     if let id = properties[0].key.streamId {
       // add it if not already present
-      if objectModel.daxIqs[id] == nil { objectModel.daxIqs[id] = DaxIq() }
+      if apiModel.daxIqs[id] == nil { apiModel.daxIqs[id] = DaxIq() }
       // parse the properties
-      objectModel.daxIqs[id]!.parse( Array(properties.dropFirst(1)) )
+      apiModel.daxIqs[id]!.parse( Array(properties.dropFirst(1)) )
     }
   }
 

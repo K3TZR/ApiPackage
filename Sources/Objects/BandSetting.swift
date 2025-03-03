@@ -47,23 +47,23 @@ public final class BandSetting: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
     if let id = properties[0].key.objectId {
-      let index = objectModel.bandSettings.firstIndex(where: { $0.id == id })
+      let index = apiModel.bandSettings.firstIndex(where: { $0.id == id })
       // is it in use?
       if inUse {
         if index == nil {
-          objectModel.bandSettings.append(BandSetting(id))
-          objectModel.bandSettings.last!.parse(Array(properties.dropFirst(1)) )
+          apiModel.bandSettings.append(BandSetting(id))
+          apiModel.bandSettings.last!.parse(Array(properties.dropFirst(1)) )
         } else {
           // parse the properties
-          objectModel.bandSettings[index!].parse(Array(properties.dropFirst(1)) )
+          apiModel.bandSettings[index!].parse(Array(properties.dropFirst(1)) )
         }
 
       } else {
         // NO, remove it
-        objectModel.bandSettings.remove(at: index!)
+        apiModel.bandSettings.remove(at: index!)
         log.debug("BandSetting \(id): REMOVED")
       }
     }

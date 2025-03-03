@@ -47,24 +47,24 @@ public final class Profile {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
     let id = properties[0].key
-    let index = objectModel.profiles.firstIndex(where: { $0.id == id })
+    let index = apiModel.profiles.firstIndex(where: { $0.id == id })
     // is it in use?
     if inUse {
       // YES, add it if not already present
       if index == nil {
-        objectModel.profiles.append(Profile(id))
-        objectModel.profiles.last!.parse(properties)
+        apiModel.profiles.append(Profile(id))
+        apiModel.profiles.last!.parse(properties)
       } else {
         // parse the properties
-        objectModel.profiles[index!].parse(properties)
+        apiModel.profiles[index!].parse(properties)
       }
       
     } else {
       // NO, remove it
-      objectModel.profiles.remove(at: index!)
+      apiModel.profiles.remove(at: index!)
       log.debug("Tnf \(id): REMOVED")
     }
   }

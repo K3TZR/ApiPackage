@@ -95,23 +95,23 @@ public final class Slice: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
     if let id = properties[0].key.objectId {
-      let index = objectModel.slices.firstIndex(where: { $0.id == id })
+      let index = apiModel.slices.firstIndex(where: { $0.id == id })
       // is it in use?
       if inUse {
         if index == nil {
-          objectModel.slices.append(Slice(id))
-          objectModel.slices.last!.parse(Array(properties.dropFirst(1)) )
+          apiModel.slices.append(Slice(id))
+          apiModel.slices.last!.parse(Array(properties.dropFirst(1)) )
         } else {
           // parse the properties
-          objectModel.slices[index!].parse(Array(properties.dropFirst(1)) )
+          apiModel.slices[index!].parse(Array(properties.dropFirst(1)) )
         }
         
       } else {
         // NO, remove it
-        objectModel.slices.remove(at: index!)
+        apiModel.slices.remove(at: index!)
         log.debug("Slice \(id) REMOVED")
       }
     }

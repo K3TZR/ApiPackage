@@ -43,24 +43,24 @@ public final class Tnf: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
     if let id = UInt32(properties[0].key, radix: 10) {
-      let index = objectModel.tnfs.firstIndex(where: { $0.id == id })
+      let index = apiModel.tnfs.firstIndex(where: { $0.id == id })
       // is it in use?
       if inUse {
         // YES, add it if not already present
         if index == nil {
-          objectModel.tnfs.append(Tnf(id))
-          objectModel.tnfs.last!.parse(Array(properties.dropFirst(1)) )
+          apiModel.tnfs.append(Tnf(id))
+          apiModel.tnfs.last!.parse(Array(properties.dropFirst(1)) )
         } else {
           // parse the properties
-          objectModel.tnfs[index!].parse(Array(properties.dropFirst(1)) )
+          apiModel.tnfs[index!].parse(Array(properties.dropFirst(1)) )
         }
         
       } else {
         // NO, remove it
-        objectModel.tnfs.remove(at: index!)
+        apiModel.tnfs.remove(at: index!)
         log.debug("Tnf \(id): REMOVED")
       }
     }

@@ -57,25 +57,25 @@ public final class Equalizer: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
     let id = properties[0].key
     if id == "tx" || id == "rx" { return } // legacy equalizer ids, ignore
-    let index = objectModel.equalizers.firstIndex(where: { $0.id == id })
+    let index = apiModel.equalizers.firstIndex(where: { $0.id == id })
     // is it in use?
     if inUse {
       if index == nil {
-        objectModel.equalizers.append(Equalizer(id))
-        objectModel.equalizers.last!.parse(Array(properties.dropFirst(1)) )
+        apiModel.equalizers.append(Equalizer(id))
+        apiModel.equalizers.last!.parse(Array(properties.dropFirst(1)) )
       } else {
         // parse the properties
-        objectModel.equalizers[index!].parse(Array(properties.dropFirst(1)) )
+        apiModel.equalizers[index!].parse(Array(properties.dropFirst(1)) )
       }
 
 
     } else {
       // NO, remove it
-      objectModel.equalizers.remove(at: index!)
+      apiModel.equalizers.remove(at: index!)
       log.debug("Equalizer \(id): REMOVED")
     }
   }

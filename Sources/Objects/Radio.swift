@@ -30,17 +30,17 @@ public final class Radio: Identifiable, Equatable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
-    let id = objectModel.activeSelection!.radio.id
-    if let index = objectModel.radios.firstIndex(where: { $0.id == id }) {
+    let id = apiModel.activeSelection!.radio.id
+    if let index = apiModel.radios.firstIndex(where: { $0.id == id }) {
       // in use?
       if inUse {
         // YES, parse the properties
-        objectModel.radios[index].parse(Array(properties.dropFirst(1)) )
+        apiModel.radios[index].parse(Array(properties.dropFirst(1)) )
       } else {
         // NO, remove it
-        objectModel.radios.remove(at: index)
+        apiModel.radios.remove(at: index)
         log.debug("Radio \(id): REMOVED")
       }
     }
@@ -230,7 +230,7 @@ public final class Radio: Identifiable, Equatable {
     guard type == .cw || type == .voice || type == .digital else { return }
     parse([(type.rawValue, "")])
     parse([(property.rawValue, value)])
-//    _objectModel.sendTcp("radio filter_sharpness \(type.rawValue) \(property.rawValue)=\(value)")
+//    _apiModel.sendTcp("radio filter_sharpness \(type.rawValue) \(property.rawValue)=\(value)")
   }
   
   // ----------------------------------------------------------------------------
@@ -240,16 +240,16 @@ public final class Radio: Identifiable, Equatable {
     switch property {
     case .binauralRxEnabled, .calFreq, .enforcePrivateIpEnabled, .freqErrorPpb, .fullDuplexEnabled,
         .multiflexEnabled, .muteLocalAudio, .remoteOnEnabled, .rttyMark, .snapTuneEnabled, .tnfsEnabled:
-//      _objectModel.sendTcp("radio set \(property.rawValue)=\(value)")
+//      _apiModel.sendTcp("radio set \(property.rawValue)=\(value)")
       break
     case .backlight, .callsign, .gps, .name, .reboot, .screensaver:
-//      _objectModel.sendTcp("radio \(property.rawValue) \(value)")
+//      _apiModel.sendTcp("radio \(property.rawValue) \(value)")
       break
     case .calibrate:
-//      _objectModel.sendTcp("radio pll_start")
+//      _apiModel.sendTcp("radio pll_start")
       break
     case .lineoutgain, .lineoutmute, .headphonegain, .headphonemute:
-//      _objectModel.sendTcp("mixer \(property.rawValue) \(value)")
+//      _apiModel.sendTcp("mixer \(property.rawValue) \(value)")
       break
     case .addressType:
       break   // FIXME:
@@ -471,6 +471,6 @@ public final class Radio: Identifiable, Equatable {
   private var _cw = false
   private var _digital = false
   private var _initialized = false
-//  private let _objectModel: ObjectModel
+//  private let _apiModel: ObjectModel
   private var _voice = false
 }

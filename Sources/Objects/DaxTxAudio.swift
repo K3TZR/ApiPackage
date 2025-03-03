@@ -29,13 +29,13 @@ public final class DaxTxAudio {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray) {
     // get the id
     if let id = properties[0].key.streamId {
       // add it if not already present
-      if objectModel.daxTxAudio == nil { objectModel.daxTxAudio = DaxTxAudio(id) }
+      if apiModel.daxTxAudio == nil { apiModel.daxTxAudio = DaxTxAudio(id) }
       // parse the properties
-      objectModel.daxTxAudio?.parse( Array(properties.dropFirst(1)) )
+      apiModel.daxTxAudio?.parse( Array(properties.dropFirst(1)) )
     }
   }
 

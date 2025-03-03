@@ -18,8 +18,8 @@ public final class ListenerLocal: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
-  init(_ objectModel: ObjectModel, port: UInt16 = 4992) {
-    _objectModel = objectModel
+  init(_ apiModel: ApiModel, port: UInt16 = 4992) {
+    _apiModel = apiModel
     super.init()
     
     _formatter.timeZone = .current
@@ -57,7 +57,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
       guard let self = self else { return }
       
       Task { await MainActor.run {
-        self._objectModel.removeLostRadios(Date(), timeout)
+        self._apiModel.removeLostRadios(Date(), timeout)
       }}
     }
     
@@ -75,7 +75,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Properties
   
-  nonisolated private let _objectModel: ObjectModel
+  nonisolated private let _apiModel: ApiModel
   
   private var _checkTimer: DispatchSourceTimer?
   private let _formatter = DateFormatter()
@@ -111,7 +111,7 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
       let properties = payloadString.trimmingCharacters(in: CharacterSet(charactersIn: "\0")).keyValuesArray()
       
       // process it
-      Task { await self._objectModel.process(.local, properties, data) }
+      Task { await self._apiModel.process(.local, properties, data) }
     }
   }
 }

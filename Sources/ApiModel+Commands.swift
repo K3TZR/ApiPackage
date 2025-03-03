@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension ObjectModel {
+extension ApiModel {
   
   // ----------------------------------------------------------------------------
   // MARK: - Public Request methods
@@ -133,7 +133,7 @@ extension ObjectModel {
 //    }
 //    sendTcp("memory set \(id) \(property.rawValue)=\(value)")
   }
-  
+
   // ----------------------------------------------------------------------------
   // MARK: - Panadapter methods
   
@@ -302,6 +302,38 @@ extension ObjectModel {
 //    }
   }
   
+  /// Find a Slice by DAX Channel
+  ///
+  /// - Parameter channel:    Dax channel number
+  /// - Returns:              a Slice (if any)
+  ///
+  public func findSlice(using channel: Int) -> Slice? {
+    // find the Slices with the specified Channel (if any)
+    let filteredSlices = slices.filter { $0.daxChannel == channel }
+    guard filteredSlices.count >= 1 else { return nil }
+    
+    // return the first one
+    return filteredSlices[0]
+  }
+  
+  public func sliceMove(_ panadapterId: UInt32, _ clickFrequency: Int) {
+    
+    //    let slices = slices.filter{ $0.panadapterId == panadapterId }
+    //    if slices.count == 1 {
+    //      let roundedFrequency = clickFrequency - (clickFrequency % slices[0]!.step)
+    //      sliceSet(slices.first!.key, .frequency, roundedFrequency.hzToMhz)
+    //
+    //    } else {
+    //      let nearestSlice = slices.min{ a, b in
+    //        abs(clickFrequency - a.value.frequency) < abs(clickFrequency - b.value.frequency)
+    //      }
+    //      if let nearestSlice {
+    //        let roundedFrequency = clickFrequency - (clickFrequency % nearestSlice.value.step)
+    //       sliceSet(nearestSlice.key, .frequency, roundedFrequency.hzToMhz)
+    //      }
+    //    }
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Transmit methods
   
@@ -342,11 +374,11 @@ extension ObjectModel {
   }
 
   //  @MainActor public func sliceMakeActive(_ slice: Slice) {
-  //    for slice in objectModel.slices {
+  //    for slice in apiModel.slices {
   //      slice.active = false
   //    }
   //    slice.active = true
-  //    objectModel.activeSlice = slice
+  //    apiModel.activeSlice = slice
   //  }
   
   // ----------------------------------------------------------------------------

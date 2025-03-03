@@ -48,23 +48,23 @@ public final class Panadapter: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
     if let id = properties[0].key.streamId {
-      let index = objectModel.panadapters.firstIndex(where: { $0.id == id })
+      let index = apiModel.panadapters.firstIndex(where: { $0.id == id })
       // is it in use?
       if inUse {
         if index == nil {
-          objectModel.panadapters.append(Panadapter(id))
-          objectModel.panadapters.last!.parse(Array(properties.dropFirst(1)) )
+          apiModel.panadapters.append(Panadapter(id))
+          apiModel.panadapters.last!.parse(Array(properties.dropFirst(1)) )
         } else {
           // parse the properties
-          objectModel.panadapters[index!].parse(Array(properties.dropFirst(1)) )
+          apiModel.panadapters[index!].parse(Array(properties.dropFirst(1)) )
         }
 
       } else {
         // NO, remove it
-        objectModel.panadapters.remove(at: index!)
+        apiModel.panadapters.remove(at: index!)
         log.debug("Panadapter \(id.hex): REMOVED")
       }
     }

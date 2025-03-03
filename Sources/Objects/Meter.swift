@@ -25,23 +25,23 @@ public final class Meter: ObservableObject, Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
     if let id = UInt32(properties[0].key.components(separatedBy: ".")[0], radix: 10) {
-      let index = objectModel.meters.firstIndex(where: { $0.id == id })
+      let index = apiModel.meters.firstIndex(where: { $0.id == id })
       // is it in use?
       if inUse {
         if index == nil {
-          objectModel.meters.append(Meter(id))
-          objectModel.meters.last!.parse(Array(properties.dropFirst(1)) )
+          apiModel.meters.append(Meter(id))
+          apiModel.meters.last!.parse(Array(properties.dropFirst(1)) )
         } else {
           // parse the properties
-          objectModel.meters[index!].parse(Array(properties.dropFirst(1)) )
+          apiModel.meters[index!].parse(Array(properties.dropFirst(1)) )
         }
 
       } else {
         // NO, remove it
-        objectModel.meters.remove(at: index!)
+        apiModel.meters.remove(at: index!)
         log.debug("Meter \(id): REMOVED")
       }
     }

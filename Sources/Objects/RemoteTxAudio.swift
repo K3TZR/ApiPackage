@@ -28,15 +28,15 @@ public final class RemoteTxAudio: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray) {
     // get the id
     if let id = properties[0].key.streamId {
       // add it if not already present
-      if objectModel.remoteTxAudio == nil {
-        objectModel.remoteTxAudio = RemoteTxAudio(id)
+      if apiModel.remoteTxAudio == nil {
+        apiModel.remoteTxAudio = RemoteTxAudio(id)
       }
       // parse the properties
-      objectModel.remoteTxAudio?.parse( Array(properties.dropFirst(2)) )
+      apiModel.remoteTxAudio?.parse( Array(properties.dropFirst(2)) )
     }
   }
 

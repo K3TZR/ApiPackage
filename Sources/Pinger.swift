@@ -18,8 +18,8 @@ public final class Pinger {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
-  public init(pingInterval: Int = 1, _ objectModel: ObjectModel) {
-    _objectModel = objectModel
+  public init(pingInterval: Int = 1, _ apiModel: ApiModel) {
+    _apiModel = apiModel
 
     // create the timer's dispatch source
     _pingTimer = DispatchSource.makeTimerSource(queue: _pingQ)
@@ -29,7 +29,7 @@ public final class Pinger {
 
     // set the event handler
     _pingTimer.setEventHandler(handler: { [self] in
-        Task { _objectModel.sendTcp("ping") }
+        Task { _apiModel.sendTcp("ping") }
     })
     // start the timer
     _pingTimer.resume()
@@ -38,7 +38,7 @@ public final class Pinger {
   // ----------------------------------------------------------------------------
   // MARK: - Properties
   
-  private let _objectModel: ObjectModel
+  private let _apiModel: ApiModel
   private let _pingQ = DispatchQueue(label: "PingQ")
   private let _pingTimer: DispatchSourceTimer!
 }

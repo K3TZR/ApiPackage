@@ -72,19 +72,19 @@ public final class UsbCable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
-  public static func status(_ objectModel: ObjectModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+  public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
     let id = properties[0].key
     // is it in use?
     if inUse {
       // YES, add it if not already present
-      if objectModel.usbCables[id] == nil { objectModel.usbCables[id] = UsbCable() }
+      if apiModel.usbCables[id] == nil { apiModel.usbCables[id] = UsbCable() }
       // parse the properties
-      objectModel.usbCables[id]!.parse(Array(properties.dropFirst(1)) )
+      apiModel.usbCables[id]!.parse(Array(properties.dropFirst(1)) )
       
     } else {
       // NO, remove it
-      objectModel.usbCables[id] = nil
+      apiModel.usbCables[id] = nil
       log.debug("USBCable \(id): REMOVED")
     }
   }
