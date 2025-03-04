@@ -12,7 +12,7 @@ public let log = ApiLog()
 
 public struct ApiLog: Sendable {
   
-  private let apiLog = Logger(subsystem: "net.k3tzr.apiViewer", category: "Application")
+  private let apiLog = Logger(subsystem: "net.k3tzr.apiExplorer", category: "Application")
 
   init() {}
   

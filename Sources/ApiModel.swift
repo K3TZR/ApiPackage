@@ -356,7 +356,7 @@ final public class ApiModel: TcpProcessor {
       for guiClient in radio.guiClients {
         log.info("ObjectModel: Station <\(guiClient.station)>, Program <\(guiClient.program)>, Handle <\(guiClient.handle)>, on Radio <\(name)> - WILL BE REMOVED")
       }
-      // remove Discovery
+      // remove Radio
       radios.remove(at: i)
       log.info("ObjectModel: Radio <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")> - REMOVED")
     }
