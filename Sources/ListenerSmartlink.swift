@@ -20,7 +20,7 @@ public enum ListenerError: String, Error {
 ///
 ///      listens for the Smartlink messages of a Flex-6000 Radio
 ///
-@MainActor
+//@MainActor
 public final class ListenerSmartlink: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
@@ -42,13 +42,18 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Public methods
   
-  public func start(_ refreshToken: String) async -> Tokens? {
-      if let idToken = await requestIdToken(refreshToken: refreshToken) {
-        log.debug("Smartlink Listener: IdToken obtained from refresh token")
-        return connect(using: Tokens(idToken, refreshToken))
-      }
-      log.debug("Smartlink Listener: Failed to obtain IdToken from refresh token")
-      return nil
+  public func start(idToken: String, refreshToken: String) async -> Tokens? {
+      log.debug("Smartlink Listener: using previous Id Token")
+      return connect(using: Tokens(idToken, refreshToken))
+  }
+
+  public func start(refreshToken: String) async -> Tokens? {
+    if let idToken = await requestIdToken(refreshToken: refreshToken) {
+      log.debug("Smartlink Listener: IdToken obtained from refresh token")
+      return connect(using: Tokens(idToken, refreshToken))
+    }
+    log.debug("Smartlink Listener: Failed to obtain IdToken from refresh token")
+    return nil
   }
   
   /// Start listening given a User / Pwd
@@ -126,7 +131,6 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   ///
   public func sendSmartlinkTest(for serialNumber: String) {
     // insure that the WanServer is connected to SmartLink
-//    guard _apiModel.activeSelection != nil else { return }
     log.info("Smartlink Listener:, smartLink test initiated to serial number: \(serialNumber)")
     
     // send a command to SmartLink to test the connection for the specified Radio
@@ -225,7 +229,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
 // ----------------------------------------------------------------------------
 // MARK: - ListenerSmartlink extension - GCDAsyncSocketDelegate
 
-extension ListenerSmartlink: @preconcurrency GCDAsyncSocketDelegate {
+extension ListenerSmartlink: GCDAsyncSocketDelegate {
   //      All are called on the _socketQ
   //
   //      1. A TCP connection is opened to the SmartLink server
@@ -350,8 +354,6 @@ extension ListenerSmartlink {
         // save the email & picture
         updateClaims(from: result[0])
         // save the Tokens
-//        settingModel.shared.smartlinkRefreshToken = refreshToken
-//        settingModel.shared.smartlinkPreviousIdToken = result[0]
         return result[0]
       }
       // invalid response
@@ -469,7 +471,6 @@ extension ListenerSmartlink {
     }
     return Image(systemName: kDefaultPicture)
   }
-  
   
   func imageFromData(_ data: Data) -> Image? {
       #if os(macOS)
@@ -715,7 +716,7 @@ extension ListenerSmartlink {
         packet.localInterfaceIP = localAddr
       }
       // processs the packet
-      _apiModel?.process(.smartlink, message.keyValuesArray() ,nil)
+      Task { await self._apiModel?.process(.smartlink, message.keyValuesArray() ,nil) }
 
       log.debug("Smartlink Listener: RadioList RECEIVED, \(packet.nickname)")
     }
