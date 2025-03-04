@@ -227,6 +227,10 @@ final public class ApiModel: TcpProcessor {
       log.debug("ApiModel: Disconnect, \((reason == nil ? "User initiated" : reason!))")
     }
     
+    // stop any listeners
+    _listenerLocal?.stop()
+    _listenerSmartlink?.stop()
+    
     _firstStatusMessageReceived = false
     
     // stop pinging (if active)

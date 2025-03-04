@@ -13,13 +13,13 @@ import CocoaAsyncSocket
 ///
 ///      listens for the udp broadcasts of a Flex6000 Radio
 ///
-@MainActor
+//@MainActor
 public final class ListenerLocal: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
   init(_ apiModel: ApiModel, port: UInt16 = 4992) {
-    _apiModel = apiModel
+    _api = apiModel
     super.init()
     
     _formatter.timeZone = .current
@@ -30,8 +30,15 @@ public final class ListenerLocal: NSObject, ObservableObject {
     _udpSocket.setPreferIPv4()
     _udpSocket.setIPv6Enabled(false)
     
-    try! _udpSocket.enableReusePort(true)
-    try! _udpSocket.bind(toPort: port)
+    do {
+      try _udpSocket.enableReusePort(true)
+      try _udpSocket.bind(toPort: port)
+//      try _udpSocket.beginReceiving()
+//      log.info("Local Listener: STARTED")
+      
+    } catch {
+      log.error("Error starting UDP socket")
+    }
   }
   
   // ----------------------------------------------------------------------------
@@ -41,6 +48,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
     do {
       try _udpSocket.beginReceiving()
       log.info("Local Listener: STARTED")
+      
     } catch {
       log.error("Error starting UDP socket: \(error)")
       return
@@ -57,7 +65,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
       guard let self = self else { return }
       
       Task { await MainActor.run {
-        self._apiModel.removeLostRadios(Date(), timeout)
+        self._api.removeLostRadios(Date(), timeout)
       }}
     }
     
@@ -75,7 +83,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Properties
   
-  nonisolated private let _apiModel: ApiModel
+  nonisolated private let _api: ApiModel
   
   private var _checkTimer: DispatchSourceTimer?
   private let _formatter = DateFormatter()
@@ -95,7 +103,7 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
   ///   - data:           the Data received
   ///   - address:        the Address of the sender
   ///   - filterContext:  the FilterContext
-  nonisolated public func udpSocket(_ sock: GCDAsyncUdpSocket,
+  public func udpSocket(_ sock: GCDAsyncUdpSocket,
                                     didReceive data: Data,
                                     fromAddress address: Data,
                                     withFilterContext filterContext: Any?) {
@@ -111,7 +119,7 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
       let properties = payloadString.trimmingCharacters(in: CharacterSet(charactersIn: "\0")).keyValuesArray()
       
       // process it
-      Task { await self._apiModel.process(.local, properties, data) }
+      Task { await self._api.process(.local, properties, data) }
     }
   }
 }
