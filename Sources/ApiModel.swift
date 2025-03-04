@@ -435,12 +435,12 @@ final public class ApiModel: TcpProcessor {
     _udp.send(string)
   }
 
-  public func smartlinkListenerStart() async {
+  public func smartlinkListenerStart(_ refreshToken: String) async -> Tokens? {
     // start smartlink listener
-    await _listenerSmartlink?.start("douglas.adams@me.com", "fleX!20Comm")
+    await _listenerSmartlink?.start(refreshToken)
   }
 
-  public func smartlinkListenerStart(_ user: String, _ password: String) async {
+  public func smartlinkListenerStart(_ user: String, _ password: String) async -> Tokens? {
     // start smartlink listener
     await _listenerSmartlink?.start(user, password)
   }

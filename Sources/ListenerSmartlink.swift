@@ -42,9 +42,13 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Public methods
   
-  public func start() async {
-    
-    log.info("Smartlink Listener: STARTED")
+  public func start(_ refreshToken: String) async -> Tokens? {
+      if let idToken = await requestIdToken(refreshToken: refreshToken) {
+        log.debug("Smartlink Listener: IdToken obtained from refresh token")
+        return connect(using: Tokens(idToken, refreshToken))
+      }
+      log.debug("Smartlink Listener: Failed to obtain IdToken from refresh token")
+      return nil
   }
   
   /// Start listening given a User / Pwd
@@ -330,7 +334,7 @@ extension ListenerSmartlink {
   /// Given a Refresh Token, request an ID Token
   /// - Parameter refreshToken:     a Refresh Token
   /// - Returns:                    an Id Token (if any)
-  private func requestIdToken(from refreshToken: String) async -> IdToken? {
+  private func requestIdToken(refreshToken: String) async -> IdToken? {
     // build the request
     var request = URLRequest(url: URL(string: kAuth0Delegation)!)
     request.httpMethod = kHttpPost
@@ -346,8 +350,8 @@ extension ListenerSmartlink {
         // save the email & picture
         updateClaims(from: result[0])
         // save the Tokens
-        //        settingModel.shared.refreshToken = refreshToken
-        //        settingModel.shared.previousIdToken = result[0]
+//        settingModel.shared.smartlinkRefreshToken = refreshToken
+//        settingModel.shared.smartlinkPreviousIdToken = result[0]
         return result[0]
       }
       // invalid response
