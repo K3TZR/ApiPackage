@@ -12,7 +12,7 @@ import Foundation
 public final class Meter: ObservableObject, Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
-
+  
   public init(_ id: UInt32) {
     self.id = id
   }
@@ -21,7 +21,7 @@ public final class Meter: ObservableObject, Identifiable {
   // MARK: - Private properties
   
   public var _initialized = false
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
@@ -38,7 +38,7 @@ public final class Meter: ObservableObject, Identifiable {
           // parse the properties
           apiModel.meters[index!].parse(Array(properties.dropFirst(1)) )
         }
-
+        
       } else {
         // NO, remove it
         apiModel.meters.remove(at: index!)
@@ -46,7 +46,7 @@ public final class Meter: ObservableObject, Identifiable {
       }
     }
   }
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Public Parse methods
   
@@ -93,15 +93,15 @@ public final class Meter: ObservableObject, Identifiable {
   
   public func setValue(_ value: Float) {
     self.value = value
-  }  
-
+  }
+  
   // ----------------------------------------------------------------------------
   // MARK: - Properties
   
   @Published public var value: Float = 0    // uses ObservableObject to facilitate throttling
-
+  
   public let id: UInt32
-
+  
   public var desc: String = ""
   public var fps: Int = 0
   public var high: Float = 0

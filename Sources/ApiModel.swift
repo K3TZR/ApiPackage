@@ -28,10 +28,11 @@ final public class ApiModel: TcpProcessor {
   // MARK: - Initialization
   
   public init() {
-    _udp = Udp(delegate: StreamModel())
+    _udp = Udp()
     _tcp = Tcp(delegate: self)
-    _listenerLocal = ListenerLocal(self)
-    _listenerSmartlink = ListenerSmartlink(self)
+//    _listenerLocal = ListenerLocal(self)
+//    _listenerSmartlink = ListenerSmartlink(self)
+    _udp.setDelegate(StreamModel(self))
   }
   
   // ----------------------------------------------------------------------------

@@ -5,13 +5,7 @@
 //  Created by Douglas Adams on 3/22/24.
 //
 
-//import IdentifiedCollections
 import Foundation
-
-//import AudioFeature
-//import SharedFeature
-//import VitaFeature
-
 
 public enum StreamType: String {
   case daxIqStream = "dax_iq"
@@ -24,54 +18,56 @@ public enum StreamType: String {
   case waterfall
 }
 
-//final public class StreamStatus: ObservableObject, Identifiable {
-//  public var type: Vita.ClassCode
-//  public var name: String
-//  @Published public var packets = 0
-//  @Published public var errors = 0
-//  
-//  public var id: Vita.ClassCode { type }
-//  
-//  public init(_ type: Vita.ClassCode) {
-//    self.type = type
-//    name = type.description()
-//  }
-//}
+final public class StreamStatus: ObservableObject, Identifiable {
+  public var type: Vita.ClassCode
+  public var name: String
+  @Published public var packets = 0
+  @Published public var errors = 0
+  
+  public var id: Vita.ClassCode { type }
+  
+  public init(_ type: Vita.ClassCode) {
+    self.type = type
+    name = type.description()
+  }
+}
 
 
-//@Observable
-//final public class StreamStatistics {
-//
-//  public static var shared = StreamStatistics()
-//  private init() {}
-//
-//  public var stats: IdentifiedArrayOf<StreamStatus> = [
-//    StreamStatus(Vita.ClassCode.daxAudio),
-//    StreamStatus(Vita.ClassCode.daxAudioReducedBw),
-//    StreamStatus(Vita.ClassCode.daxIq24),
-//    StreamStatus(Vita.ClassCode.daxIq48),
-//    StreamStatus(Vita.ClassCode.daxIq96),
-//    StreamStatus(Vita.ClassCode.daxIq192),
-//    StreamStatus(Vita.ClassCode.meter),
-//    StreamStatus(Vita.ClassCode.opus),
-//    StreamStatus(Vita.ClassCode.panadapter),
-//    StreamStatus(Vita.ClassCode.waterfall),
-//  ]
-//}
+@Observable
+final public class StreamStatistics {
+
+  public static var shared = StreamStatistics()
+  private init() {}
+
+  public var stats: [StreamStatus] = [
+    StreamStatus(Vita.ClassCode.daxAudio),
+    StreamStatus(Vita.ClassCode.daxAudioReducedBw),
+    StreamStatus(Vita.ClassCode.daxIq24),
+    StreamStatus(Vita.ClassCode.daxIq48),
+    StreamStatus(Vita.ClassCode.daxIq96),
+    StreamStatus(Vita.ClassCode.daxIq192),
+    StreamStatus(Vita.ClassCode.meter),
+    StreamStatus(Vita.ClassCode.opus),
+    StreamStatus(Vita.ClassCode.panadapter),
+    StreamStatus(Vita.ClassCode.waterfall),
+  ]
+}
 
 public class StreamModel: StreamProcessor {
   // ----------------------------------------------------------------------------
-  // MARK: - Singleton
+  // MARK: - initialization
 
-  public init() {}
+  public init(_ apiModel: ApiModel) {
+    api = apiModel
+  }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public properties
+  // MARK: - Properties
   
   // single streams
 //  public var daxMicAudioStream: DaxMicAudioStream?
 //  public var daxTxAudioStream: DaxTxAudioStream?
-//  public var meterStream: MeterStream?
+  public var meterStream: MeterStream?
 //  public var remoteRxAudioStream: RemoteRxAudioStream?
 //  public var remoteTxAudioStream: RemoteTxAudioStream?
 
@@ -84,42 +80,46 @@ public class StreamModel: StreamProcessor {
 //  public var rxAudioOutput: RxAudioOutput?
 //  public var daxAudioOutputs: [DaxAudioPlayer?] = Array(repeating: nil, count: 5)
   
+  private let api: ApiModel
+  
   // ----------------------------------------------------------------------------
   // MARK: - Public methods
   
   public func streamProcessor(_ vita: Vita) async {
-//    // update the statistics
+    // update the statistics
 //    await MainActor.run { StreamStatistics.shared.stats[id: vita.classCode]?.packets += 1  }
-//    
-//    // pass Stream data to the appropriate Object
-//    switch vita.classCode {
-//    case .panadapter:
+    
+    // pass Stream data to the appropriate Object
+    switch vita.classCode {
+    case .panadapter:
 //      //      if let object = panadapterStreams[id: vita.streamId] { object.streamProcessor(vita) }
-//      break
-//      
-//    case .waterfall:
+      break
+      
+    case .waterfall:
 //      //      if let object = await waterfallStreams[id: vita.streamId] { object.streamProcessor(vita) }
-//      break
-//      
-//    case .daxIq24, .daxIq48, .daxIq96, .daxIq192:
+      break
+      
+    case .daxIq24, .daxIq48, .daxIq96, .daxIq192:
 //      //      if let object = daxIqStreams[id: vita.streamId] { object.streamProcessor(vita) }
-//      break
-//      
-//    case .daxAudio, .daxAudioReducedBw:
+      break
+      
+    case .daxAudio, .daxAudioReducedBw:
 //      if daxRxAudioStreams[id: vita.streamId] == nil { daxRxAudioStreams.append( DaxRxAudioStream(vita.streamId)) }
 //      await daxRxAudioStreams[id: vita.streamId]?.streamProcessor(vita)
-//      
-//    case .meter:
-//      if meterStream == nil { meterStream = MeterStream(vita.streamId) }
-//      await meterStream?.streamProcessor(vita)
-//      
-//    case .opus:
+      break
+      
+    case .meter:
+      if meterStream == nil { meterStream = MeterStream(vita.streamId, apiModel: api) }
+      meterStream?.streamProcessor(vita)
+      
+    case .opus:
 //      if remoteRxAudioStream == nil { remoteRxAudioStream = RemoteRxAudioStream(vita.streamId) }
 //      await remoteRxAudioStream?.streamProcessor(vita)
-//      
-//    default:
-//      log.debug("StreamModel: unknown Vita class code: \(vita.classCode.description()) Stream Id = \(vita.streamId.hex)")
-//    }
+      break
+      
+    default:
+      log.debug("StreamModel: unknown Vita class code: \(vita.classCode.description()) Stream Id = \(vita.streamId.hex)")
+    }
   }
   
   // ----------------------------------------------------------------------------

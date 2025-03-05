@@ -14,17 +14,17 @@ public final class Udp: NSObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
-  public init(delegate: StreamProcessor, receivePort: UInt16 = 4991) {
-    _delegate = delegate
+  public init(receivePort: UInt16 = 4991) {
     _receivePort = receivePort
-    
     super.init()
+  }
     
+  public func setDelegate(_ delegate: StreamProcessor) {
+    _delegate = delegate
     // get an IPV4 socket
     _socket = GCDAsyncUdpSocket(delegate: self, delegateQueue: _receiveQ)
     _socket.setIPv4Enabled(true)
     _socket.setIPv6Enabled(false)
-    
   }
   
   // ----------------------------------------------------------------------------
@@ -138,7 +138,7 @@ public final class Udp: NSObject {
   
   private var _statusStream: (UdpStatus) -> Void = { _ in }
   
-  private var _delegate: StreamProcessor
+  private var _delegate: StreamProcessor?
   private var _isBound = false
   private var _receivePort: UInt16 = 0
   private let _receiveQ = DispatchQueue(label: "UdpStream.ReceiveQ", qos: .userInteractive)
@@ -160,9 +160,9 @@ extension Udp: GCDAsyncUdpSocketDelegate {
   ///   - filterContext: a filter context
   public func udpSocket(_ sock: GCDAsyncUdpSocket, didReceive data: Data, fromAddress address: Data, withFilterContext filterContext: Any?) {
     if let vita = Vita.decode(from: data) {
-//      Task {
-//        await _delegate.streamProcessor(vita)
-//      }
+      Task {
+        await _delegate?.streamProcessor(vita)
+      }
     }
   }
   
