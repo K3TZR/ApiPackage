@@ -5,6 +5,7 @@
 //  Created by Douglas Adams on 3/22/24.
 //
 
+import Combine
 import Foundation
 
 public enum StreamType: String {
@@ -18,42 +19,40 @@ public enum StreamType: String {
   case waterfall
 }
 
-final public class StreamStatus: ObservableObject, Identifiable {
-  public var type: Vita.ClassCode
-  public var name: String
-  @Published public var packets = 0
-  @Published public var errors = 0
+public struct StreamStatus {
+  public let type: VitaType
+  public var packets = 0
+  public var errors = 0
   
-  public var id: Vita.ClassCode { type }
-  
-  public init(_ type: Vita.ClassCode) {
+  public init(_ type: VitaType) {
     self.type = type
-    name = type.description()
   }
 }
 
-
-@Observable
-final public class StreamStatistics {
-
-  public static var shared = StreamStatistics()
-  private init() {}
-
-  public var stats: [StreamStatus] = [
-    StreamStatus(Vita.ClassCode.daxAudio),
-    StreamStatus(Vita.ClassCode.daxAudioReducedBw),
-    StreamStatus(Vita.ClassCode.daxIq24),
-    StreamStatus(Vita.ClassCode.daxIq48),
-    StreamStatus(Vita.ClassCode.daxIq96),
-    StreamStatus(Vita.ClassCode.daxIq192),
-    StreamStatus(Vita.ClassCode.meter),
-    StreamStatus(Vita.ClassCode.opus),
-    StreamStatus(Vita.ClassCode.panadapter),
-    StreamStatus(Vita.ClassCode.waterfall),
-  ]
+public enum VitaType: String {
+  case daxAudio
+  case daxAudioReducedBw
+  case daxIq24
+  case daxIq48
+  case daxIq96
+  case daxIq192
+  case meter
+  case opus
+  case panadapter
+  case waterfall
 }
 
-public class StreamModel: StreamProcessor {
+//@Observable
+//final public class StreamStatistics {
+//
+//  public init() {}
+//
+//  @Published public var meterPackets = 0
+//  @Published public var meterErrors = 0
+//}
+
+
+final public class StreamModel: ObservableObject, StreamProcessor {
   // ----------------------------------------------------------------------------
   // MARK: - initialization
 
@@ -64,6 +63,21 @@ public class StreamModel: StreamProcessor {
   // ----------------------------------------------------------------------------
   // MARK: - Properties
   
+  // Statistics
+  
+  @Published public var stats: [StreamStatus] = [
+    StreamStatus(.daxAudio),            // = 0
+    StreamStatus(.daxAudioReducedBw),   // = 1
+    StreamStatus(.daxIq24),             // = 2
+    StreamStatus(.daxIq48),             // = 3
+    StreamStatus(.daxIq96),             // = 4
+    StreamStatus(.daxIq192),            // = 5
+    StreamStatus(.meter),               // = 6
+    StreamStatus(.opus),                // = 7
+    StreamStatus(.panadapter),          // = 8
+    StreamStatus(.waterfall),           // = 9
+  ]
+
   // single streams
 //  public var daxMicAudioStream: DaxMicAudioStream?
 //  public var daxTxAudioStream: DaxTxAudioStream?
@@ -86,8 +100,6 @@ public class StreamModel: StreamProcessor {
   // MARK: - Public methods
   
   public func streamProcessor(_ vita: Vita) async {
-    // update the statistics
-//    await MainActor.run { StreamStatistics.shared.stats[id: vita.classCode]?.packets += 1  }
     
     // pass Stream data to the appropriate Object
     switch vita.classCode {
@@ -109,6 +121,8 @@ public class StreamModel: StreamProcessor {
       break
       
     case .meter:
+      // update the statistics
+      await MainActor.run { stats[6].packets += 1  }
       if meterStream == nil { meterStream = MeterStream(vita.streamId, apiModel: api) }
       meterStream?.streamProcessor(vita)
       

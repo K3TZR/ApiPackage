@@ -14,11 +14,13 @@ public final class Tcp: NSObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
-  public init(delegate: TcpProcessor, timeout: Double = 0.5) {
-    _delegate = delegate
+  public init(timeout: Double = 0.5) {
     _timeout = timeout
     super.init()
-    
+  }
+  
+  public func setDelegate(_ delegate: TcpProcessor) {
+    _delegate = delegate
     // get a socket & set it's parameters
     _socket = GCDAsyncSocket(delegate: self, delegateQueue: _receiveQ)
     _socket.isIPv4PreferredOverIPv6 = true
@@ -97,7 +99,7 @@ public final class Tcp: NSObject {
 
   public private(set) var interfaceIpAddress = "0.0.0.0"
   
-  private var _delegate: TcpProcessor
+  private var _delegate: TcpProcessor?
   private var _isWan: Bool = false
   private let _receiveQ = DispatchQueue(label: "TcpStream.receiveQ")
   private var _socket: GCDAsyncSocket!
@@ -121,7 +123,7 @@ extension Tcp: GCDAsyncSocketDelegate {
     // remove the EOL
     if let text = String(data: data, encoding: .ascii)?.dropLast() {
       let delegate = _delegate
-      delegate.tcpProcessor( String(text), isInput: true )
+      delegate?.tcpProcessor( String(text), isInput: true )
     }
     // trigger the next read
     _socket.readData(to: GCDAsyncSocket.lfData(), withTimeout: -1, tag: 0)

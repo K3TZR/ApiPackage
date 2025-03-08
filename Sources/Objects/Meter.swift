@@ -33,10 +33,10 @@ public final class Meter: ObservableObject, Identifiable {
       if inUse {
         if index == nil {
           apiModel.meters.append(Meter(id))
-          apiModel.meters.last!.parse(Array(properties.dropFirst(1)) )
+          apiModel.meters.last!.parse(properties)
         } else {
           // parse the properties
-          apiModel.meters[index!].parse(Array(properties.dropFirst(1)) )
+          apiModel.meters[index!].parse(properties)
         }
         
       } else {

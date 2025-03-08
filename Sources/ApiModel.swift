@@ -29,15 +29,17 @@ final public class ApiModel: TcpProcessor {
   
   public init() {
     _udp = Udp()
-    _tcp = Tcp(delegate: self)
-//    _listenerLocal = ListenerLocal(self)
-//    _listenerSmartlink = ListenerSmartlink(self)
-    _udp.setDelegate(StreamModel(self))
+    _tcp = Tcp()
+    streamModel = StreamModel(self)
+    _tcp.setDelegate(self)
+    _udp.setDelegate(streamModel!)
   }
   
   // ----------------------------------------------------------------------------
   // MARK: - Public properties
-    
+
+  public var streamModel: StreamModel?
+
   public internal(set) var connectionIsGui = false
   public var activeSelection: ActiveSelection?
   public var activeStation: String?
