@@ -104,10 +104,12 @@ final public class StreamModel: ObservableObject, StreamProcessor {
     // pass Stream data to the appropriate Object
     switch vita.classCode {
     case .panadapter:
+      await MainActor.run { stats[8].packets += 1  }
 //      //      if let object = panadapterStreams[id: vita.streamId] { object.streamProcessor(vita) }
       break
       
     case .waterfall:
+      await MainActor.run { stats[9].packets += 1  }
 //      //      if let object = await waterfallStreams[id: vita.streamId] { object.streamProcessor(vita) }
       break
       
