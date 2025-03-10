@@ -13,12 +13,12 @@ import CocoaAsyncSocket
 ///
 ///      listens for the udp broadcasts of a Flex6000 Radio
 ///
-//@MainActor
+@MainActor
 public final class ListenerLocal: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
-  init(_ apiModel: ApiModel, port: UInt16 = 4992) {
+  init(_ apiModel: ApiModel) {
     _api = apiModel
     super.init()
     
@@ -27,41 +27,32 @@ public final class ListenerLocal: NSObject, ObservableObject {
     
     // create a Udp socket and set options
     _udpSocket = GCDAsyncUdpSocket( delegate: self, delegateQueue: _udpQ )
-    _udpSocket.setPreferIPv4()
-    _udpSocket.setIPv6Enabled(false)
-    
-    do {
-      try _udpSocket.enableReusePort(true)
-      try _udpSocket.bind(toPort: port)
-//      try _udpSocket.beginReceiving()
-//      log.info("Local Listener: STARTED")
-      
-    } catch {
-      log.error("Error starting UDP socket")
-    }
+    _udpSocket!.setPreferIPv4()
+    _udpSocket!.setIPv6Enabled(false)
   }
   
   // ----------------------------------------------------------------------------
   // MARK: - Internal methods
   
-  func start(checkInterval: Int = 1, timeout: TimeInterval = 20.0) {
+  func start(port: UInt16 = 4992, checkInterval: Int = 1, timeout: TimeInterval = 20.0) {
     do {
-      try _udpSocket.beginReceiving()
-      log.info("Local Listener: STARTED")
+      try _udpSocket!.enableReusePort(true)
+      try _udpSocket!.bind(toPort: port)
+      try _udpSocket!.beginReceiving()
+      log.info("Local Listener: UDP socket STARTED")
       
     } catch {
-      log.error("Error starting UDP socket: \(error)")
-      return
+      log.error("Error starting UDP socket")
     }
-    
+
     // Create the timer’s dispatch source
     _checkTimer = DispatchSource.makeTimerSource(queue: _timerQ)
     
     // Setup the timer
-    _checkTimer?.schedule(deadline: .now(), repeating: .seconds(checkInterval))
+    _checkTimer!.schedule(deadline: .now(), repeating: .seconds(checkInterval))
     
     // Set the event handler
-    _checkTimer?.setEventHandler  { [weak self] in
+    _checkTimer!.setEventHandler  { [weak self] in
       guard let self = self else { return }
       
       Task { await MainActor.run {
@@ -70,14 +61,15 @@ public final class ListenerLocal: NSObject, ObservableObject {
     }
     
     // Start the timer
-    _checkTimer?.resume()
+    _checkTimer!.resume()
   }
   
   func stop() {
     _checkTimer?.cancel()
     _checkTimer = nil
     _udpSocket?.close()
-    log.info("Local Listener: STOPPED")
+    _udpSocket = nil
+    log.info("Local Listener: UDP socket STOPPED")
   }
   
   // ----------------------------------------------------------------------------
@@ -87,9 +79,10 @@ public final class ListenerLocal: NSObject, ObservableObject {
   
   private var _checkTimer: DispatchSourceTimer?
   private let _formatter = DateFormatter()
+  private var _success = false
   private let _timerQ = DispatchQueue(label: "ListenerLocal" + ".timerQ", attributes: .concurrent)
   private let _udpQ = DispatchQueue(label: "ListenerLocal" + ".udpQ")
-  private var _udpSocket: GCDAsyncUdpSocket!
+  private var _udpSocket: GCDAsyncUdpSocket?
 }
 
 // ----------------------------------------------------------------------------
@@ -103,7 +96,7 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
   ///   - data:           the Data received
   ///   - address:        the Address of the sender
   ///   - filterContext:  the FilterContext
-  public func udpSocket(_ sock: GCDAsyncUdpSocket,
+  nonisolated public func udpSocket(_ sock: GCDAsyncUdpSocket,
                                     didReceive data: Data,
                                     fromAddress address: Data,
                                     withFilterContext filterContext: Any?) {
@@ -121,5 +114,9 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
       // process it
       Task { await self._api.process(.local, properties, data) }
     }
+  }
+  
+  public func udpSocket(_ sock: GCDAsyncUdpSocket, didCloseWithError error: Error?) {
+    print("----->>>>>", "UDP socket CLOSED with error")
   }
 }
