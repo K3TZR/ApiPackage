@@ -13,7 +13,7 @@ import CocoaAsyncSocket
 ///
 ///      listens for the udp broadcasts of a Flex6000 Radio
 ///
-@MainActor
+//@MainActor
 public final class ListenerLocal: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
@@ -29,6 +29,10 @@ public final class ListenerLocal: NSObject, ObservableObject {
     _udpSocket = GCDAsyncUdpSocket( delegate: self, delegateQueue: _udpQ )
     _udpSocket!.setPreferIPv4()
     _udpSocket!.setIPv6Enabled(false)
+   
+    if _udpSocket == nil {
+      fatalError("Could not create GCDAsyncUdpSocket")
+    }
   }
   
   // ----------------------------------------------------------------------------
@@ -46,13 +50,13 @@ public final class ListenerLocal: NSObject, ObservableObject {
     }
 
     // Create the timer’s dispatch source
-    _checkTimer = DispatchSource.makeTimerSource(queue: _timerQ)
+    _pingTimer = DispatchSource.makeTimerSource(queue: _timerQ)
     
     // Setup the timer
-    _checkTimer!.schedule(deadline: .now(), repeating: .seconds(checkInterval))
+    _pingTimer!.schedule(deadline: .now(), repeating: .seconds(checkInterval))
     
     // Set the event handler
-    _checkTimer!.setEventHandler  { [weak self] in
+    _pingTimer!.setEventHandler  { [weak self] in
       guard let self = self else { return }
       
       Task { await MainActor.run {
@@ -61,14 +65,12 @@ public final class ListenerLocal: NSObject, ObservableObject {
     }
     
     // Start the timer
-    _checkTimer!.resume()
+    _pingTimer!.resume()
   }
   
   func stop() {
-    _checkTimer?.cancel()
-    _checkTimer = nil
-    _udpSocket?.close()
-    _udpSocket = nil
+    _pingTimer?.cancel()
+    _udpSocket?.closeAfterSending()
     log.info("Local Listener: UDP socket STOPPED")
   }
   
@@ -77,7 +79,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
   
   nonisolated private let _api: ApiModel
   
-  private var _checkTimer: DispatchSourceTimer?
+  private var _pingTimer: DispatchSourceTimer?
   private let _formatter = DateFormatter()
   private var _success = false
   private let _timerQ = DispatchQueue(label: "ListenerLocal" + ".timerQ", attributes: .concurrent)
@@ -96,7 +98,7 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
   ///   - data:           the Data received
   ///   - address:        the Address of the sender
   ///   - filterContext:  the FilterContext
-  nonisolated public func udpSocket(_ sock: GCDAsyncUdpSocket,
+  public func udpSocket(_ sock: GCDAsyncUdpSocket,
                                     didReceive data: Data,
                                     fromAddress address: Data,
                                     withFilterContext filterContext: Any?) {
@@ -112,7 +114,7 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
       let properties = payloadString.trimmingCharacters(in: CharacterSet(charactersIn: "\0")).keyValuesArray()
       
       // process it
-      Task { await self._api.process(.local, properties, data) }
+      Task { await MainActor.run { self._api.process(.local, properties, data) } }
     }
   }
   

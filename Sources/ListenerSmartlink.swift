@@ -72,7 +72,8 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   /// stop the listener
   public func stop() {
     _pingTimer?.cancel()
-    _tcpSocket?.disconnect()
+//    _tcpSocket?.disconnect()
+    _tcpSocket?.disconnectAfterReadingAndWriting()
     log.info("Smartlink Listener: STOPPED")
   }
   

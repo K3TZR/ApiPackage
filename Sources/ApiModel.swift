@@ -28,8 +28,8 @@ final public class ApiModel: TcpProcessor {
   // MARK: - Initialization
   
   public init() {
-    _udp = Udp()
-    _tcp = Tcp()
+//    _udp = Udp()
+//    _tcp = Tcp()
     streamModel = StreamModel(self)
     _tcp.setDelegate(self)
     _udp.setDelegate(streamModel!)
@@ -133,8 +133,8 @@ final public class ApiModel: TcpProcessor {
   private var _pinger: Pinger?
   private let _replyDictionary = ReplyDictionary()
   private let _sequencer = Sequencer()
-  private var _tcp: Tcp!
-  private let _udp: Udp!
+  private var _tcp = Tcp()
+  private let _udp = Udp()
   private var _wanHandle: String?
   
   // ----------------------------------------------------------------------------
