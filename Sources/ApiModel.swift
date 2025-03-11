@@ -306,7 +306,7 @@ final public class ApiModel: TcpProcessor {
       radios[index].lastSeen = Date()
       radios[index].discoveryData = discoveryData
       
-      // for each existing GuiClient
+      // process updated or removed GuiClients
       for (i, currentGuiClient) in radios[index].guiClients.enumerated() {
         // is it in the newGuiClients?
         if let j = newGuiClients.firstIndex(where: { $0.handle == currentGuiClient.handle }) {
@@ -325,35 +325,12 @@ final public class ApiModel: TcpProcessor {
         }
       }
       
-      
-      
-      
-//      if radios[index].guiClients != guiClients {
-//        // YES, identify removed Stations
-//        let removedClients = Set(radios[index].guiClients).subtracting(Set(guiClients))
-//        for guiClient in removedClients {
-//          log.info("ApiModel GuiClient: Handle <\(guiClient.handle)>, Station <\(guiClient.station)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - REMOVED by packet process")
-//        }
-//        // identify added Stations
-//        let addedClients = Set(guiClients).subtracting(Set(radios[index].guiClients))
-//        for guiClient in addedClients {
-//          log.info("ApiModel GuiClient: Handle <\(guiClient.handle)>, Station <\(guiClient.station)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - ADDED by packet process")
-//        }
-//        
-//        radios[index].guiClients = guiClients
-//      }
-      //      for guiClient in guiClients {
-      //        if radios[index].guiClients.contains(where: {$0.handle == guiClient.handle}) {
-      //          if let i = radios[index].guiClients.firstIndex(where: {$0 == guiClient}) {
-      //            radios[index].guiClients[i].ip = guiClient.ip
-      //            radios[index].guiClients[i].host = guiClient.host
-      //            log.info("ApiModel GuiClient: Handle <\(guiClient.handle)>, Station <\(guiClient.station)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - UPDATED")
-      //          }
-      //        } else {
-      //          radios[index].guiClients.append(guiClient)
-      //          log.info("ApiModel GuiClient: Handle <\(guiClient.handle)>, Station <\(guiClient.station)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - ADDED")
-      //        }
-      //      }
+      // process added GuiClients
+      for newGuiClient in newGuiClients {
+        if !radios[index].guiClients.contains(where: { $0.handle == newGuiClient.handle }) {
+          radios[index].guiClients.append(newGuiClient)
+        }
+      }
       
     } else {
       

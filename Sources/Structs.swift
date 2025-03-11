@@ -329,6 +329,15 @@ public enum AudioCompression: String {
   case opus
 }
 
+public enum DaxChoice: String, CaseIterable, Sendable {
+  case none
+  case mic
+  case rx0
+  case rx1
+  case rx2
+  case rx3
+}
+
 // Helper struct used by Audio routines
 //public struct AudioDevice : Identifiable, Equatable {
 //  public var id: AudioDeviceID
