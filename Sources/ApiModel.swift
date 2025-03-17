@@ -261,7 +261,7 @@ final public class ApiModel: TcpProcessor {
   public func localListenerStart() {
     // start local listener
     _listenerLocal = ListenerLocal(self)
-    _listenerLocal!.start()
+    Task { await _listenerLocal!.start() }
   }
   
   public func localListenerStop() {
@@ -316,19 +316,20 @@ final public class ApiModel: TcpProcessor {
             radios[index].guiClients[i].host = newGuiClients[j].host
             radios[index].guiClients[i].station = newGuiClients[j].station
             radios[index].guiClients[i].program = newGuiClients[j].program
-            log.info("ApiModel GuiClient: Handle <\(radios[index].guiClients[i].handle)>, Station <\(radios[index].guiClients[i].station)>, Program <\(radios[index].guiClients[i].program)>, Ip <\(radios[index].guiClients[i].ip)>, Host <\(radios[index].guiClients[i].host)>, ClientId <\(radios[index].guiClients[i].clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - UPDATED by packet process")
+            log.info("ApiModel UPDATED GuiClient: Handle <\(radios[index].guiClients[i].handle)>, Station <\(radios[index].guiClients[i].station)>, Program <\(radios[index].guiClients[i].program)>, Ip <\(radios[index].guiClients[i].ip)>, Host <\(radios[index].guiClients[i].host)>, ClientId <\(radios[index].guiClients[i].clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - UPDATED by packet process")
           }
 
         } else {
           radios[index].guiClients.remove(at: i)
-          log.info("ApiModel GuiClient: Handle <\(currentGuiClient.handle)>, Station <\(currentGuiClient.station)>, Program <\(currentGuiClient.program)>, Ip <\(currentGuiClient.ip)>, Host <\(currentGuiClient.host)>, ClientId <\(currentGuiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - REMOVED by packet process")
+          log.info("ApiModel REMOVED GuiClient: Handle <\(currentGuiClient.handle)>, Station <\(currentGuiClient.station)>, Program <\(currentGuiClient.program)>, Ip <\(currentGuiClient.ip)>, Host <\(currentGuiClient.host)>, ClientId <\(currentGuiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - REMOVED by packet process")
         }
       }
       
       // process added GuiClients
-      for newGuiClient in newGuiClients {
-        if !radios[index].guiClients.contains(where: { $0.handle == newGuiClient.handle }) {
-          radios[index].guiClients.append(newGuiClient)
+      for guiClient in newGuiClients {
+        if !radios[index].guiClients.contains(where: { $0.handle == guiClient.handle }) {
+          radios[index].guiClients.append(guiClient)
+          log.info("ApiModel ADDED GuiClient: Handle <\(guiClient.handle)>, Station <\(guiClient.station)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - ADDED by packet process")
         }
       }
       
@@ -336,11 +337,11 @@ final public class ApiModel: TcpProcessor {
       
       // UNKNOWN radio, add it
       radios.append(Radio(packet, newGuiClients, discoveryData))
-      log.info("ApiModel Radio: Name <\(name)>, Serial <\(packet.serial)>, Source <\(packet.source == .local ? "Local" : "Smartlink")> - ADDED by packet process")
+      log.info("ApiModel NEW Radio: Name <\(name)>, Serial <\(packet.serial)>, Source <\(packet.source == .local ? "Local" : "Smartlink")> - ADDED by packet process")
       
       // log the GuiClients
       for guiClient in newGuiClients {
-        log.info("ApiModel GuiClient: Handle <\(guiClient.handle)>, Station <\(guiClient.station)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - ADDED by packet process")
+        log.info("ApiModel NEW GuiClient: Handle <\(guiClient.handle)>, Station <\(guiClient.station)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - ADDED by packet process")
       }
     }
   }
@@ -352,10 +353,10 @@ final public class ApiModel: TcpProcessor {
       if interval > timeout {
         let name = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
         for guiClient in radio.guiClients {
-          log.info("ApiModel: Station <\(guiClient.station)>, Program <\(guiClient.program)>, Handle <\(guiClient.handle)>, on Radio <\(name)> - WILL BE REMOVED")
+          log.info("ApiModel: REMOVED Station <\(guiClient.station)>, Program <\(guiClient.program)>, Handle <\(guiClient.handle)>, on Radio <\(name)> - WILL BE REMOVED")
         }
         
-        // remove Discovery
+        // remove Radio
         radios.remove(at: i)
         log.info("ApiModel: Radio <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")> - REMOVED due to timeout (\(interval) seconds)")
       }

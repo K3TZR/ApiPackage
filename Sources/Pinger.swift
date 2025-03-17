@@ -25,7 +25,7 @@ public final class Pinger {
     _pingTimer = DispatchSource.makeTimerSource(queue: _pingQ)
 
     // Setup the timer
-    _pingTimer.schedule(deadline: DispatchTime.now(), repeating: .seconds(pingInterval))
+    _pingTimer.schedule(deadline: DispatchTime.now(), repeating: .seconds(pingInterval), leeway: .milliseconds(100))
 
     // set the event handler
     _pingTimer.setEventHandler(handler: { [self] in

@@ -235,6 +235,12 @@ public extension UInt32 {
   func toHex(_ format: String = "0x%08X") -> String { String(format: format, self) }
 }
 
+public extension Int {
+  func bracket(_ min: Int, _ max: Int) -> Int {
+    return self > max ? min : self
+  }
+}
+
 // ----------------------------------------------------------------------------
 // MARK: - NSColor Extensions
 

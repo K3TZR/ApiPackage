@@ -38,7 +38,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Internal methods
   
-  func start(port: UInt16 = 4992, checkInterval: Int = 1, timeout: TimeInterval = 20.0) {
+  func start(port: UInt16 = 4992, checkInterval: Int = 1, timeout: TimeInterval = 20.0) async {
     do {
       try _udpSocket!.enableReusePort(true)
       try _udpSocket!.bind(toPort: port)
@@ -48,7 +48,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
     } catch {
       log.error("Error starting UDP socket")
     }
-
+    
     // Create the timer’s dispatch source
     _pingTimer = DispatchSource.makeTimerSource(queue: _timerQ)
     
@@ -60,13 +60,15 @@ public final class ListenerLocal: NSObject, ObservableObject {
       guard let self = self else { return }
       
       Task { await MainActor.run {
-        self._api.removeLostRadios(Date(), timeout)
+        //        self._api.removeLostRadios(Date(), timeout)
+        
+        self._api.radios.removeAll(where: {$0.lastSeen < Date().addingTimeInterval(-timeout) })
+        
       }}
-    }
-    
-    // Start the timer
-    _pingTimer!.resume()
   }
+  // Start the timer
+  _pingTimer!.resume()
+}
   
   func stop() {
     _pingTimer?.cancel()
