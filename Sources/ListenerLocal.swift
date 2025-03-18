@@ -13,7 +13,6 @@ import CocoaAsyncSocket
 ///
 ///      listens for the udp broadcasts of a Flex6000 Radio
 ///
-//@MainActor
 public final class ListenerLocal: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
@@ -22,15 +21,13 @@ public final class ListenerLocal: NSObject, ObservableObject {
     _api = apiModel
     super.init()
     
-    _formatter.timeZone = .current
-    _formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-    
     // create a Udp socket and set options
     _udpSocket = GCDAsyncUdpSocket( delegate: self, delegateQueue: _udpQ )
     _udpSocket!.setPreferIPv4()
     _udpSocket!.setIPv6Enabled(false)
    
     if _udpSocket == nil {
+      log?.error("Could not create GCDAsyncUdpSocket")
       fatalError("Could not create GCDAsyncUdpSocket")
     }
   }
@@ -43,37 +40,16 @@ public final class ListenerLocal: NSObject, ObservableObject {
       try _udpSocket!.enableReusePort(true)
       try _udpSocket!.bind(toPort: port)
       try _udpSocket!.beginReceiving()
-      log.info("Local Listener: UDP socket STARTED")
+      log?.debug("Local Listener: UDP socket STARTED")
       
     } catch {
-      log.error("Error starting UDP socket")
+      log?.error("Error starting UDP socket")
     }
-    
-    // Create the timer’s dispatch source
-    _pingTimer = DispatchSource.makeTimerSource(queue: _timerQ)
-    
-    // Setup the timer
-    _pingTimer!.schedule(deadline: .now(), repeating: .seconds(checkInterval))
-    
-    // Set the event handler
-    _pingTimer!.setEventHandler  { [weak self] in
-      guard let self = self else { return }
-      
-      Task { await MainActor.run {
-        //        self._api.removeLostRadios(Date(), timeout)
-        
-        self._api.radios.removeAll(where: {$0.lastSeen < Date().addingTimeInterval(-timeout) })
-        
-      }}
-  }
-  // Start the timer
-  _pingTimer!.resume()
 }
   
   func stop() {
-    _pingTimer?.cancel()
     _udpSocket?.closeAfterSending()
-    log.info("Local Listener: UDP socket STOPPED")
+    log?.debug("Local Listener: UDP socket STOPPED")
   }
   
   // ----------------------------------------------------------------------------
@@ -81,10 +57,6 @@ public final class ListenerLocal: NSObject, ObservableObject {
   
   nonisolated private let _api: ApiModel
   
-  private var _pingTimer: DispatchSourceTimer?
-  private let _formatter = DateFormatter()
-  private var _success = false
-  private let _timerQ = DispatchQueue(label: "ListenerLocal" + ".timerQ", attributes: .concurrent)
   private let _udpQ = DispatchQueue(label: "ListenerLocal" + ".udpQ")
   private var _udpSocket: GCDAsyncUdpSocket?
 }
@@ -121,6 +93,7 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
   }
   
   public func udpSocket(_ sock: GCDAsyncUdpSocket, didCloseWithError error: Error?) {
-    print("----->>>>>", "UDP socket CLOSED with error")
+    log?.error("\(error?.localizedDescription ?? "No Error Provided")")
+    fatalError("UDP socket CLOSED with error")
   }
 }

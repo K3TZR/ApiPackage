@@ -32,7 +32,7 @@ public final class Wan {
       // Check for Unknown Keys
       guard let token = Wan.Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log.warning("Wan: unknown property, \(property.key) = \(property.value)")
+        log?.warning("Wan: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // Known tokens, in alphabetical order
@@ -51,7 +51,7 @@ public final class Wan {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      log.debug("Wan: initialized ServerConnected = \(self.serverConnected), RadioAuthenticated = \(self.radioAuthenticated)")
+      log?.debug("Wan: initialized ServerConnected = \(self.serverConnected), RadioAuthenticated = \(self.radioAuthenticated)")
     }
   }
   

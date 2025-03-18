@@ -50,7 +50,7 @@ public final class Atu {
       // Check for Unknown Keys
       guard let token = Atu.Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log.warning("Atu: unknown property, \(property.key) = \(property.value)")
+        log?.warning("Atu: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // Known tokens, in alphabetical order
@@ -66,7 +66,7 @@ public final class Atu {
     if _initialized == false{
       // NO, it is now
       _initialized = true
-      log.debug("Atu: initialized")
+      log?.debug("Atu: initialized")
     }
   }
 

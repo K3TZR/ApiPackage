@@ -64,7 +64,7 @@ public final class Xvtr {
       } else {
         // NO, remove it
         apiModel.xvtrs.remove(at: index!)
-        log.debug("Tnf \(id): REMOVED")
+        log?.debug("Tnf \(id): REMOVED")
       }
     }
   }
@@ -80,7 +80,7 @@ public final class Xvtr {
       // check for unknown Keys
       guard let token = Xvtr.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log.warning("Xvtr: unknown property, \(property.key) = \(property.value)")
+        log?.warning("Xvtr: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // Known keys, in alphabetical order
@@ -106,7 +106,7 @@ public final class Xvtr {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      log.debug("Xvtr: ADDED, name = \(self.name)")
+      log?.debug("Xvtr: ADDED, name = \(self.name)")
     }
   }
   

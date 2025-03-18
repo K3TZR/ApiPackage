@@ -76,7 +76,7 @@ public final class Equalizer: Identifiable {
     } else {
       // NO, remove it
       apiModel.equalizers.remove(at: index!)
-      log.debug("Equalizer \(id): REMOVED")
+      log?.debug("Equalizer \(id): REMOVED")
     }
   }
 
@@ -91,7 +91,7 @@ public final class Equalizer: Identifiable {
       // check for unknown Keys
       guard let token = Equalizer.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log.warning("Equalizer: unknown property, \(property.key) = \(property.value)")
+        log?.warning("Equalizer: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known keys
@@ -112,7 +112,7 @@ public final class Equalizer: Identifiable {
       if _initialized == false {
         // NO, it is now
         _initialized = true
-        log.debug("Equalizer: ADDED")
+        log?.debug("Equalizer: ADDED")
       }
     }
   }

@@ -26,7 +26,7 @@ public final class Tcp: NSObject {
     _socket.isIPv4PreferredOverIPv6 = true
     _socket.isIPv6Enabled = false
     
-    log.debug("Tcp: socket initialized")
+    log?.debug("Tcp: socket initialized")
   }
   
   // ----------------------------------------------------------------------------
@@ -60,21 +60,21 @@ public final class Tcp: NSObject {
         
         // connect via the localInterface
         try _socket.connect(toHost: publicIp, onPort: UInt16(portToUse), viaInterface: localInterface, withTimeout: _timeout)
-        log.debug("Tcp: connect on the \(String(describing: localInterface)) interface to \(publicIp) port \(portToUse)")
+        log?.debug("Tcp: connect on the \(String(describing: localInterface)) interface to \(publicIp) port \(portToUse)")
 
       } else {
         // connect on the default interface
         try _socket.connect(toHost: publicIp, onPort: UInt16(portToUse), withTimeout: _timeout)
-        log.debug("Tcp: connect on the default interface to \(publicIp) port \(portToUse)")
+        log?.debug("Tcp: connect on the default interface to \(publicIp) port \(portToUse)")
       }
       
     } catch _ {
       // connection attemp failed
-      log.debug("Tcp: connection failed")
+      log?.debug("Tcp: connection failed")
       success = false
     }
     if success {
-      log.debug("Tcp: connection successful")
+      log?.debug("Tcp: connection successful")
     }
     return success
   }
@@ -147,7 +147,7 @@ extension Tcp: GCDAsyncSocketDelegate {
   ///   - completionHandler: a completion handler
   public func socket(_ sock: GCDAsyncSocket, didReceive trust: SecTrust, completionHandler: @escaping (Bool) -> Void) {
     // no validation required
-    log.debug("Tcp: TLS socket did receive trust")
+    log?.debug("Tcp: TLS socket did receive trust")
     completionHandler(true)
   }
   

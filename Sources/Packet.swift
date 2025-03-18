@@ -27,7 +27,7 @@ public struct Packet: Identifiable, Comparable, Equatable, Sendable {
       // check for unknown Keys
       guard let token = Packet.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log.warning("Packet: Unknown property - \(property.key) = \(property.value)")
+        log?.warning("Packet: Unknown property - \(property.key) = \(property.value)")
         continue
       }
       switch token {

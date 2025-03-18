@@ -65,7 +65,7 @@ public final class Waterfall: Identifiable {
       } else {
         // NO, remove it
         apiModel.waterfalls.remove(at: index!)
-        log.debug("Waterfall \(id.hex): REMOVED")
+        log?.debug("Waterfall \(id.hex): REMOVED")
       }
     }
   }
@@ -81,7 +81,7 @@ public final class Waterfall: Identifiable {
       // check for unknown Keys
       guard let token = Waterfall.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log.warning("Waterfall: unknown property, \(property.key) = \(property.value)")
+        log?.warning("Waterfall: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // Known keys, in alphabetical order
@@ -103,7 +103,7 @@ public final class Waterfall: Identifiable {
     if _initialized == false && panadapterId != 0 {
       // NO, it is now
       _initialized = true
-      log.debug("Waterfall: ADDED handle = \(self.clientHandle.hex)")
+      log?.debug("Waterfall: ADDED handle = \(self.clientHandle.hex)")
     }
   }
   

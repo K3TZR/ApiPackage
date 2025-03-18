@@ -48,7 +48,7 @@ public final class DaxRxAudio {
       // check for unknown keys
       guard let token = Property(rawValue: property.key) else {
         // unknown, log it and ignore the Key
-        log.warning("DaxRxAudio: unknown property, \(property.key) = \(property.value)")
+        log?.warning("DaxRxAudio: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known keys, in alphabetical order
@@ -78,7 +78,7 @@ public final class DaxRxAudio {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      log.debug("DaxRxAudio ADDED: channel = \(self.daxChannel), handle = \(self.clientHandle.hex)")
+      log?.debug("DaxRxAudio ADDED: channel = \(self.daxChannel), handle = \(self.clientHandle.hex)")
     }
   }
   

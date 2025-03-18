@@ -43,16 +43,16 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   // MARK: - Public methods
   
   public func start(idToken: String, refreshToken: String) async -> Tokens? {
-      log.debug("Smartlink Listener: using previous Id Token")
+      log?.debug("Smartlink Listener: using previous Id Token")
       return connect(using: Tokens(idToken, refreshToken))
   }
 
   public func start(refreshToken: String) async -> Tokens? {
     if let idToken = await requestIdToken(refreshToken: refreshToken) {
-      log.debug("Smartlink Listener: IdToken obtained from refresh token")
+      log?.debug("Smartlink Listener: IdToken obtained from refresh token")
       return connect(using: Tokens(idToken, refreshToken))
     }
-    log.debug("Smartlink Listener: Failed to obtain IdToken from refresh token")
+    log?.debug("Smartlink Listener: Failed to obtain IdToken from refresh token")
     return nil
   }
   
@@ -62,10 +62,10 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   ///   - pwd:            user password
   func start(_ user: String, _ pwd: String) async -> Tokens? {
     if let tokens = await requestTokens(user: user, pwd: pwd) {
-      log.debug("Smartlink Listener: IdToken obtained from login credentials")
+      log?.debug("Smartlink Listener: IdToken obtained from login credentials")
       return connect(using: tokens)
     }
-    log.debug("Smartlink Listener: Failed to obtain IdToken from login credentials")
+    log?.debug("Smartlink Listener: Failed to obtain IdToken from login credentials")
     return nil
   }
   
@@ -74,7 +74,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
     _pingTimer?.cancel()
 //    _tcpSocket?.disconnect()
     _tcpSocket?.disconnectAfterReadingAndWriting()
-    log.info("Smartlink Listener: STOPPED")
+    log?.debug("Smartlink Listener: STOPPED")
   }
   
   /// Initiate a smartlink connection to a radio
@@ -86,7 +86,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
     
     return try await withCheckedThrowingContinuation{ continuation in
       _awaitWanHandle = continuation
-      log.debug("Smartlink Listener: Connect sent to serial \(serial)")
+      log?.debug("Smartlink Listener: Connect sent to serial \(serial)")
       // send a command to SmartLink to request a connection to the specified Radio
       sendTlsCommand("application connect serial=\(serial) hole_punch_port=\(holePunchPort))")
     }
@@ -95,7 +95,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   /// Disconnect a smartlink Radio
   /// - Parameter serialNumber:         the serial number of the Radio
   public func smartlinkDisconnect(for serial: String) {
-    log.debug("Smartlink Listener: Disconnect sent to serial \(serial)")
+    log?.debug("Smartlink Listener: Disconnect sent to serial \(serial)")
     // send a command to SmartLink to request disconnection from the specified Radio
     sendTlsCommand("application disconnect_users serial=\(serial)")
   }
@@ -105,7 +105,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   ///   - serialNumber:         the serial number of the Radio
   ///   - handle:               the handle of the Client
   public func smartlinkDisconnectClient(for serial: String, handle: UInt32) {
-    log.debug("Smartlink Listener: Disconnect sent to serial \(serial), handle \(handle.hex)")
+    log?.debug("Smartlink Listener: Disconnect sent to serial \(serial), handle \(handle.hex)")
     // send a command to SmartLink to request disconnection from the specified Radio
     sendTlsCommand("application disconnect_users serial=\(serial) handle=\(handle.hex)")
   }
@@ -118,11 +118,11 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
     // use the ID Token to connect to the Smartlink service
     do {
       try _tcpSocket.connect(toHost: kSmartlinkHost, onPort: kSmartlinkPort, withTimeout: _timeout)
-      log.debug("Smartlink Listener: TCP Socket connection initiated")
+      log?.debug("Smartlink Listener: TCP Socket connection initiated")
       return tokens
 
     } catch {
-      log.debug("Smartlink Listener: TCP Socket connection FAILED")
+      log?.debug("Smartlink Listener: TCP Socket connection FAILED")
       return nil
     }
   }
@@ -132,7 +132,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   ///
   public func sendSmartlinkTest(for serialNumber: String) {
     // insure that the WanServer is connected to SmartLink
-    log.info("Smartlink Listener:, smartLink test initiated to serial number: \(serialNumber)")
+    log?.info("Smartlink Listener:, smartLink test initiated to serial number: \(serialNumber)")
     
     // send a command to SmartLink to test the connection for the specified Radio
     sendTlsCommand("application test_connection serial=\(serialNumber)", timeout: _timeout)
@@ -161,7 +161,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
     })
     // start the timer
     _pingTimer.resume()
-    log.debug("Smartlink Listener: STARTED pinging \(self._host ?? "????")")
+    log?.debug("Smartlink Listener: STARTED pinging \(self._host ?? "????")")
   }
     
   // ----------------------------------------------------------------------------
@@ -244,29 +244,29 @@ extension ListenerSmartlink: GCDAsyncSocketDelegate {
                      didConnectToHost host: String,
                      port: UInt16) {
     _host = host
-    log.debug("Smartlink Listener: TCP Socket didConnectToHost, \(host):\(port)")
+    log?.debug("Smartlink Listener: TCP Socket didConnectToHost, \(host):\(port)")
     
     // initiate a secure (TLS) connection to the Smartlink server
     var tlsSettings = [String : NSObject]()
     tlsSettings[kCFStreamSSLPeerName as String] = kSmartlinkHost as NSObject
     _tcpSocket.startTLS(tlsSettings)
     
-    log.debug("Smartlink Listener: TLS Socket connection initiated")
+    log?.debug("Smartlink Listener: TLS Socket connection initiated")
   }
   
   public func socketDidSecure(_ sock: GCDAsyncSocket) {
-    log.debug("Smartlink Listener: TLS socketDidSecure")
+    log?.debug("Smartlink Listener: TLS socketDidSecure")
     
     // start pinging SmartLink server
     startPinging()
     
     // register the Application / token pair with the SmartLink server
     sendTlsCommand("application register name=\(_appName!) platform=\(kPlatform) token=\(_currentTokens!.idToken)", timeout: _timeout, tag: 0)
-    log.debug("Smartlink Listener: Application registered, name=\(self._appName!) platform=\(self.kPlatform)")
+    log?.debug("Smartlink Listener: Application registered, name=\(self._appName!) platform=\(self.kPlatform)")
     
     // start reading
     _tcpSocket.readData(to: GCDAsyncSocket.lfData(), withTimeout: -1, tag: 0)
-    log.info("Smartlink Listener: STARTED")
+    log?.info("Smartlink Listener: STARTED")
   }
   
   public func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
@@ -283,9 +283,9 @@ extension ListenerSmartlink: GCDAsyncSocketDelegate {
     // Disconnected from the Smartlink server
     let error = (err == nil ? "" : " with error: " + err!.localizedDescription)
     if err == nil {
-      log.debug("SmartlinkListener: TCP socketDidDisconnect \(error)")
+      log?.debug("SmartlinkListener: TCP socketDidDisconnect")
     } else {
-      log.error("SmartlinkListener: TCP socketDidDisconnect \(error)")
+      log?.error("SmartlinkListener: TCP socketDidDisconnect \(error)")
     }
     if err != nil { stop() }
   }
@@ -468,7 +468,7 @@ extension ListenerSmartlink {
       }
       
     } catch {
-      log.error("Error loading image: \(error)")
+      log?.error("Error loading image: \(error)")
     }
     return Image(systemName: kDefaultPicture)
   }
@@ -508,7 +508,7 @@ extension ListenerSmartlink {
     // Check for unknown properties
     guard let token = Property(rawValue: properties[0].key)  else {
       // log it
-      log.warning("Smartlink Listener: \(msg)")
+      log?.warning("Smartlink Listener: unknown message property, \(msg)")
       return
     }
     // which primary message type?
@@ -535,7 +535,7 @@ extension ListenerSmartlink {
     // Check for unknown properties
     guard let token = Property(rawValue: properties[0].key)  else {
       // log it and ignore the message
-      log.warning("Smartlink Listener: unknown application property, \(properties[1].key)")
+      log?.warning("Smartlink Listener: unknown application property, \(properties[1].key)")
       return
     }
     switch token {
@@ -558,7 +558,7 @@ extension ListenerSmartlink {
     // Check for unknown properties
     guard let token = Property(rawValue: properties[0].key)  else {
       // log it and ignore the message
-      log.warning("Smartlink Listener: unknown radio property, \(properties[1].key)")
+      log?.warning("Smartlink Listener: unknown radio property, \(properties[1].key)")
       return
     }
     // which secondary message type?
@@ -578,14 +578,14 @@ extension ListenerSmartlink {
       case publicIp = "public_ip"
     }
 
-    log.debug("Smartlink Listener: ApplicationInfo received")
+    log?.debug("Smartlink Listener: ApplicationInfo received")
 
     // process each key/value pair, <key=value>
     for property in properties {
       // Check for unknown properties
       guard let token = Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log.warning("Smartlink Listener: unknown info property, \(property.key)")
+        log?.warning("Smartlink Listener: unknown info property, \(property.key)")
         continue
       }
       // Known tokens, in alphabetical order
@@ -607,7 +607,7 @@ extension ListenerSmartlink {
   /// Respond to an Invalid registration
   /// - Parameter msg:                the message text
   private func parseRegistrationInvalid(_ properties: KeyValuesArray) {
-    log.warning("Smartlink Listener: invalid registration: \(properties.count == 3 ? properties[2].key : "")")
+    log?.warning("Smartlink Listener: invalid registration: \(properties.count == 3 ? properties[2].key : "")")
   }
 
   /// Parse a received "user settings" message
@@ -619,14 +619,14 @@ extension ListenerSmartlink {
       case lastName     = "last_name"
     }
 
-    log.debug("Smartlink Listener: UserSettings received")
+    log?.debug("Smartlink Listener: UserSettings received")
 
     // process each key/value pair, <key=value>
     for property in properties {
       // Check for Unknown properties
       guard let token = Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log.warning("Smartlink Listener: unknown user setting, \(property.key)")
+        log?.warning("Smartlink Listener: unknown user setting, \(property.key)")
         continue
       }
       // Known tokens, in alphabetical order
@@ -654,14 +654,14 @@ extension ListenerSmartlink {
       case serial
     }
 
-    log.debug("Smartlink Listener: ConnectReady received")
+    log?.debug("Smartlink Listener: ConnectReady received")
 
     // process each key/value pair, <key=value>
     for property in properties {
       // Check for unknown properties
       guard let token = Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log.warning("Smartlink Listener: unknown connect property, \(property.key)")
+        log?.warning("Smartlink Listener: unknown connect property, \(property.key)")
         continue
       }
       // Known tokens, in alphabetical order
@@ -719,7 +719,7 @@ extension ListenerSmartlink {
       // processs the packet
       Task { await self._apiModel?.process(.smartlink, message.keyValuesArray() ,nil) }
 
-      log.debug("Smartlink Listener: RadioList RECEIVED, \(packet.nickname)")
+      log?.debug("Smartlink Listener: RadioList RECEIVED, \(packet.nickname)")
     }
   }
 
@@ -742,7 +742,7 @@ extension ListenerSmartlink {
       // Check for unknown properties
       guard let token = Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log.warning("Smartlink Listener: unknown testConnection property, \(property.key)")
+        log?.warning("Smartlink Listener: unknown testConnection property, \(property.key)")
         continue
       }
 
@@ -765,9 +765,9 @@ extension ListenerSmartlink {
     }
     // log the result
     if result.success {
-      log.debug("Smartlink Listener: Test result received, SUCCESS")
+      log?.info("Smartlink Listener: Test result received, SUCCESS")
     } else {
-      log.warning("Smartlink Listener: Test result received, FAILURE")
+      log?.info("Smartlink Listener: Test result received, FAILURE")
     }
   }
 }

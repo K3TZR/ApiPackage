@@ -65,7 +65,7 @@ public final class Profile {
     } else {
       // NO, remove it
       apiModel.profiles.remove(at: index!)
-      log.debug("Tnf \(id): REMOVED")
+      log?.debug("Tnf \(id): REMOVED")
     }
   }
   
@@ -80,7 +80,7 @@ public final class Profile {
     // check for unknown Key
     guard let token = Profile.Property(rawValue: components[1]) else {
       // log it and ignore the Key
-      log.warning("Profile: unknown property, \(properties[1].key)")
+      log?.warning("Profile: unknown property, \(properties[1].key)")
       return
     }
     // known keys
@@ -106,7 +106,7 @@ public final class Profile {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      log.debug("Profile: ADDED")
+      log?.debug("Profile: ADDED")
     }
   }
 

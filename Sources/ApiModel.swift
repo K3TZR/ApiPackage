@@ -6,6 +6,10 @@
 //
 
 import Foundation
+import os
+
+//let log = Logger(subsystem: "net.k3tzr.ApiExplorer", category: "Application")
+
 
 public typealias ActiveSelection = (radio: Radio, disconnectHandle: String?)
 public typealias IdToken = String
@@ -126,6 +130,7 @@ final public class ApiModel: TcpProcessor {
   private var _awaitFirstStatusMessage: CheckedContinuation<(), Never>?
   private var _awaitTcpReply: CheckedContinuation<(Int, String, String), Never>?
   private var _awaitWanValidation: CheckedContinuation<String, Never>?
+  private let _broadcastTimeout: TimeInterval = 20
   private var _firstStatusMessageReceived: Bool = false
   private var _guiClientId: String?
   private var _listenerSmartlink: ListenerSmartlink?
@@ -162,7 +167,7 @@ final public class ApiModel: TcpProcessor {
     self.testDelegate = testDelegate
     
     guard connect(to: selection.radio) else { throw ApiError.connection }
-    log.debug("ApiModel: Tcp connection established")
+    log?.debug("ApiModel: Tcp connection established")
     
     if selection.disconnectHandle != nil {
       // pending disconnect
@@ -171,20 +176,20 @@ final public class ApiModel: TcpProcessor {
     
     // wait for the first Status message with my handle
     await awaitFirstStatusMessage()
-    log.debug("ApiModel: First status message received")
+    log?.debug("ApiModel: First status message received")
     
     // is this a Wan connection?
     if selection.radio.packet.source == .smartlink {
       // YES, send Wan Connect message & wait for the reply
       _wanHandle = try await self._listenerSmartlink?.smartlinkConnect(for: selection.radio.packet.serial, holePunchPort: selection.radio.packet.negotiatedHolePunchPort)
       if _wanHandle == nil { throw ApiError.connection }
-      log.debug("ApiModel: wanHandle received")
+      log?.debug("ApiModel: wanHandle received")
       
       // send Wan Validate & wait for the reply
-      log.debug("ApiModel: Wan validate sent for handle=\(self._wanHandle!)")
+      log?.debug("ApiModel: Wan validate sent for handle=\(self._wanHandle!)")
       let replyComponents = await sendTcpAwaitReply("wan validate handle=\(_wanHandle!)")
       //      let reply = await wanValidation()
-      log.debug("ApiModel: Wan validation = \(replyComponents)")
+      log?.debug("ApiModel: Wan validation = \(String(describing: replyComponents))")
     }
     
     // bind UDP
@@ -194,32 +199,32 @@ final public class ApiModel: TcpProcessor {
                           selection.radio.packet.negotiatedHolePunchPort,
                           selection.radio.packet.publicUdpPort)
     guard ports != nil else { _tcp.disconnect() ; throw ApiError.udpBind }
-    log.debug("ApiModel: UDP bound, receive port = \(ports!.0), send port = \(ports!.1)")
+    log?.debug("ApiModel: UDP bound, receive port = \(ports!.0), send port = \(ports!.1)")
     
     // is this a Wan connection?
     if selection.radio.packet.source == .smartlink {
       // send Wan Register (no reply)
       sendUdp("client udp_register handle=" + connectionHandle!.hex )
-      log.debug("ApiModel: UDP registration sent")
+      log?.debug("ApiModel: UDP registration sent")
       
       // send Client Ip & wait for the reply
       let replyComponents = await sendTcpAwaitReply("client ip")
       //      sendTcp("client ip", replyHandler: ipReplyHandler)
       //      let reply = await clientIpValidation()
-      log.debug("ApiModel: Client ip = \(replyComponents)")
+      log?.debug("ApiModel: Client ip = \(String(describing: replyComponents))")
     }
     
     // send the initial commands
     sendInitialCommands(isGui, programName, activeStation, mtuValue, lowBandwidthDax, lowBandwidthConnect, guiClientId)
-    log.info("ApiModel: initial commands sent (isGui = \(isGui))")
+    log?.debug("ApiModel: initial commands sent (isGui = \(isGui))")
     
     startPinging()
-    log.debug("ApiModel: pinging \(selection.radio.packet.publicIp)")
+    log?.debug("ApiModel: pinging \(selection.radio.packet.publicIp)")
     
     // set the UDP port for a Local connection
     if selection.radio.packet.source == .local {
       sendTcp("client udpport " + "\(_udp.sendPort)")
-      log.info("ApiModel: Client Udp port set to \(self._udp.sendPort)")
+      log?.debug("ApiModel: Client Udp port set to \(self._udp.sendPort)")
     }
   }
   
@@ -227,7 +232,7 @@ final public class ApiModel: TcpProcessor {
   /// - Parameter reason: an optional reason
   public func disconnect(_ reason: String? = nil) async {
     if reason == nil {
-      log.debug("ApiModel: Disconnect, \((reason == nil ? "User initiated" : reason!))")
+      log?.debug("ApiModel: Disconnect, \((reason == nil ? "User initiated" : reason!))")
     }
     
     // stop any listeners
@@ -240,13 +245,13 @@ final public class ApiModel: TcpProcessor {
     
     // stop pinging (if active)
     stopPinging()
-    log.debug("ApiModel: Pinging STOPPED")
+    log?.debug("ApiModel: Pinging STOPPED")
     
     connectionHandle = nil
     
     // stop udp
     _udp.unbind()
-    log.debug("ApiModel: Disconnect, UDP unbound")
+    log?.debug("ApiModel: Disconnect, UDP unbound")
     
     _tcp.disconnect()
     
@@ -255,7 +260,7 @@ final public class ApiModel: TcpProcessor {
     
     await _replyDictionary.removeAll()
     await _sequencer.reset()
-    log.debug("ApiModel: Disconnect, Objects removed")
+    log?.debug("ApiModel: Disconnect, Objects removed")
   }
   
   public func localListenerStart() {
@@ -301,49 +306,53 @@ final public class ApiModel: TcpProcessor {
       if radios[index].packet != packet {
         // YES, overwrite the Packet
         radios[index].packet = packet
+        log?.debug("ApiModel: Radio    UPDATED Name <\(name)>, Serial <\(packet.serial)>, Source <\(packet.source == .local ? "Local" : "Smartlink")>")
       }
       // update the TimeStamp
       radios[index].lastSeen = Date()
       radios[index].discoveryData = discoveryData
       
       // process updated or removed GuiClients
-      for (i, currentGuiClient) in radios[index].guiClients.enumerated() {
-        // is it in the newGuiClients?
-        if let j = newGuiClients.firstIndex(where: { $0.handle == currentGuiClient.handle }) {
-          // keep it and update ip, host, program and station (leaving ClientId as is)
-          if currentGuiClient.ip.isEmpty || currentGuiClient.host.isEmpty || currentGuiClient.station.isEmpty || currentGuiClient.program.isEmpty {
-            radios[index].guiClients[i].ip = newGuiClients[j].ip
-            radios[index].guiClients[i].host = newGuiClients[j].host
-            radios[index].guiClients[i].station = newGuiClients[j].station
-            radios[index].guiClients[i].program = newGuiClients[j].program
-            log.info("ApiModel UPDATED GuiClient: Handle <\(radios[index].guiClients[i].handle)>, Station <\(radios[index].guiClients[i].station)>, Program <\(radios[index].guiClients[i].program)>, Ip <\(radios[index].guiClients[i].ip)>, Host <\(radios[index].guiClients[i].host)>, ClientId <\(radios[index].guiClients[i].clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - UPDATED by packet process")
-          }
-
-        } else {
-          radios[index].guiClients.remove(at: i)
-          log.info("ApiModel REMOVED GuiClient: Handle <\(currentGuiClient.handle)>, Station <\(currentGuiClient.station)>, Program <\(currentGuiClient.program)>, Ip <\(currentGuiClient.ip)>, Host <\(currentGuiClient.host)>, ClientId <\(currentGuiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - REMOVED by packet process")
-        }
-      }
-      
-      // process added GuiClients
-      for guiClient in newGuiClients {
-        if !radios[index].guiClients.contains(where: { $0.handle == guiClient.handle }) {
-          radios[index].guiClients.append(guiClient)
-          log.info("ApiModel ADDED GuiClient: Handle <\(guiClient.handle)>, Station <\(guiClient.station)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - ADDED by packet process")
-        }
-      }
+//      for (i, currentGuiClient) in radios[index].guiClients.enumerated() {
+//        // is it in the newGuiClients?
+//        if let j = newGuiClients.firstIndex(where: { $0.handle == currentGuiClient.handle }) {
+//          // keep it and update ip, host, program and station (leaving ClientId as is)
+//          if currentGuiClient.ip.isEmpty || currentGuiClient.host.isEmpty || currentGuiClient.station.isEmpty || currentGuiClient.program.isEmpty {
+//            radios[index].guiClients[i].ip = newGuiClients[j].ip
+//            radios[index].guiClients[i].host = newGuiClients[j].host
+//            radios[index].guiClients[i].station = newGuiClients[j].station
+//            radios[index].guiClients[i].program = newGuiClients[j].program
+//            log?.info("ApiModel UPDATED GuiClient: Handle <\(radios[index].guiClients[i].handle)>, Station <\(radios[index].guiClients[i].station)>, Program <\(radios[index].guiClients[i].program)>, Ip <\(radios[index].guiClients[i].ip)>, Host <\(radios[index].guiClients[i].host)>, ClientId <\(radios[index].guiClients[i].clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - UPDATED by packet process")
+//          }
+//
+//        } else {
+//          radios[index].guiClients.remove(at: i)
+//          log?.info("ApiModel REMOVED GuiClient: Handle <\(currentGuiClient.handle)>, Station <\(currentGuiClient.station)>, Program <\(currentGuiClient.program)>, Ip <\(currentGuiClient.ip)>, Host <\(currentGuiClient.host)>, ClientId <\(currentGuiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - REMOVED by packet process")
+//        }
+//      }
+//      
+//      // process added GuiClients
+//      for guiClient in newGuiClients {
+//        if !radios[index].guiClients.contains(where: { $0.handle == guiClient.handle }) {
+//          radios[index].guiClients.append(guiClient)
+//          log?.info("ApiModel ADDED GuiClient: Handle <\(guiClient.handle)>, Station <\(guiClient.station)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - ADDED by packet process")
+//        }
+//      }
       
     } else {
       
       // UNKNOWN radio, add it
       radios.append(Radio(packet, newGuiClients, discoveryData))
-      log.info("ApiModel NEW Radio: Name <\(name)>, Serial <\(packet.serial)>, Source <\(packet.source == .local ? "Local" : "Smartlink")> - ADDED by packet process")
-      
+      log?.debug("ApiModel: RADIO    ADDED   Name <\(name)>, Serial <\(packet.serial)>, Source <\(packet.source == .local ? "Local" : "Smartlink")>")
+
       // log the GuiClients
       for guiClient in newGuiClients {
-        log.info("ApiModel NEW GuiClient: Handle <\(guiClient.handle)>, Station <\(guiClient.station)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - ADDED by packet process")
+        log?.debug("ApiModel: STATION  ADDED   Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>")
       }
     }
+    
+    // timeout radios if not seen for "broadcastTimeout" seconds
+    removeLostRadios(Date(), _broadcastTimeout)
   }
   
   /// Remove one or more Radios that are no longer visible
@@ -353,12 +362,12 @@ final public class ApiModel: TcpProcessor {
       if interval > timeout {
         let name = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
         for guiClient in radio.guiClients {
-          log.info("ApiModel: REMOVED Station <\(guiClient.station)>, Program <\(guiClient.program)>, Handle <\(guiClient.handle)>, on Radio <\(name)> - WILL BE REMOVED")
+          log?.debug("ApiModel: STATION  REMOVED Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>")
         }
         
         // remove Radio
         radios.remove(at: i)
-        log.info("ApiModel: Radio <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")> - REMOVED due to timeout (\(interval) seconds)")
+        log?.debug("ApiModel: RADIO    REMOVED Name <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")> - REMOVED due to timeout (\(interval) seconds)")
       }
     }
   }
@@ -368,11 +377,11 @@ final public class ApiModel: TcpProcessor {
     for (i, radio) in radios.enumerated().reversed() where radio.packet.source == source {
       let name = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
       for guiClient in radio.guiClients {
-        log.info("ApiModel: Station <\(guiClient.station)>, Program <\(guiClient.program)>, Handle <\(guiClient.handle)>, on Radio <\(name)> - WILL BE REMOVED")
+        log?.debug("ApiModel: STATION  REMOVED Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>")
       }
       // remove Radio
       radios.remove(at: i)
-      log.info("ApiModel: Radio <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")> - REMOVED")
+      log?.debug("ApiModel: RADIO    REMOVED Name <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")>")
     }
   }
   
@@ -424,9 +433,9 @@ final public class ApiModel: TcpProcessor {
     _awaitTcpReply = nil
     
     if replyComponents.0 != sequenceNumber {
-      fatalError("sendTcpAwaitReply wrong reply: \(replyComponents)")
+      fatalError("sendTcpAwaitReply wrong reply: \(String(describing: replyComponents))")
     } else {
-      log.debug("ApiModel: TCP reply = \(replyComponents)")
+      log?.debug("ApiModel: TCP reply = \(String(describing: replyComponents))")
     }
     
     return replyComponents
@@ -479,12 +488,12 @@ final public class ApiModel: TcpProcessor {
       // the first character indicates the type of message
       switch msg.prefix(1).uppercased() {
         
-      case "H":  connectionHandle = String(msg.dropFirst()).handle ; log.debug("ApiModel: connectionHandle = \(self.connectionHandle?.hex ?? "missing")")
+      case "H":  connectionHandle = String(msg.dropFirst()).handle ; log?.debug("ApiModel: connectionHandle = \(self.connectionHandle?.hex ?? "missing")")
       case "M":  parseMessage( msg )
       case "R":  replyProcessor( msg )
       case "S":  parseStatus( msg )
       case "V":  hardwareVersion = String(msg.dropFirst())
-      default:   log.warning("ApiModel: unexpected message = \(msg)")
+      default:   log?.warning("ApiModel: unexpected message = \(msg)")
       }
     }}
   }
@@ -495,7 +504,7 @@ final public class ApiModel: TcpProcessor {
   private func bind(_ clientId: String) {
     boundClientId = clientId
     sendTcp("client bind client_id=\(clientId)")
-    log.info("ApiModel: NonGui bound to <\(activeStation!)>, Client ID <\(clientId)>")
+    log?.info("ApiModel: NonGui bound to <\(self.activeStation!)>, Client ID <\(clientId)>")
   }
   
   public func commandsReplyHandler(_ command: String, _ reply: String) {
@@ -505,11 +514,11 @@ final public class ApiModel: TcpProcessor {
     let components = reply.components(separatedBy: "|")
     // ignore incorrectly formatted replies
     if components.count < 2 {
-      log.warning("ApiModel: incomplete reply, r\(reply)")
+      log?.warning("ApiModel: incomplete reply, r\(reply)")
       return
     }
     if components[1] != kNoError {
-      log.warning("ApiModel: non-zero reply for command \(command), \(reply)")
+      log?.warning("ApiModel: non-zero reply for command \(command), \(reply)")
       return
     }
     
@@ -548,7 +557,7 @@ final public class ApiModel: TcpProcessor {
     // Check for unknown Object Types
     guard let objectType = ObjectType(rawValue: statusType)  else {
       // log it and ignore the message
-      log.warning("ApiModel: unknown status token = \(statusType)")
+      log?.warning("ApiModel: unknown status token = \(statusType)")
       return
     }
     
@@ -605,7 +614,7 @@ final public class ApiModel: TcpProcessor {
       // check for unknown properties
       guard let token = Property(rawValue: property.key) else {
         // log it and ignore this Key
-        log.warning("ApiModel: unknown client property, \(property.key)=\(property.value)")
+        log?.warning("ApiModel: unknown client property, \(property.key)=\(property.value)")
         continue
       }
       // Known properties, in alphabetical order
@@ -624,7 +633,8 @@ final public class ApiModel: TcpProcessor {
         
         if radio.guiClients[index].clientId == nil {
           radio.guiClients[index].clientId = UUID(uuidString: clientId)!
-          log.info("ApiModel GuiClient: Handle <\(handle.hex)>, Station <\(station)>, Program <\(program)>, Client Id <\(UUID(uuidString: clientId)!)> - UPDATED by client status")
+          log?.debug("ApiModel: STATION  UPDATED Name <\(station)>, Program <\(program)>, Handle <\(handle.hex)>, ClientId <\(UUID(uuidString: clientId)!)>")
+
           // if needed, bind to the Station
           if connectionIsGui == false && station == activeStation {
             bind(clientId)
@@ -634,7 +644,8 @@ final public class ApiModel: TcpProcessor {
         
       } else {
         radio.guiClients.append(GuiClient(handle: handle.hex, station: station, program: program, clientId: UUID(uuidString: clientId)))
-        log.info("ApiModel GuiClient: Handle <\(handle.hex)>, Station <\(station)>, Program <\(program)>, Client Id <\(UUID(uuidString: clientId)!)> - ADDED by client status")
+        log?.debug("ApiModel: STATION: ADDED   Name <\(station)>, Program <\(program)>, Handle <\(handle.hex)>, Client Id <\(UUID(uuidString: clientId)!)>")
+
         // if needed, bind to the Station
         if connectionIsGui == false && station == activeStation {
           bind(clientId)
@@ -663,7 +674,7 @@ final public class ApiModel: TcpProcessor {
         // check for unknown property
         guard let token = Property(rawValue: property.key) else {
           // log it and ignore this Key
-          log.warning("ApiModel: unknown client disconnection property, \(property.key)=\(property.value)")
+          log?.warning("ApiModel: unknown client disconnection property, \(property.key)=\(property.value)")
           continue
         }
         // Known properties, in alphabetical order
@@ -674,7 +685,7 @@ final public class ApiModel: TcpProcessor {
         case .wanValidationFailed:  if property.value.bValue { reason = "Wan validation failed" }
         }
       }
-      log.warning("ApiModel: client disconnection, reason = \(reason)")
+      log?.warning("ApiModel: client disconnection, reason = \(reason)")
       
       clientInitialized = false
       
@@ -734,7 +745,7 @@ final public class ApiModel: TcpProcessor {
     
     // ignore incorrectly formatted messages
     if components.count < 2 {
-      log.warning("ApiModel: incomplete message = c\(msg)")
+      log?.warning("ApiModel: incomplete message = c\(msg)")
       return
     }
     
@@ -754,7 +765,7 @@ final public class ApiModel: TcpProcessor {
     
     // ignore incorrectly formatted status
     guard components.count > 1 else {
-      log.warning("ApiModel: incomplete status = c\(commandSuffix)")
+      log?.warning("ApiModel: incomplete status = c\(commandSuffix)")
       return
     }
     
@@ -792,7 +803,7 @@ final public class ApiModel: TcpProcessor {
     case .xvtr:                 xvtrs.removeAll()
     default:            break
     }
-    log.debug("ApiModel: removed all \(type.rawValue) objects")
+    log?.debug("ApiModel: removed all \(type.rawValue) objects")
   }
   
   /// Remove all Radio objects
@@ -827,7 +838,7 @@ final public class ApiModel: TcpProcessor {
     let components = replyMessage.dropFirst().components(separatedBy: "|")
     // ignore incorrectly formatted replies
     if components.count < 2 {
-      log.warning("ApiModel: incomplete reply, R\(replyMessage)")
+      log?.warning("ApiModel: incomplete reply, R\(replyMessage)")
       return nil
     }
     // get the sequence number, reply and any additional data
@@ -847,7 +858,7 @@ final public class ApiModel: TcpProcessor {
       // are we waiting for this reply?
       if _awaitTcpReply != nil {
         // YES, resume
-        log.debug( "ApiModel: resuming tcpReply" )
+        log?.debug( "ApiModel: resuming tcpReply" )
         _awaitTcpReply!.resume(returning: components)
         
       } else {
@@ -868,7 +879,7 @@ final public class ApiModel: TcpProcessor {
             // Anything other than kNoError is an error, log it
             // ignore non-zero reply from "client program" command
             if replyValue != kNoError && !replyEntry.command.hasPrefix("client program ") {
-              log.error("ApiModel: replyValue >\(replyValue)<, to c\(sequenceNumber), \(replyEntry.command), \(FlexError.description(replyValue)), \(suffix)")
+              log?.error("ApiModel: replyValue >\(replyValue)<, to c\(sequenceNumber), \(replyEntry.command), \(FlexError.description(replyValue)), \(suffix)")
             }
             
             if replyEntry.replyHandler == nil {
@@ -890,7 +901,7 @@ final public class ApiModel: TcpProcessor {
             }
           } else {
             // no reply entry for this sequence number
-            log.error("ApiModel: sequenceNumber \(sequenceNumber) not found in the ReplyDictionary")
+            log?.error("ApiModel: sequenceNumber \(sequenceNumber) not found in the ReplyDictionary")
           }
         }
       }
@@ -1004,12 +1015,12 @@ final public class ApiModel: TcpProcessor {
         if isForThisClient(properties, connectionHandle) {
           // YES
           guard properties.count > 1 else {
-            log.warning("ApiModel: invalid Stream message: \(statusMessage)")
+            log?.warning("ApiModel: invalid Stream message: \(statusMessage)")
             return
           }
           guard let token = StreamType(rawValue: properties[1].value) else {
             // log it and ignore the Key
-            log.warning("ApiModel: unknown Stream type: \(properties[1].value)")
+            log?.warning("ApiModel: unknown Stream type: \(properties[1].value)")
             return
           }
           switch token {
@@ -1026,7 +1037,7 @@ final public class ApiModel: TcpProcessor {
         }
       }
     } else {
-      log.warning("ApiModel: invalid Stream message: \(statusMessage)")
+      log?.warning("ApiModel: invalid Stream message: \(statusMessage)")
     }
   }
   
@@ -1062,28 +1073,28 @@ final public class ApiModel: TcpProcessor {
   private func awaitFirstStatusMessage() async {
     return await withCheckedContinuation{ continuation in
       _awaitFirstStatusMessage = continuation
-      log.debug("ApiModel: waiting for first status message")
+      log?.debug("ApiModel: waiting for first status message")
     }
   }
   
   private func clientIpValidation() async -> (String) {
     return await withCheckedContinuation{ continuation in
       _awaitClientIpValidation = continuation
-      log.debug("ApiModel: Client ip request sent")
+      log?.debug("ApiModel: Client ip request sent")
     }
   }
   
   private func wanValidation() async -> (String) {
     return await withCheckedContinuation{ continuation in
       _awaitWanValidation = continuation
-      log.debug("ApiModel: Wan validate sent for handle=\(self._wanHandle!)")
+      log?.debug("ApiModel: Wan validate sent for handle=\(self._wanHandle!)")
     }
   }
   
   private func tcpReply() async -> (Int, String, String) {
     return await withCheckedContinuation{ continuation in
       _awaitTcpReply = continuation
-      log.debug("ApiModel: awaiting a TCP reply")
+      log?.debug("ApiModel: awaiting a TCP reply")
     }
   }
   
@@ -1093,27 +1104,27 @@ final public class ApiModel: TcpProcessor {
   private func removeStream(having id: UInt32) {
     if daxIqs[id] != nil {
       daxIqs[id] = nil
-      log.debug("ApiModel: DaxIq \(id.hex): REMOVED")
+      log?.debug("ApiModel: DaxIq \(id.hex): REMOVED")
     }
     else if daxMicAudio?.id == id {
       daxMicAudio = nil
-      log.debug("ApiModel: DaxMicAudio \(id.hex): REMOVED")
+      log?.debug("ApiModel: DaxMicAudio \(id.hex): REMOVED")
     }
     else if daxRxAudios[id] != nil {
       daxRxAudios[id] = nil
-      log.debug("ApiModel: DaxRxAudio \(id.hex): REMOVED")
+      log?.debug("ApiModel: DaxRxAudio \(id.hex): REMOVED")
       
     } else if daxTxAudio?.id == id {
       daxTxAudio = nil
-      log.debug("ApiModel: DaxTxAudio \(id.hex): REMOVED")
+      log?.debug("ApiModel: DaxTxAudio \(id.hex): REMOVED")
     }
     else if remoteRxAudio?.id == id {
       remoteRxAudio = nil
-      log.debug("ApiModel: RemoteRxAudio \(id.hex): REMOVED")
+      log?.debug("ApiModel: RemoteRxAudio \(id.hex): REMOVED")
     }
     else if remoteTxAudio?.id == id {
       remoteTxAudio = nil
-      log.debug("ApiModel: RemoteTxAudio \(id.hex): REMOVED")
+      log?.debug("ApiModel: RemoteTxAudio \(id.hex): REMOVED")
     }
   }
   

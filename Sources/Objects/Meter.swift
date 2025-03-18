@@ -42,7 +42,7 @@ public final class Meter: ObservableObject, Identifiable {
       } else {
         // NO, remove it
         apiModel.meters.remove(at: index!)
-        log.debug("Meter \(id): REMOVED")
+        log?.debug("Meter \(id): REMOVED")
       }
     }
   }
@@ -64,7 +64,7 @@ public final class Meter: ObservableObject, Identifiable {
       // check for unknown Keys
       guard let token = Meter.Property(rawValue: key) else {
         // unknown, log it and ignore the Key
-        log.warning("Meter: unknown property, \(property.key) = \(property.value)")
+        log?.warning("Meter: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known Keys, in alphabetical order
@@ -84,7 +84,7 @@ public final class Meter: ObservableObject, Identifiable {
     if _initialized == false && group != "" && units != "" {
       //NO, it is now
       _initialized = true
-      log.debug("Meter: ADDED, name = \(self.name), source = \(self.source), group = \(self.group)")
+      log?.debug("Meter: ADDED, name = \(self.name), source = \(self.source), group = \(self.group)")
     }
   }
   

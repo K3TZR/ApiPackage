@@ -50,7 +50,7 @@ public final class DaxIq {
       
       guard let token = Property(rawValue: property.key) else {
         // unknown Key, log it and ignore the Key
-        log.warning("DaxIq: unknown property, \(property.key) = \(property.value)")
+        log?.warning("DaxIq: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known keys, in alphabetical order
@@ -69,7 +69,7 @@ public final class DaxIq {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      log.debug("DaxIq ADDED: channel = \(self.channel)")
+      log?.debug("DaxIq ADDED: channel = \(self.channel)")
     }
   }
   

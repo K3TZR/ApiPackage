@@ -134,7 +134,7 @@ final public class StreamModel: ObservableObject, StreamProcessor {
       break
       
     default:
-      log.debug("StreamModel: unknown Vita class code: \(vita.classCode.description()) Stream Id = \(vita.streamId.hex)")
+      log?.debug("StreamModel: unknown Vita class code: \(vita.classCode.description()) Stream Id = \(vita.streamId.hex)")
     }
   }
   

@@ -393,7 +393,7 @@ extension ApiModel {
     // remove it immediately (Tnf does not send status on removal)
     if let index = tnfs.firstIndex(where: {$0.id == id}) {
       tnfs.remove(at: index)
-      log.debug("Tnf, removed: id = \(id)")
+      log?.debug("Tnf, removed: id = \(id)")
     }
   }
   public func tnfSet(_ id: UInt32, _ property: Tnf.Property, _ value: String) {

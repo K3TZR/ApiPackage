@@ -64,7 +64,7 @@ public final class BandSetting: Identifiable {
       } else {
         // NO, remove it
         apiModel.bandSettings.remove(at: index!)
-        log.debug("BandSetting \(id): REMOVED")
+        log?.debug("BandSetting \(id): REMOVED")
       }
     }
   }
@@ -80,7 +80,7 @@ public final class BandSetting: Identifiable {
       // check for unknown Keys
       guard let token = BandSetting.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log.warning("BandSetting: unknown property, \(property.key) = \(property.value)")
+        log?.warning("BandSetting: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known keys
@@ -102,7 +102,7 @@ public final class BandSetting: Identifiable {
       if _initialized == false {
         // NO, it is now
         _initialized = true
-        log.debug("BandSetting: ADDED, name = \(self.name)")
+        log?.debug("BandSetting: ADDED, name = \(self.name)")
       }
     }
   }
