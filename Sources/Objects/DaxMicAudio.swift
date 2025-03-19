@@ -49,7 +49,7 @@ public final class DaxMicAudio: Identifiable {
       // check for unknown keys
       guard let token = Property(rawValue: property.key) else {
         // unknown Key, log it and ignore the Key
-        log?.warning("DaxMicAudio \(self.id.hex): unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("DaxMicAudio \(self.id.hex): unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known keys, in alphabetical order

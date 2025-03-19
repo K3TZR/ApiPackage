@@ -127,10 +127,10 @@ final public class ApiModel: TcpProcessor {
   // MARK: - Private properties
   
   private var _awaitClientIpValidation: CheckedContinuation<String, Never>?
-  private var _awaitFirstStatusMessage: CheckedContinuation<(), Never>?
+  private var _awaitFirstStatusMessage: CheckedContinuation<Void, Error>?
   private var _awaitTcpReply: CheckedContinuation<(Int, String, String), Never>?
   private var _awaitWanValidation: CheckedContinuation<String, Never>?
-  private let _broadcastTimeout: TimeInterval = 20
+  private let _broadcastTimeout = 60
   private var _firstStatusMessageReceived: Bool = false
   private var _guiClientId: String?
   private var _listenerSmartlink: ListenerSmartlink?
@@ -175,7 +175,7 @@ final public class ApiModel: TcpProcessor {
     }
     
     // wait for the first Status message with my handle
-    await awaitFirstStatusMessage()
+    try await awaitFirstStatusMessage()
     log?.debug("ApiModel: First status message received")
     
     // is this a Wan connection?
@@ -311,7 +311,8 @@ final public class ApiModel: TcpProcessor {
       // update the TimeStamp
       radios[index].lastSeen = Date()
       radios[index].discoveryData = discoveryData
-      
+//      log?.debug("ApiModel: Radio    UPDATED Name <\(name)>, timeStamp <\(self.radios[index].lastSeen)>")
+
       // process updated or removed GuiClients
 //      for (i, currentGuiClient) in radios[index].guiClients.enumerated() {
 //        // is it in the newGuiClients?
@@ -342,8 +343,9 @@ final public class ApiModel: TcpProcessor {
     } else {
       
       // UNKNOWN radio, add it
-      radios.append(Radio(packet, newGuiClients, discoveryData))
-      log?.debug("ApiModel: RADIO    ADDED   Name <\(name)>, Serial <\(packet.serial)>, Source <\(packet.source == .local ? "Local" : "Smartlink")>")
+      let radio = Radio(packet, newGuiClients, discoveryData)
+      radios.append( radio )
+      log?.debug("ApiModel: RADIO    ADDED   Name <\(name)>, Serial <\(packet.serial)>, Source <\(packet.source == .local ? "Local" : "Smartlink")>, timeStamp <\(radio.lastSeen)>")
 
       // log the GuiClients
       for guiClient in newGuiClients {
@@ -351,23 +353,28 @@ final public class ApiModel: TcpProcessor {
       }
     }
     
-    // timeout radios if not seen for "broadcastTimeout" seconds
+    // timeout radios if not seen for "broadcastTimeout" seconds (.local only)
     removeLostRadios(Date(), _broadcastTimeout)
   }
   
   /// Remove one or more Radios that are no longer visible
-  public func removeLostRadios(_ now: Date, _ timeout: TimeInterval) {
-    for (i, radio) in radios.enumerated().reversed() where radio.packet.source == .local {
-      let interval = abs(radio.lastSeen.timeIntervalSince(now))
-      if interval > timeout {
-        let name = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
-        for guiClient in radio.guiClients {
-          log?.debug("ApiModel: STATION  REMOVED Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>")
+  public func removeLostRadios(_ now: Date, _ timeout: Int) {
+    for (i, radio) in radios.enumerated().reversed() {
+      if radio.packet.source == .local {
+        let interval = Int(now.timeIntervalSince(radio.lastSeen))
+        if interval > timeout {
+          let name = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
+          for guiClient in radio.guiClients {
+            log?.debug("ApiModel: STATION  REMOVED Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>")
+          }
+          
+          // remove Radio
+          radios.remove(at: i)
+          
+          log?.debug("lastSeen <\(radio.lastSeen)>, now <\(now)>, interval <\(interval)>")
+          
+          log?.debug("ApiModel: RADIO    REMOVED Name <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")>, timeout (\(interval) seconds)")
         }
-        
-        // remove Radio
-        radios.remove(at: i)
-        log?.debug("ApiModel: RADIO    REMOVED Name <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")> - REMOVED due to timeout (\(interval) seconds)")
       }
     }
   }
@@ -493,7 +500,7 @@ final public class ApiModel: TcpProcessor {
       case "R":  replyProcessor( msg )
       case "S":  parseStatus( msg )
       case "V":  hardwareVersion = String(msg.dropFirst())
-      default:   log?.warning("ApiModel: unexpected message = \(msg)")
+      default:   log?.warningExt("ApiModel: unexpected message = \(msg)")
       }
     }}
   }
@@ -514,11 +521,11 @@ final public class ApiModel: TcpProcessor {
     let components = reply.components(separatedBy: "|")
     // ignore incorrectly formatted replies
     if components.count < 2 {
-      log?.warning("ApiModel: incomplete reply, r\(reply)")
+      log?.warningExt("ApiModel: incomplete reply, r\(reply)")
       return
     }
     if components[1] != kNoError {
-      log?.warning("ApiModel: non-zero reply for command \(command), \(reply)")
+      log?.warningExt("ApiModel: non-zero reply for command \(command), \(reply)")
       return
     }
     
@@ -557,7 +564,7 @@ final public class ApiModel: TcpProcessor {
     // Check for unknown Object Types
     guard let objectType = ObjectType(rawValue: statusType)  else {
       // log it and ignore the message
-      log?.warning("ApiModel: unknown status token = \(statusType)")
+      log?.warningExt("ApiModel: unknown status token = \(statusType)")
       return
     }
     
@@ -614,7 +621,7 @@ final public class ApiModel: TcpProcessor {
       // check for unknown properties
       guard let token = Property(rawValue: property.key) else {
         // log it and ignore this Key
-        log?.warning("ApiModel: unknown client property, \(property.key)=\(property.value)")
+        log?.warningExt("ApiModel: unknown client property, \(property.key)=\(property.value)")
         continue
       }
       // Known properties, in alphabetical order
@@ -674,7 +681,7 @@ final public class ApiModel: TcpProcessor {
         // check for unknown property
         guard let token = Property(rawValue: property.key) else {
           // log it and ignore this Key
-          log?.warning("ApiModel: unknown client disconnection property, \(property.key)=\(property.value)")
+          log?.warningExt("ApiModel: unknown client disconnection property, \(property.key)=\(property.value)")
           continue
         }
         // Known properties, in alphabetical order
@@ -685,7 +692,7 @@ final public class ApiModel: TcpProcessor {
         case .wanValidationFailed:  if property.value.bValue { reason = "Wan validation failed" }
         }
       }
-      log?.warning("ApiModel: client disconnection, reason = \(reason)")
+      log?.warningExt("ApiModel: client disconnection, reason = \(reason)")
       
       clientInitialized = false
       
@@ -745,7 +752,7 @@ final public class ApiModel: TcpProcessor {
     
     // ignore incorrectly formatted messages
     if components.count < 2 {
-      log?.warning("ApiModel: incomplete message = c\(msg)")
+      log?.warningExt("ApiModel: incomplete message = c\(msg)")
       return
     }
     
@@ -765,7 +772,7 @@ final public class ApiModel: TcpProcessor {
     
     // ignore incorrectly formatted status
     guard components.count > 1 else {
-      log?.warning("ApiModel: incomplete status = c\(commandSuffix)")
+      log?.warningExt("ApiModel: incomplete status = c\(commandSuffix)")
       return
     }
     
@@ -781,10 +788,17 @@ final public class ApiModel: TcpProcessor {
     if _firstStatusMessageReceived == false && components[0].handle == connectionHandle {
       // YES, set the API state to finish the UDP initialization
       _firstStatusMessageReceived = true
-      _awaitFirstStatusMessage!.resume()
+      onFirstStatusMessageReceived()
     }
     
     parse(statusType, statusMessage, self.connectionHandle)
+  }
+  
+  private func onFirstStatusMessageReceived() {
+      if let continuation = _awaitFirstStatusMessage {
+          _awaitFirstStatusMessage = nil
+          continuation.resume()
+      }
   }
   
   private func removeAll(of type: ObjectType) {
@@ -838,7 +852,7 @@ final public class ApiModel: TcpProcessor {
     let components = replyMessage.dropFirst().components(separatedBy: "|")
     // ignore incorrectly formatted replies
     if components.count < 2 {
-      log?.warning("ApiModel: incomplete reply, R\(replyMessage)")
+      log?.warningExt("ApiModel: incomplete reply, R\(replyMessage)")
       return nil
     }
     // get the sequence number, reply and any additional data
@@ -879,7 +893,7 @@ final public class ApiModel: TcpProcessor {
             // Anything other than kNoError is an error, log it
             // ignore non-zero reply from "client program" command
             if replyValue != kNoError && !replyEntry.command.hasPrefix("client program ") {
-              log?.error("ApiModel: replyValue >\(replyValue)<, to c\(sequenceNumber), \(replyEntry.command), \(FlexError.description(replyValue)), \(suffix)")
+              log?.errorExt("ApiModel: replyValue >\(replyValue)<, to c\(sequenceNumber), \(replyEntry.command), \(FlexError.description(replyValue)), \(suffix)")
             }
             
             if replyEntry.replyHandler == nil {
@@ -901,7 +915,7 @@ final public class ApiModel: TcpProcessor {
             }
           } else {
             // no reply entry for this sequence number
-            log?.error("ApiModel: sequenceNumber \(sequenceNumber) not found in the ReplyDictionary")
+            log?.errorExt("ApiModel: sequenceNumber \(sequenceNumber) not found in the ReplyDictionary")
           }
         }
       }
@@ -1015,12 +1029,12 @@ final public class ApiModel: TcpProcessor {
         if isForThisClient(properties, connectionHandle) {
           // YES
           guard properties.count > 1 else {
-            log?.warning("ApiModel: invalid Stream message: \(statusMessage)")
+            log?.warningExt("ApiModel: invalid Stream message: \(statusMessage)")
             return
           }
           guard let token = StreamType(rawValue: properties[1].value) else {
             // log it and ignore the Key
-            log?.warning("ApiModel: unknown Stream type: \(properties[1].value)")
+            log?.warningExt("ApiModel: unknown Stream type: \(properties[1].value)")
             return
           }
           switch token {
@@ -1037,7 +1051,7 @@ final public class ApiModel: TcpProcessor {
         }
       }
     } else {
-      log?.warning("ApiModel: invalid Stream message: \(statusMessage)")
+      log?.warningExt("ApiModel: invalid Stream message: \(statusMessage)")
     }
   }
   
@@ -1070,13 +1084,37 @@ final public class ApiModel: TcpProcessor {
   // ----------------------------------------------------------------------------
   // MARK: - Private continuation methods
   
-  private func awaitFirstStatusMessage() async {
-    return await withCheckedContinuation{ continuation in
-      _awaitFirstStatusMessage = continuation
-      log?.debug("ApiModel: waiting for first status message")
-    }
-  }
+//  private func awaitFirstStatusMessage() async {
+//    return await withCheckedContinuation{ continuation in
+//      _awaitFirstStatusMessage = continuation
+//      log?.debug("ApiModel: waiting for first status message")
+//    }
+//  }
   
+  private func awaitFirstStatusMessage(timeout: Int = 5) async throws {
+      try await withCheckedThrowingContinuation { continuation in
+          Task { @MainActor in
+              _awaitFirstStatusMessage = continuation
+              log?.debug("ApiModel: waiting for first status message")
+          }
+
+          Task {
+            try await Task.sleep(for: .seconds(timeout))
+
+              await MainActor.run {
+                  if let continuation = _awaitFirstStatusMessage {
+                      _awaitFirstStatusMessage = nil
+                      continuation.resume(throwing: NSError(
+                          domain: "ApiModel",
+                          code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "Timeout waiting for first status message"]
+                      ))
+                  }
+              }
+          }
+      }
+  }
+
   private func clientIpValidation() async -> (String) {
     return await withCheckedContinuation{ continuation in
       _awaitClientIpValidation = continuation

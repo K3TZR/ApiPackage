@@ -59,7 +59,7 @@ public final class Amplifier: Identifiable {
       // check for unknown Keys
       guard let token = Amplifier.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log?.warning("Amplifier: unknown propety, \(property.key) = \(property.value)")
+        log?.warningExt("Amplifier: unknown propety, \(property.key) = \(property.value)")
         continue
       }
       // known keys

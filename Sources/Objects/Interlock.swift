@@ -51,7 +51,7 @@ public final class Interlock {
       // Check for Unknown Keys
       guard let token = Interlock.Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log?.warning("Interlock: unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("Interlock: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // Known tokens, in alphabetical order

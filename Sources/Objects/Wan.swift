@@ -32,7 +32,7 @@ public final class Wan {
       // Check for Unknown Keys
       guard let token = Wan.Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log?.warning("Wan: unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("Wan: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // Known tokens, in alphabetical order

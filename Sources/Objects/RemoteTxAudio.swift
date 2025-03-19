@@ -51,7 +51,7 @@ public final class RemoteTxAudio: Identifiable {
       // check for unknown Keys
       guard let token = Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log?.warning("RemoteTxAudio \(self.id.hex): unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("RemoteTxAudio \(self.id.hex): unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known Keys, in alphabetical order

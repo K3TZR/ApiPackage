@@ -80,7 +80,7 @@ public final class BandSetting: Identifiable {
       // check for unknown Keys
       guard let token = BandSetting.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log?.warning("BandSetting: unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("BandSetting: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known keys

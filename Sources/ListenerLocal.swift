@@ -27,7 +27,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
     _udpSocket!.setIPv6Enabled(false)
    
     if _udpSocket == nil {
-      log?.error("Could not create GCDAsyncUdpSocket")
+      log?.errorExt("Could not create GCDAsyncUdpSocket")
       fatalError("Could not create GCDAsyncUdpSocket")
     }
   }
@@ -43,7 +43,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
       log?.debug("Local Listener: UDP socket STARTED")
       
     } catch {
-      log?.error("Error starting UDP socket")
+      log?.errorExt("Error starting UDP socket")
     }
 }
   
@@ -93,7 +93,7 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
   }
   
   public func udpSocket(_ sock: GCDAsyncUdpSocket, didCloseWithError error: Error?) {
-    log?.error("\(error?.localizedDescription ?? "No Error Provided")")
+    log?.errorExt("\(error?.localizedDescription ?? "No Error Provided")")
     fatalError("UDP socket CLOSED with error")
   }
 }

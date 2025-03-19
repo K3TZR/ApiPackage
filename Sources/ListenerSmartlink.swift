@@ -285,7 +285,7 @@ extension ListenerSmartlink: GCDAsyncSocketDelegate {
     if err == nil {
       log?.debug("SmartlinkListener: TCP socketDidDisconnect")
     } else {
-      log?.error("SmartlinkListener: TCP socketDidDisconnect \(error)")
+      log?.errorExt("SmartlinkListener: TCP socketDidDisconnect \(error)")
     }
     if err != nil { stop() }
   }
@@ -468,7 +468,7 @@ extension ListenerSmartlink {
       }
       
     } catch {
-      log?.error("Error loading image: \(error)")
+      log?.errorExt("Error loading image: \(error)")
     }
     return Image(systemName: kDefaultPicture)
   }
@@ -508,7 +508,7 @@ extension ListenerSmartlink {
     // Check for unknown properties
     guard let token = Property(rawValue: properties[0].key)  else {
       // log it
-      log?.warning("Smartlink Listener: unknown message property, \(msg)")
+      log?.warningExt("Smartlink Listener: unknown message property, \(msg)")
       return
     }
     // which primary message type?
@@ -535,7 +535,7 @@ extension ListenerSmartlink {
     // Check for unknown properties
     guard let token = Property(rawValue: properties[0].key)  else {
       // log it and ignore the message
-      log?.warning("Smartlink Listener: unknown application property, \(properties[1].key)")
+      log?.warningExt("Smartlink Listener: unknown application property, \(properties[1].key)")
       return
     }
     switch token {
@@ -558,7 +558,7 @@ extension ListenerSmartlink {
     // Check for unknown properties
     guard let token = Property(rawValue: properties[0].key)  else {
       // log it and ignore the message
-      log?.warning("Smartlink Listener: unknown radio property, \(properties[1].key)")
+      log?.warningExt("Smartlink Listener: unknown radio property, \(properties[1].key)")
       return
     }
     // which secondary message type?
@@ -585,7 +585,7 @@ extension ListenerSmartlink {
       // Check for unknown properties
       guard let token = Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log?.warning("Smartlink Listener: unknown info property, \(property.key)")
+        log?.warningExt("Smartlink Listener: unknown info property, \(property.key)")
         continue
       }
       // Known tokens, in alphabetical order
@@ -607,7 +607,7 @@ extension ListenerSmartlink {
   /// Respond to an Invalid registration
   /// - Parameter msg:                the message text
   private func parseRegistrationInvalid(_ properties: KeyValuesArray) {
-    log?.warning("Smartlink Listener: invalid registration: \(properties.count == 3 ? properties[2].key : "")")
+    log?.warningExt("Smartlink Listener: invalid registration: \(properties.count == 3 ? properties[2].key : "")")
   }
 
   /// Parse a received "user settings" message
@@ -626,7 +626,7 @@ extension ListenerSmartlink {
       // Check for Unknown properties
       guard let token = Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log?.warning("Smartlink Listener: unknown user setting, \(property.key)")
+        log?.warningExt("Smartlink Listener: unknown user setting, \(property.key)")
         continue
       }
       // Known tokens, in alphabetical order
@@ -661,7 +661,7 @@ extension ListenerSmartlink {
       // Check for unknown properties
       guard let token = Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log?.warning("Smartlink Listener: unknown connect property, \(property.key)")
+        log?.warningExt("Smartlink Listener: unknown connect property, \(property.key)")
         continue
       }
       // Known tokens, in alphabetical order
@@ -742,7 +742,7 @@ extension ListenerSmartlink {
       // Check for unknown properties
       guard let token = Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log?.warning("Smartlink Listener: unknown testConnection property, \(property.key)")
+        log?.warningExt("Smartlink Listener: unknown testConnection property, \(property.key)")
         continue
       }
 

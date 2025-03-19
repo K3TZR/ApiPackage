@@ -50,7 +50,7 @@ public final class DaxTxAudio {
       // check for unknown keys
       guard let token = Property(rawValue: property.key) else {
         // unknown Key, log it and ignore the Key
-        log?.warning("DaxTxAudio: unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("DaxTxAudio: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known keys, in alphabetical order

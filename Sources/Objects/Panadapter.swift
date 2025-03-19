@@ -80,7 +80,7 @@ public final class Panadapter: Identifiable {
       // check for unknown Keys
       guard let token = Panadapter.Property(rawValue: property.key) else {
         // unknown, log it and ignore the Key
-        log?.warning("Panadapter: unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("Panadapter: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // Known keys, in alphabetical order

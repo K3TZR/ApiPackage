@@ -91,7 +91,7 @@ public final class Equalizer: Identifiable {
       // check for unknown Keys
       guard let token = Equalizer.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log?.warning("Equalizer: unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("Equalizer: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known keys

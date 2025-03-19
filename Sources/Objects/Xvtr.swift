@@ -80,7 +80,7 @@ public final class Xvtr {
       // check for unknown Keys
       guard let token = Xvtr.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log?.warning("Xvtr: unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("Xvtr: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // Known keys, in alphabetical order

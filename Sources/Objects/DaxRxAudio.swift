@@ -48,7 +48,7 @@ public final class DaxRxAudio {
       // check for unknown keys
       guard let token = Property(rawValue: property.key) else {
         // unknown, log it and ignore the Key
-        log?.warning("DaxRxAudio: unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("DaxRxAudio: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known keys, in alphabetical order

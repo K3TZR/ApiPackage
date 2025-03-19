@@ -109,7 +109,7 @@ public final class UsbCable {
         // check for unknown Keys
         guard let token = UsbCable.Property(rawValue: property.key) else {
           // log it and ignore the Key
-          log?.warning("USBCable: unknown property, \(property.key) = \(property.value)")
+          log?.warningExt("USBCable: unknown property, \(property.key) = \(property.value)")
           continue
         }
         // Known keys, in alphabetical order

@@ -77,7 +77,7 @@ public final class Tnf: Identifiable {
       // check for unknown Keys
       guard let token = Tnf.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log?.warning("Tnf: unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("Tnf: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known keys

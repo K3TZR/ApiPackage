@@ -113,7 +113,7 @@ public final class Radio: Identifiable, Equatable {
         // Check for Unknown Keys
         guard let token = Radio.Property(rawValue: property.key)  else {
           // log it and ignore the Key
-          log?.warning("Radio: unknown property, \(property.key) = \(property.value)")
+          log?.warningExt("Radio: unknown property, \(property.key) = \(property.value)")
           continue
         }
         // Known tokens, in alphabetical order
@@ -208,7 +208,7 @@ public final class Radio: Identifiable, Equatable {
         case .psocMbTrx:    psocMbtrxVersion = property.value
         case .psocMbPa100:  psocMbPa100Version = property.value
         case .fpgaMb:       fpgaMbVersion = property.value
-        default:            log?.warning("Radio: token not processed, \(property.key)")
+        default:            log?.warningExt("Radio: token not processed, \(property.key)")
         }
       }
     // is the Radio initialized?
@@ -287,7 +287,7 @@ public final class Radio: Identifiable, Equatable {
   public var discoveryData: Data?
   public var packet: Packet
   public var guiClients: [GuiClient] = []
-  public var lastSeen = Date()
+  public var lastSeen: Date
   
   public var addressType = "DHCP"
   public internal(set) var alpha = false

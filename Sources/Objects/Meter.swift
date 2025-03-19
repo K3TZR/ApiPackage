@@ -64,7 +64,7 @@ public final class Meter: ObservableObject, Identifiable {
       // check for unknown Keys
       guard let token = Meter.Property(rawValue: key) else {
         // unknown, log it and ignore the Key
-        log?.warning("Meter: unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("Meter: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known Keys, in alphabetical order

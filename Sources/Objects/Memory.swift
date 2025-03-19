@@ -97,7 +97,7 @@ public final class Memory: Identifiable {
       // check for unknown Keys
       guard let token = Memory.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log?.warning("Memory: unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("Memory: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // known keys

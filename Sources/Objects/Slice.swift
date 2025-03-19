@@ -128,7 +128,7 @@ public final class Slice: Identifiable {
       // check for unknown Keys
       guard let token = Slice.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log?.warning("Slice: unknown property, \(property.key) = \(property.value)")
+        log?.warningExt("Slice: unknown property, \(property.key) = \(property.value)")
         continue
       }
       // Known keys, in alphabetical order

@@ -80,7 +80,7 @@ public final class Profile {
     // check for unknown Key
     guard let token = Profile.Property(rawValue: components[1]) else {
       // log it and ignore the Key
-      log?.warning("Profile: unknown property, \(properties[1].key)")
+      log?.warningExt("Profile: unknown property, \(properties[1].key)")
       return
     }
     // known keys
