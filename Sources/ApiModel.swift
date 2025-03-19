@@ -166,7 +166,7 @@ final public class ApiModel: TcpProcessor {
     self.connectionIsGui = isGui
     self.testDelegate = testDelegate
     
-    guard connect(to: selection.radio) else { throw ApiError.connection }
+    try _tcp.connect(selection.radio.packet)
     log?.debug("ApiModel: Tcp connection established")
     
     if selection.disconnectHandle != nil {
@@ -193,12 +193,8 @@ final public class ApiModel: TcpProcessor {
     }
     
     // bind UDP
-    let ports = _udp.bind(selection.radio.packet.source == .smartlink,
-                          selection.radio.packet.publicIp,
-                          selection.radio.packet.requiresHolePunch,
-                          selection.radio.packet.negotiatedHolePunchPort,
-                          selection.radio.packet.publicUdpPort)
-    guard ports != nil else { _tcp.disconnect() ; throw ApiError.udpBind }
+    let ports = try _udp.bind(selection.radio.packet)
+//    guard ports != nil else { _tcp.disconnect() }
     log?.debug("ApiModel: UDP bound, receive port = \(ports!.0), send port = \(ports!.1)")
     
     // is this a Wan connection?
@@ -544,19 +540,6 @@ final public class ApiModel: TcpProcessor {
       }
       activeSelection?.radio.parse(keyValues)
     }
-  }
-  
-  /// Connect to a Radio
-  /// - Parameter params:     a struct of parameters
-  /// - Returns:              success / failure
-  private func connect(to radio: Radio) -> Bool {
-    return _tcp.connect(radio.packet.source == .smartlink,
-                        radio.packet.requiresHolePunch,
-                        radio.packet.negotiatedHolePunchPort,
-                        radio.packet.publicTlsPort,
-                        radio.packet.port,
-                        radio.packet.publicIp,
-                        radio.packet.localInterfaceIP)
   }
   
   private func parse(_ statusType: String, _ statusMessage: String, _ connectionHandle: UInt32?) {

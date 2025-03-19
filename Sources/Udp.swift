@@ -38,22 +38,23 @@ public final class Udp: NSObject {
   ///   - holePunchPort: port number
   ///   - publicUdpPort: port number
   /// - Returns: receivePort, sendPort tuple
-  public func bind(_ isWan: Bool, _ publicIp: String, _ requiresHolePunch: Bool, _ holePunchPort: Int, _ publicUdpPort: Int?) -> (UInt16, UInt16)? {
+//  public func bind(_ isWan: Bool, _ publicIp: String, _ requiresHolePunch: Bool, _ holePunchPort: Int, _ publicUdpPort: Int?) -> (UInt16, UInt16)? {
+  public func bind(_ packet: Packet) throws -> (UInt16, UInt16)? {
     var success               = false
     var portToUse             : UInt16 = 0
     var tries                 = kMaxBindAttempts
     
     // identify the port
-    switch (isWan, requiresHolePunch) {
+    switch (packet.source == .smartlink, packet.requiresHolePunch) {
       
     case (true, true):        // isWan w/hole punch
-      portToUse = UInt16(holePunchPort)
-      sendPort = UInt16(holePunchPort)
+      portToUse = UInt16(packet.negotiatedHolePunchPort)
+      sendPort = UInt16(packet.negotiatedHolePunchPort)
       tries = 1  // isWan w/hole punch
       
     case (true, false):       // isWan
-      portToUse = UInt16(publicUdpPort!)
-      sendPort = UInt16(publicUdpPort!)
+      portToUse = UInt16(packet.publicUdpPort!)
+      sendPort = UInt16(packet.publicUdpPort!)
       
     default:                  // local
       portToUse = _receivePort
@@ -79,7 +80,7 @@ public final class Udp: NSObject {
             
       sendPort = portToUse
             
-      sendIp = publicIp
+      sendIp = packet.publicIp
       _isBound = true
       
       // a UDP bind has been established
@@ -88,7 +89,7 @@ public final class Udp: NSObject {
       return (_receivePort, sendPort)
       
     } else {
-      return nil
+      throw ApiError.udpBind
     }
   }
   

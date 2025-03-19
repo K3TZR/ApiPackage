@@ -36,47 +36,48 @@ public final class Tcp: NSObject {
   /// - Parameters:
   ///   - packet:                 a DiscoveryPacket
   /// - Returns:                  success / failure
-  public func connect(_ isWan: Bool, _ requiresHolePunch: Bool, _ holePunchPort: Int, _ publicTlsPort: Int?, _ port: Int, _ publicIp: String, _ localInterfaceIP: String) -> Bool {
+//  public func connect(_ isWan: Bool, _ requiresHolePunch: Bool, _ holePunchPort: Int, _ publicTlsPort: Int?, _ port: Int, _ publicIp: String, _ localInterfaceIP: String) throws {
+  public func connect(_ packet: Packet) throws {
     var portToUse = 0
     var localInterface: String?
-    var success = true
+//    var success = true
 
-    _isWan = isWan
+    _isWan = packet.source == .smartlink
     
     // identify the port
-    switch (isWan, requiresHolePunch) {
+    switch (_isWan, packet.requiresHolePunch) {
       
-    case (true, true):  portToUse = holePunchPort
-    case (true, false): portToUse = publicTlsPort!
-    default:            portToUse = port
+    case (true, true):  portToUse = packet.negotiatedHolePunchPort
+    case (true, false): portToUse = packet.publicTlsPort!
+    default:            portToUse = packet.port
     }
     // attempt a connection
-    do {
-      if isWan && requiresHolePunch {
+//    do {
+      if _isWan && packet.requiresHolePunch {
         // insure that the localInterfaceIp has been specified
-        guard localInterfaceIP != "0.0.0.0" else { return false }
+        guard packet.localInterfaceIP != "0.0.0.0" else { return }
         // create the localInterfaceIp value
-        localInterface = localInterfaceIP + ":" + String(portToUse)
+        localInterface = packet.localInterfaceIP + ":" + String(portToUse)
         
         // connect via the localInterface
-        try _socket.connect(toHost: publicIp, onPort: UInt16(portToUse), viaInterface: localInterface, withTimeout: _timeout)
-        log?.debug("Tcp: connect on the \(String(describing: localInterface)) interface to \(publicIp) port \(portToUse)")
+        try _socket.connect(toHost: packet.publicIp, onPort: UInt16(portToUse), viaInterface: localInterface, withTimeout: _timeout)
+        log?.debug("Tcp: connect on the \(String(describing: localInterface)) interface to \(packet.publicIp) port \(portToUse)")
 
       } else {
         // connect on the default interface
-        try _socket.connect(toHost: publicIp, onPort: UInt16(portToUse), withTimeout: _timeout)
-        log?.debug("Tcp: connect on the default interface to \(publicIp) port \(portToUse)")
+        try _socket.connect(toHost: packet.publicIp, onPort: UInt16(portToUse), withTimeout: _timeout)
+        log?.debug("Tcp: connect on the default interface to \(packet.publicIp) port \(portToUse)")
       }
       
-    } catch _ {
-      // connection attemp failed
-      log?.debug("Tcp: connection failed")
-      success = false
-    }
-    if success {
-      log?.debug("Tcp: connection successful")
-    }
-    return success
+//    } catch _ {
+//      // connection attemp failed
+//      log?.debug("Tcp: connection failed")
+//      success = false
+//    }
+//    if success {
+//      log?.debug("Tcp: connection successful")
+//    }
+//    return success
   }
   
   /// Disconnect TCP from the Radio (hardware)
