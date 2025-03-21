@@ -8,9 +8,6 @@
 import Foundation
 import os
 
-//let log = Logger(subsystem: "net.k3tzr.ApiExplorer", category: "Application")
-
-
 public typealias ActiveSelection = (radio: Radio, disconnectHandle: String?)
 public typealias IdToken = String
 public typealias RefreshToken = String
@@ -32,11 +29,10 @@ final public class ApiModel: TcpProcessor {
   // MARK: - Initialization
   
   public init() {
-//    _udp = Udp()
-//    _tcp = Tcp()
     streamModel = StreamModel(self)
     _tcp.setDelegate(self)
     _udp.setDelegate(streamModel!)
+    timeoutStart()
   }
   
   // ----------------------------------------------------------------------------
@@ -130,7 +126,8 @@ final public class ApiModel: TcpProcessor {
   private var _awaitFirstStatusMessage: CheckedContinuation<Void, Error>?
   private var _awaitTcpReply: CheckedContinuation<(Int, String, String), Never>?
   private var _awaitWanValidation: CheckedContinuation<String, Never>?
-  private let _broadcastTimeout = 60
+  private let _broadcastCheckInterval = 10
+  private let _broadcastTimeout = 30.0
   private var _firstStatusMessageReceived: Bool = false
   private var _guiClientId: String?
   private var _listenerSmartlink: ListenerSmartlink?
@@ -139,6 +136,7 @@ final public class ApiModel: TcpProcessor {
   private let _replyDictionary = ReplyDictionary()
   private let _sequencer = Sequencer()
   private var _tcp = Tcp()
+  private var _timeoutTimer: DispatchSourceTimer?
   private let _udp = Udp()
   private var _wanHandle: String?
   
@@ -298,46 +296,50 @@ final public class ApiModel: TcpProcessor {
     // is it a Radio that has been seen previously?
     if let index = radios.firstIndex(where: {$0.packet.id == packet.id}) {
       
-      // KNOWN RADIO, has it's packet changed?
+      // KNOWN RADIO, has its packet changed?
       if radios[index].packet != packet {
         // YES, overwrite the Packet
         radios[index].packet = packet
-        log?.debug("ApiModel: Radio    UPDATED Name <\(name)>, Serial <\(packet.serial)>, Source <\(packet.source == .local ? "Local" : "Smartlink")>")
+//        log?.debug("ApiModel: RADIO    UPDATED Name <\(name)>, Serial <\(packet.serial)>, Source <\(packet.source == .local ? "Local" : "Smartlink")>")
       }
       // update the TimeStamp
       radios[index].lastSeen = Date()
       radios[index].discoveryData = discoveryData
-//      log?.debug("ApiModel: Radio    UPDATED Name <\(name)>, timeStamp <\(self.radios[index].lastSeen)>")
 
-      // process updated or removed GuiClients
-//      for (i, currentGuiClient) in radios[index].guiClients.enumerated() {
-//        // is it in the newGuiClients?
-//        if let j = newGuiClients.firstIndex(where: { $0.handle == currentGuiClient.handle }) {
-//          // keep it and update ip, host, program and station (leaving ClientId as is)
-//          if currentGuiClient.ip.isEmpty || currentGuiClient.host.isEmpty || currentGuiClient.station.isEmpty || currentGuiClient.program.isEmpty {
-//            radios[index].guiClients[i].ip = newGuiClients[j].ip
-//            radios[index].guiClients[i].host = newGuiClients[j].host
-//            radios[index].guiClients[i].station = newGuiClients[j].station
-//            radios[index].guiClients[i].program = newGuiClients[j].program
-//            log?.info("ApiModel UPDATED GuiClient: Handle <\(radios[index].guiClients[i].handle)>, Station <\(radios[index].guiClients[i].station)>, Program <\(radios[index].guiClients[i].program)>, Ip <\(radios[index].guiClients[i].ip)>, Host <\(radios[index].guiClients[i].host)>, ClientId <\(radios[index].guiClients[i].clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - UPDATED by packet process")
-//          }
-//
-//        } else {
-//          radios[index].guiClients.remove(at: i)
-//          log?.info("ApiModel REMOVED GuiClient: Handle <\(currentGuiClient.handle)>, Station <\(currentGuiClient.station)>, Program <\(currentGuiClient.program)>, Ip <\(currentGuiClient.ip)>, Host <\(currentGuiClient.host)>, ClientId <\(currentGuiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - REMOVED by packet process")
-//        }
-//      }
-//      
-//      // process added GuiClients
-//      for guiClient in newGuiClients {
-//        if !radios[index].guiClients.contains(where: { $0.handle == guiClient.handle }) {
-//          radios[index].guiClients.append(guiClient)
-//          log?.info("ApiModel ADDED GuiClient: Handle <\(guiClient.handle)>, Station <\(guiClient.station)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")> on Radio <\(name)> - ADDED by packet process")
-//        }
-//      }
+      // has its GuiClients changed?
+      for newGuiClient in newGuiClients {
+        // is it already in the radio's GuiClients
+        if var existingGuiClient = radios[index].guiClients.first(where: {$0.handle == newGuiClient.handle}) {
+          // TES, are any of its fields empty?
+          if existingGuiClient.station.isEmpty || existingGuiClient.program.isEmpty || existingGuiClient.ip.isEmpty || existingGuiClient.host.isEmpty {
+            // YES, update it
+            radios[index].guiClients.remove(existingGuiClient)
+            if existingGuiClient.station.isEmpty { existingGuiClient.station = newGuiClient.station }
+            if existingGuiClient.program.isEmpty { existingGuiClient.program = newGuiClient.program }
+            if existingGuiClient.ip.isEmpty { existingGuiClient.ip = newGuiClient.ip }
+            if existingGuiClient.host.isEmpty { existingGuiClient.host = newGuiClient.host }
+            radios[index].guiClients.insert(existingGuiClient)
+            log?.debug("ApiModel: STATION  UPDATED Name <\(existingGuiClient.station)>, Radio <\(name)>, Program <\(existingGuiClient.program)>, Ip <\(existingGuiClient.ip)>, Host <\(existingGuiClient.host)>, Handle <\(existingGuiClient.handle)>, ClientId <\(existingGuiClient.clientId?.uuidString ?? "Unknown")>")
+          }
+
+        } else {
+          // NO, add it
+          radios[index].guiClients.insert(newGuiClient)
+          log?.debug("ApiModel: STATION  ADDED   Name <\(newGuiClient.station)>, Radio <\(name)>, Program <\(newGuiClient.program)>, Ip <\(newGuiClient.ip)>, Host <\(newGuiClient.host)>, Handle <\(newGuiClient.handle)>, ClientId <\(newGuiClient.clientId?.uuidString ?? "Unknown")>")
+        }
+      }
+      
+      // Identify and remove missing GuiClient(s)
+      for existingGuiClient in radios[index].guiClients {
+        // is th existingGuiClient in the newGuiClients?
+        if !newGuiClients.contains(where: {$0.handle == existingGuiClient.handle}) {
+          // NO, remove it
+          radios[index].guiClients.remove(existingGuiClient)
+          log?.debug("ApiModel: STATION  REMOVED Name <\(existingGuiClient.station)>, Radio <\(name)>, Program <\(existingGuiClient.program)>, Ip <\(existingGuiClient.ip)>, Host <\(existingGuiClient.host)>, Handle <\(existingGuiClient.handle)>, ClientId <\(existingGuiClient.clientId?.uuidString ?? "Unknown")>")
+        }
+      }
       
     } else {
-      
       // UNKNOWN radio, add it
       let radio = Radio(packet, newGuiClients, discoveryData)
       radios.append( radio )
@@ -348,16 +350,18 @@ final public class ApiModel: TcpProcessor {
         log?.debug("ApiModel: STATION  ADDED   Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>")
       }
     }
-    
-    // timeout radios if not seen for "broadcastTimeout" seconds (.local only)
-    removeLostRadios(Date(), _broadcastTimeout)
   }
-  
+
   /// Remove one or more Radios that are no longer visible
-  public func removeLostRadios(_ now: Date, _ timeout: Int) {
+  public func removeLostRadios(_ now: Date, _ timeout: TimeInterval) {
     for (i, radio) in radios.enumerated().reversed() {
       if radio.packet.source == .local {
-        let interval = Int(now.timeIntervalSince(radio.lastSeen))
+        let interval = now.timeIntervalSince(radio.lastSeen)
+        radios[i].intervals[radios[i].intervalIndex] = interval
+        radios[i].intervalIndex += 1
+        if radios[i].intervalIndex >= 60 {
+          radios[i].intervalIndex = 0
+        }
         if interval > timeout {
           let name = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
           for guiClient in radio.guiClients {
@@ -366,9 +370,6 @@ final public class ApiModel: TcpProcessor {
           
           // remove Radio
           radios.remove(at: i)
-          
-          log?.debug("lastSeen <\(radio.lastSeen)>, now <\(now)>, interval <\(interval)>")
-          
           log?.debug("ApiModel: RADIO    REMOVED Name <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")>, timeout (\(interval) seconds)")
         }
       }
@@ -440,10 +441,8 @@ final public class ApiModel: TcpProcessor {
     } else {
       log?.debug("ApiModel: TCP reply = \(String(describing: replyComponents))")
     }
-    
     return replyComponents
   }
-  
   
   /// Send data to the Radio (hardware) via UDP
   /// - Parameters:
@@ -542,6 +541,13 @@ final public class ApiModel: TcpProcessor {
     }
   }
   
+  private func onFirstStatusMessageReceived() {
+      if let continuation = _awaitFirstStatusMessage {
+          _awaitFirstStatusMessage = nil
+          continuation.resume()
+      }
+  }
+
   private func parse(_ statusType: String, _ statusMessage: String, _ connectionHandle: UInt32?) {
     
     // Check for unknown Object Types
@@ -617,31 +623,33 @@ final public class ApiModel: TcpProcessor {
       }
     }
     
-    for radio in radios {
-      
-      if let index = radio.guiClients.firstIndex(where: {handle.hex == $0.handle} ) {
-        
-        if radio.guiClients[index].clientId == nil {
-          radio.guiClients[index].clientId = UUID(uuidString: clientId)!
-          log?.debug("ApiModel: STATION  UPDATED Name <\(station)>, Program <\(program)>, Handle <\(handle.hex)>, ClientId <\(UUID(uuidString: clientId)!)>")
-
+    let radio  = activeSelection!.radio
+//    for radio in radios {
+      if handle == connectionHandle {
+        if var guiClient = radio.guiClients.first(where: {handle.hex == $0.handle} ) {
+          radio.guiClients.remove(guiClient)
+          guiClient.clientId = UUID(uuidString: clientId)!
+          if !program.isEmpty { guiClient.program = program }
+          if !station.isEmpty { guiClient.station = station }
+          radio.guiClients.insert(guiClient)
+          log?.debug("ApiModel: STATION  UPDATED Name <\(station)>, Program <\(program)>, Handle <\(handle.hex)>, ClientId <\(UUID(uuidString: clientId)!)> on RADIO <\(radio.packet.nickname)> ")
+          
+          // if needed, bind to the Station
+          if connectionIsGui == false && station == activeStation {
+            bind(clientId)
+          }
+          
+        } else {
+          radio.guiClients.insert(GuiClient(handle: handle.hex, station: station, program: program, clientId: UUID(uuidString: clientId)))
+          log?.debug("ApiModel: STATION  ADDED   Name <\(station)>, Program <\(program)>, Handle <\(handle.hex)>, Client Id <\(UUID(uuidString: clientId)!)> on RADIO <\(radio.packet.nickname)>")
+          
           // if needed, bind to the Station
           if connectionIsGui == false && station == activeStation {
             bind(clientId)
           }
         }
-        return
-        
-      } else {
-        radio.guiClients.append(GuiClient(handle: handle.hex, station: station, program: program, clientId: UUID(uuidString: clientId)))
-        log?.debug("ApiModel: STATION: ADDED   Name <\(station)>, Program <\(program)>, Handle <\(handle.hex)>, Client Id <\(UUID(uuidString: clientId)!)>")
-
-        // if needed, bind to the Station
-        if connectionIsGui == false && station == activeStation {
-          bind(clientId)
-        }
       }
-    }
+//    }
   }
   
   /// Parse a client disconnect status message
@@ -685,8 +693,8 @@ final public class ApiModel: TcpProcessor {
     }
   }
   
-  private func parseGuiClients(_ properties: KeyValuesArray) -> [GuiClient] {
-    var guiClients = [GuiClient]()
+  private func parseGuiClients(_ properties: KeyValuesArray) -> Set<GuiClient> {
+    var guiClients = Set<GuiClient>()
     var handles = [String]()
     var hosts = [String]()
     var ips = [String]()
@@ -719,7 +727,7 @@ final public class ApiModel: TcpProcessor {
       // must be an equal number of entries in each
       if programs.count == stations.count && programs.count == handles.count && programs.count == ips.count && programs.count == hosts.count {
         for (i, handle) in handles.enumerated() {
-          guiClients.append( GuiClient( handle: handle, station: stations[i], program: programs[i], ip: ips[i], host: hosts[i] ) )
+          guiClients.insert( GuiClient( handle: handle, station: stations[i], program: programs[i], ip: ips[i], host: hosts[i] ) )
         }
       }
     }
@@ -775,13 +783,6 @@ final public class ApiModel: TcpProcessor {
     }
     
     parse(statusType, statusMessage, self.connectionHandle)
-  }
-  
-  private func onFirstStatusMessageReceived() {
-      if let continuation = _awaitFirstStatusMessage {
-          _awaitFirstStatusMessage = nil
-          continuation.resume()
-      }
   }
   
   private func removeAll(of type: ObjectType) {
@@ -962,6 +963,53 @@ final public class ApiModel: TcpProcessor {
     _pinger = nil
   }
   
+  private func timeoutStart() {
+    // Create the timer’s dispatch source
+    _timeoutTimer = DispatchSource.makeTimerSource()
+    
+    // Setup the timer
+    _timeoutTimer!.schedule(deadline: .now(), repeating: .seconds(_broadcastCheckInterval))
+    
+    // Set the event handler
+    _timeoutTimer!.setEventHandler  { [weak self] in
+      guard let self = self else { return }
+      
+      Task { await MainActor.run {
+        let now = Date()
+        for (i, radio) in self.radios.enumerated().reversed() {
+          if radio.packet.source == .local {
+            let interval = now.timeIntervalSince(radio.lastSeen)
+            self.radios[i].intervals[self.radios[i].intervalIndex] = interval
+            self.radios[i].intervalIndex += 1
+            if self.radios[i].intervalIndex >= 60 {
+              self.radios[i].intervalIndex = 0
+            }
+            if interval > self._broadcastTimeout {
+              let name = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
+              for guiClient in radio.guiClients {
+                log?.debug("ApiModel: STATION  REMOVED Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>")
+              }
+              
+              // remove Radio
+              self.radios.remove(at: i)
+              
+              log?.debug("lastSeen <\(radio.lastSeen)>, now <\(now)>, interval <\(interval)>")
+              
+              log?.debug("ApiModel: RADIO    REMOVED Name <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")>, timeout (\(interval) seconds)")
+            }
+          }
+        }
+      }}
+    }
+    
+    // Start the timer
+    _timeoutTimer!.resume()
+  }
+  
+  func timeoutStop() {
+    _timeoutTimer?.cancel()
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Private Pre-Process methods
   

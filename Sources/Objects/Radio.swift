@@ -20,7 +20,7 @@ public final class Radio: Identifiable, Equatable {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization & Dependencies
   
-  public init(_ packet: Packet, _ guiClients: [GuiClient], _ discoveryData: Data?) {
+  public init(_ packet: Packet, _ guiClients: Set<GuiClient>, _ discoveryData: Data?) {
     self.packet = packet
     self.guiClients = guiClients
     self.discoveryData = discoveryData
@@ -284,9 +284,11 @@ public final class Radio: Identifiable, Equatable {
   
   public let id: RadioId
 
+  public var intervals: [TimeInterval] = Array(repeating: 0.0, count: 60)
+  public var intervalIndex = 0
   public var discoveryData: Data?
   public var packet: Packet
-  public var guiClients: [GuiClient] = []
+  public var guiClients: Set<GuiClient> = []
   public var lastSeen: Date
   
   public var addressType = "DHCP"

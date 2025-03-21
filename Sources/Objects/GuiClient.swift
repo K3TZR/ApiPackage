@@ -8,9 +8,13 @@
 
 import Foundation
 
-public struct GuiClient: Identifiable, Equatable, Hashable, Sendable {  
+public struct GuiClient: Identifiable, Hashable, Sendable {
   public static func == (lhs: GuiClient, rhs: GuiClient) -> Bool {
-    return lhs.handle == rhs.handle && lhs.ip == rhs.ip && lhs.host == rhs.host && lhs.station == rhs.station && lhs.program == rhs.program
+    return lhs.handle == rhs.handle
+  }
+  
+  public func hash(into hasher: inout Hasher) {
+      hasher.combine(handle) // Use only handle since it's the unique identifier
   }
   
   // ----------------------------------------------------------------------------
