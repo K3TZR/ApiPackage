@@ -20,7 +20,7 @@ public final class Radio: Identifiable, Equatable {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization & Dependencies
   
-  public init(_ packet: Packet, _ guiClients: Set<GuiClient>, _ discoveryData: Data?) {
+  public init(_ packet: Packet, _ guiClients: [GuiClient], _ discoveryData: Data?) {
     self.packet = packet
     self.guiClients = guiClients
     self.discoveryData = discoveryData
@@ -33,8 +33,7 @@ public final class Radio: Identifiable, Equatable {
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
-    let id = apiModel.activeSelection!.radio.id
-    if let index = apiModel.radios.firstIndex(where: { $0.id == id }) {
+    if let index = apiModel.radios.firstIndex(where: { $0.id == apiModel.activeSelection!.radioId }) {
       // in use?
       if inUse {
         // YES, parse the properties
@@ -42,7 +41,7 @@ public final class Radio: Identifiable, Equatable {
       } else {
         // NO, remove it
         apiModel.radios.remove(at: index)
-        log?.debug("Radio \(id): REMOVED")
+        log?.debug("Radio: REMOVED id <\(apiModel.activeSelection!.radioId)>")
       }
     }
   }
@@ -288,7 +287,7 @@ public final class Radio: Identifiable, Equatable {
   public var intervalIndex = 0
   public var discoveryData: Data?
   public var packet: Packet
-  public var guiClients: Set<GuiClient> = []
+  public var guiClients: [GuiClient] = []
   public var lastSeen: Date
   
   public var addressType = "DHCP"

@@ -488,6 +488,6 @@ public enum DiscoveryDisplayType: String, CaseIterable {
   case vitaFields = "Vita Fields"
   case payloadKeyValues = "Payload Key Values"
   case vitaHex = "Vita hex map"
-  case packetLastSeen = "Last seen"
+  case broadcastTiming = "Broadcast Timing"
 }
 
