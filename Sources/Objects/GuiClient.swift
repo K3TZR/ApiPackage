@@ -10,7 +10,7 @@ import Foundation
 
 public struct GuiClient: Equatable, Hashable, Identifiable, Sendable {
   public static func == (lhs: GuiClient, rhs: GuiClient) -> Bool {
-    return lhs.handle == rhs.handle
+    return lhs.handle == rhs.handle && lhs.station == rhs.station && lhs.program == rhs.program && lhs.ip == rhs.ip && lhs.host == rhs.host
   }
   
   public func hash(into hasher: inout Hasher) {
