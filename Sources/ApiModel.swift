@@ -515,10 +515,10 @@ final public class ApiModel: TcpProcessor {
   // ----------------------------------------------------------------------------
   // MARK: - Private methods
   
-  private func bind(_ clientId: String) {
+  private func bind(_ station: String, _ clientId: String) {
     boundClientId = clientId
     sendTcp("client bind client_id=\(clientId)")
-    log?.info("ApiModel/bind: NonGui bound to <\(self.activeStation!)>, Client ID <\(clientId)>")
+    log?.info("ApiModel/bind: NonGui bound to <\(station)>, Client ID <\(clientId)>")
   }
   
   public func commandsReplyHandler(_ command: String, _ reply: String) {
@@ -645,8 +645,8 @@ final public class ApiModel: TcpProcessor {
         log?.debug("ApiModel/parseConnection: STATION  UPDATED Name <\(station)>, Radio <\(radio.packet.nickname)> Program <\(program)>, Ip <\(radio.guiClients[index].ip)>, Host <\(radio.guiClients[index].host)>, Handle <\(handle.hex)>, ClientId <\(UUID(uuidString: clientId)!)>")
 
         // if needed, bind to the Station
-        if connectionIsGui == false && station == activeStation && boundClientId == nil {
-          bind(clientId)
+        if connectionIsGui == false && station == activeSelection?.station && boundClientId == nil {
+          bind(station, clientId)
         }
 
       } else {
@@ -654,8 +654,8 @@ final public class ApiModel: TcpProcessor {
         log?.debug("ApiModel/parseConnection: STATION  ADDED   Name <\(station)>, Radio <\(radio.packet.nickname)>, Program <\(program)>, Handle <\(handle.hex)>, Client Id <\(UUID(uuidString: clientId)!)>")
 
         // if needed, bind to the Station
-        if connectionIsGui == false && station == activeStation && boundClientId == nil {
-          bind(clientId)
+        if connectionIsGui == false && station == activeSelection?.station && boundClientId == nil {
+          bind(station, clientId)
         }
       }
     }
