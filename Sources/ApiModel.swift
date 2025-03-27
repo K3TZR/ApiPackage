@@ -8,15 +8,14 @@
 import Foundation
 import os
 
-//public typealias ActiveSelection = (radioId: String, station: String, disconnectHandle: String?)
 public typealias IdToken = String
 public typealias RefreshToken = String
 
 public struct Tokens: Sendable {
   public var idToken: String
-  public var refreshToken: String
+  public var refreshToken: String?
   
-  public init(_ idToken: String, _ refreshToken: String) {
+  public init(_ idToken: String, _ refreshToken: String?) {
     self.idToken = idToken
     self.refreshToken = refreshToken
   }
@@ -103,6 +102,10 @@ final public class ApiModel: TcpProcessor {
   //  public var panadapterStreams = [UInt32:PanadapterStream]()
   //  public var waterfallStreams = [UInt32:WaterfallStream]()
   
+  // Listeners
+  public var listenerSmartlink: ListenerSmartlink?
+  public var listenerLocal: ListenerLocal?
+
   // ----------------------------------------------------------------------------
   // MARK: - Public types
   
@@ -143,8 +146,6 @@ final public class ApiModel: TcpProcessor {
   private let _broadcastTimeout = 30.0
   private var _firstStatusMessageReceived: Bool = false
   private var _guiClientId: String?
-  private var _listenerSmartlink: ListenerSmartlink?
-  private var _listenerLocal: ListenerLocal?
   private var _pinger: Pinger?
   private let _replyDictionary = ReplyDictionary()
   private let _sequencer = Sequencer()
@@ -193,7 +194,7 @@ final public class ApiModel: TcpProcessor {
       // is this a Wan connection?
       if radio.packet.source == .smartlink {
         // YES, send Wan Connect message & wait for the reply
-        _wanHandle = try await self._listenerSmartlink?.smartlinkConnect(for: radio.packet.serial, holePunchPort: radio.packet.negotiatedHolePunchPort)
+        _wanHandle = try await self.listenerSmartlink?.smartlinkConnect(for: radio.packet.serial, holePunchPort: radio.packet.negotiatedHolePunchPort)
         if _wanHandle == nil { throw ApiError.connection }
         log?.debug("ApiModel/connect: wanHandle received")
         
@@ -269,19 +270,6 @@ final public class ApiModel: TcpProcessor {
     await _replyDictionary.removeAll()
     await _sequencer.reset()
     log?.debug("ApiModel/disconnect: Disconnect, Objects removed")
-  }
-  
-  public func localListenerStart() {
-    // start local listener
-    _listenerLocal = ListenerLocal(self)
-    Task { await _listenerLocal!.start() }
-  }
-  
-  public func localListenerStop() {
-    // stop local listener
-    _listenerLocal!.stop()
-    _listenerLocal = nil
-    removeRadios(.local)
   }
   
   public func meterBy(shortName: Meter.ShortName, sliceId: UInt32? = nil) -> Meter? {
@@ -402,7 +390,7 @@ final public class ApiModel: TcpProcessor {
   }
   
   public func sendSmartlinkTest(_ serial: String) {
-    _listenerSmartlink?.sendSmartlinkTest(for: serial)
+    listenerSmartlink?.sendSmartlinkTest(for: serial)
   }
   
   /// Send a command to the Radio (hardware) via TCP
@@ -470,27 +458,6 @@ final public class ApiModel: TcpProcessor {
   public func sendUdp(_ string: String) {
     // tell Udp to send the String message
     _udp.send(string)
-  }
-  
-  public func smartlinkListenerStart(idToken: String, refreshToken: String) async -> Tokens? {
-    // start smartlink listener
-    await _listenerSmartlink?.start(idToken: idToken, refreshToken: refreshToken)
-  }
-  
-  public func smartlinkListenerStart(refreshToken: String) async -> Tokens? {
-    // start smartlink listener
-    await _listenerSmartlink?.start(refreshToken: refreshToken)
-  }
-  
-  public func smartlinkListenerStart(_ user: String, _ password: String) async -> Tokens? {
-    // start smartlink listener
-    await _listenerSmartlink?.start(user, password)
-  }
-  
-  public func smartlinkListenerStop() {
-    // stop smartlink listener
-    _listenerSmartlink?.stop()
-    removeRadios(.smartlink)
   }
   
   nonisolated public func tcpProcessor(_ msg: String, isInput: Bool) {

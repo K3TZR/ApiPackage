@@ -17,7 +17,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
-  init(_ apiModel: ApiModel) {
+  public init(_ apiModel: ApiModel) {
     _api = apiModel
     super.init()
     
@@ -35,7 +35,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Internal methods
   
-  func start(port: UInt16 = 4992, checkInterval: Int = 1, timeout: TimeInterval = 20.0) async {
+  public func start(port: UInt16 = 4992, checkInterval: Int = 1, timeout: TimeInterval = 20.0) async {
     do {
       try _udpSocket!.enableReusePort(true)
       try _udpSocket!.bind(toPort: port)
@@ -47,7 +47,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
     }
 }
   
-  func stop() {
+  public func stop() {
     _udpSocket?.closeAfterSending()
     log?.debug("Local Listener: UDP socket STOPPED")
   }

@@ -42,32 +42,31 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Public methods
   
-  public func start(idToken: String, refreshToken: String) async -> Tokens? {
-      log?.debug("Smartlink Listener: using previous Id Token")
-      return connect(using: Tokens(idToken, refreshToken))
-  }
+//  public func start(_ tokens: Tokens) async -> Tokens? {
+//      return connect(tokens)
+//  }
 
-  public func start(refreshToken: String) async -> Tokens? {
-    if let idToken = await requestIdToken(refreshToken: refreshToken) {
-      log?.debug("Smartlink Listener: IdToken obtained from refresh token")
-      return connect(using: Tokens(idToken, refreshToken))
-    }
-    log?.debug("Smartlink Listener: Failed to obtain IdToken from refresh token")
-    return nil
-  }
+//  public func start(refreshToken: String) async -> Tokens? {
+//    if let idToken = await requestIdToken(refreshToken: refreshToken) {
+//      log?.debug("Smartlink Listener: IdToken obtained from refresh token")
+//      return connect(using: Tokens(idToken, refreshToken))
+//    }
+//    log?.debug("Smartlink Listener: Failed to obtain IdToken from refresh token")
+//    return nil
+//  }
   
   /// Start listening given a User / Pwd
   /// - Parameters:
   ///   - user:           user value
   ///   - pwd:            user password
-  func start(_ user: String, _ pwd: String) async -> Tokens? {
-    if let tokens = await requestTokens(user: user, pwd: pwd) {
-      log?.debug("Smartlink Listener: IdToken obtained from login credentials")
-      return connect(using: tokens)
-    }
-    log?.debug("Smartlink Listener: Failed to obtain IdToken from login credentials")
-    return nil
-  }
+//  func start(_ user: String, _ pwd: String) async -> Tokens? {
+//    if let tokens = await requestTokens(user: user, pwd: pwd) {
+//      log?.debug("Smartlink Listener: IdToken obtained from login credentials")
+//      return connect(using: tokens)
+//    }
+//    log?.debug("Smartlink Listener: Failed to obtain IdToken from login credentials")
+//    return nil
+//  }
   
   /// stop the listener
   public func stop() {
@@ -113,17 +112,17 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Private methods
   
-  private func connect(using tokens: Tokens) -> Tokens? {
+  public func connect(_ tokens: Tokens) -> Bool {
     _currentTokens = tokens
     // use the ID Token to connect to the Smartlink service
     do {
       try _tcpSocket.connect(toHost: kSmartlinkHost, onPort: kSmartlinkPort, withTimeout: _timeout)
       log?.debug("Smartlink Listener: TCP Socket connection initiated")
-      return tokens
+      return true
 
     } catch {
       log?.debug("Smartlink Listener: TCP Socket connection FAILED")
-      return nil
+      return false
     }
   }
 
@@ -309,14 +308,14 @@ extension ListenerSmartlink {
   ///   - user:       User name
   ///   - pwd:        User password
   /// - Returns:      an Id Token (if any)
-  func requestTokens(user: String, pwd: String) async -> Tokens? {
+  public func requestTokens(_ user: String, _ password: String) async -> Tokens? {
     // build the request
     var request = URLRequest(url: URL(string: kAuth0Authenticate)!)
     request.httpMethod = kHttpPost
     request.addValue(kApplicationJson, forHTTPHeaderField: kHttpHeaderField)
     
     // add the body data & perform the request
-    if let data = createTokensBodyData(user: user, pwd: pwd) {
+    if let data = createTokensBodyData(user: user, password: password) {
       request.httpBody = data
       
       let result = try! await performRequest(request, for: [kKeyIdToken, kKeyRefreshToken])
@@ -332,14 +331,10 @@ extension ListenerSmartlink {
     // invalid Id Token or request failure
     return nil
   }
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Private methods
-  
   /// Given a Refresh Token, request an ID Token
   /// - Parameter refreshToken:     a Refresh Token
   /// - Returns:                    an Id Token (if any)
-  private func requestIdToken(refreshToken: String) async -> IdToken? {
+  public func requestIdToken(refreshToken: String) async -> IdToken? {
     // build the request
     var request = URLRequest(url: URL(string: kAuth0Delegation)!)
     request.httpMethod = kHttpPost
@@ -367,7 +362,7 @@ extension ListenerSmartlink {
   /// Validate an Id Token
   /// - Parameter idToken:        the Id Token
   /// - Returns:                  true / false
-  private func isValid(_ idToken: IdToken?) -> Bool {
+  public func isValid(_ idToken: IdToken?) -> Bool {
     if let token = idToken {
       if let jwt = try? decode(jwt: token) {
         let result = IDTokenValidation(issuer: kDomain, audience: kClientId).validate(jwt)
@@ -376,6 +371,9 @@ extension ListenerSmartlink {
     }
     return false
   }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Private methods
   
   /// Perform a URL Request
   /// - Parameter urlRequest:     the Request
@@ -403,14 +401,14 @@ extension ListenerSmartlink {
   
   /// Create the Body Data for obtaining an Id Token given a User Id / Password
   /// - Returns:                    the Data (if created)
-  private func createTokensBodyData(user: String, pwd: String) -> Data? {
+  private func createTokensBodyData(user: String, password: String) -> Data? {
     var dict = [String : String]()
     
     dict[kKeyClientId]      = kClientId
     dict[kKeyConnection]    = kConnection
     dict[kKeyDevice]        = kDevice
     dict[kKeyGrantType]     = kGrantType
-    dict[kKeyPassword]      = pwd
+    dict[kKeyPassword]      = password
     dict[kKeyScope]         = kScope
     dict[kKeyUserName]      = user
     
