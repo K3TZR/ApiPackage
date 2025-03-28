@@ -363,11 +363,8 @@ extension ListenerSmartlink {
   /// - Parameter idToken:        the Id Token
   /// - Returns:                  true / false
   public func isValid(_ idToken: IdToken?) -> Bool {
-    if let token = idToken {
-      if let jwt = try? decode(jwt: token) {
-        let result = IDTokenValidation(issuer: kDomain, audience: kClientId).validate(jwt)
-        if result == nil { return true }
-      }
+    if let token = idToken, let jwt = try? decode(jwt: token) {
+      return jwt.expired == false
     }
     return false
   }
