@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 public typealias KeyValuesArray = [(key:String, value:String)]
+public typealias KeyValuesArrayIndexed = [(key:String, value:String, index:Int)]
 public typealias ValuesArray = [String]
 
 // ----------------------------------------------------------------------------
@@ -382,7 +383,45 @@ public extension String {
     }
     return kvArray
   }
-  
+
+  /// Parse a String of <key=value>'s separated by the given Delimiter
+  /// - Parameters:
+  ///   - delimiter:          the delimiter between key values (defaults to space)
+  ///   - keysToLower:        convert all Keys to lower case (defaults to YES)
+  ///   - valuesToLower:      convert all values to lower case (defaults to NO)
+  /// - Returns:              a KeyValues array
+  func keyValuesArrayIndexed(delimiter: String = " ", keysToLower: Bool = true, valuesToLower: Bool = false) -> KeyValuesArrayIndexed {
+    var kvArray = KeyValuesArrayIndexed()
+    
+    // split it into an array of <key=value> values
+    let keyAndValues = self.components(separatedBy: delimiter)
+    
+    for index in 0..<keyAndValues.count {
+      // separate each entry into a Key and a Value
+      var kv = keyAndValues[index].components(separatedBy: "=")
+      
+      // when "delimiter" is last character there will be an empty entry, don't include it
+      if kv[0] != "" {
+        // if no "=", set value to empty String (helps with strings with a prefix to KeyValues)
+        // make sure there are no whitespaces before or after the entries
+        if kv.count == 1 {
+          
+          // remove leading & trailing whitespace
+          kvArray.append( (kv[0].trimmingCharacters(in: NSCharacterSet.whitespaces),"",index) )
+        }
+        if kv.count == 2 {
+          // lowercase as needed
+          if keysToLower { kv[0] = kv[0].lowercased() }
+          if valuesToLower { kv[1] = kv[1].lowercased() }
+          
+          // remove leading & trailing whitespace
+          kvArray.append( (kv[0].trimmingCharacters(in: NSCharacterSet.whitespaces), kv[1].trimmingCharacters(in: NSCharacterSet.whitespaces), index) )
+        }
+      }
+    }
+    return kvArray
+  }
+
   func padRight(_ length: Int, _ char: String = " ") -> String {
     self.padding(toLength: length, withPad: char, startingAt: 0)
   }

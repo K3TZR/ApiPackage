@@ -330,7 +330,7 @@ public enum AudioCompression: String {
 }
 
 public enum DaxChoice: String, CaseIterable, Sendable {
-  case none
+  case none = "--- Select DAX ---"
   case mic
   case rx0
   case rx1
@@ -485,9 +485,9 @@ public struct AlertInfo: Sendable {
 }
 
 public enum DiscoveryDisplayType: String, CaseIterable {
-  case vitaFields = "Vita Fields"
-  case payloadKeyValues = "Payload Key Values"
+  case vitaHeader = "Vita Header"
+  case vitaPayload = "Vita Payload"
   case vitaHex = "Vita hex map"
-  case broadcastTiming = "Broadcast Timing"
+  case timing = "Timing"
 }
 
