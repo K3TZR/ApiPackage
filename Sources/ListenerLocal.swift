@@ -25,7 +25,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
     _udpSocket = GCDAsyncUdpSocket( delegate: self, delegateQueue: _udpQ )
     _udpSocket!.setPreferIPv4()
     _udpSocket!.setIPv6Enabled(false)
-   
+    
     if _udpSocket == nil {
       log?.errorExt("Could not create GCDAsyncUdpSocket")
       fatalError("Could not create GCDAsyncUdpSocket")
@@ -45,7 +45,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
     } catch {
       log?.errorExt("Error starting UDP socket")
     }
-}
+  }
   
   public func stop() {
     _udpSocket?.closeAfterSending()
@@ -73,12 +73,15 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
   ///   - address:        the Address of the sender
   ///   - filterContext:  the FilterContext
   public func udpSocket(_ sock: GCDAsyncUdpSocket,
-                                    didReceive data: Data,
-                                    fromAddress address: Data,
-                                    withFilterContext filterContext: Any?) {
+                        didReceive data: Data,
+                        fromAddress address: Data,
+                        withFilterContext filterContext: Any?) {
     
     // is it a VITA packet?
-    guard let vita = Vita.decode(from: data) else { return }
+    guard let vita = Vita.decode(from: data) else {
+      log?.errorExt("NON-Vita packet received")
+      return
+    }
     
     // YES, is it a Discovery Packet?
     if vita.classIdPresent && vita.classCode == .discovery {
@@ -89,6 +92,8 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
       
       // process it
       Task { await MainActor.run { self._api.process(.local, properties, data) } }
+    } else {
+      log?.errorExt("Vita received but not a valid Discovery Packet")
     }
   }
   

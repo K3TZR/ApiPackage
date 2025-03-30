@@ -134,6 +134,7 @@ public final class Radio: Identifiable, Equatable {
         case .fullDuplexEnabled:        fullDuplexEnabled = property.value.bValue                   //
         case .frontSpeakerMute:         frontSpeakerMute = property.value.bValue
         case .gateway:                  gateway = property.value
+        case .gnss:                     gnssPresent = (property.value != "\"Not Present\"")
         case .gps:                      gpsPresent = (property.value != "\"Not Present\"")
         case .headphoneGain, .headphonegain:            headphoneGain = property.value.iValue       //
         case .headphoneMute, .headphonemute:            headphoneMute = property.value.bValue       //
@@ -257,7 +258,7 @@ public final class Radio: Identifiable, Equatable {
       // not sendable
     case .alpha, .atuPresent, .bandPersistenceEnabled, .chassisSerial, .daxIqAvailable:
       break
-    case .daxIqCapacity, .flexControlEnabled, .frontSpeakerMute, .gateway, .headphoneGain, .headphoneMute:
+    case .daxIqCapacity, .flexControlEnabled, .frontSpeakerMute, .gateway, .gnss, .headphoneGain, .headphoneMute:
       break
     case .ipAddress, .lineoutGain, .lineoutMute, .location, .lowLatencyDigital, .macAddress:
       break
@@ -326,6 +327,7 @@ public final class Radio: Identifiable, Equatable {
   public internal(set) var frontSpeakerMute = false
   public var fullDuplexEnabled = false
   public internal(set) var gateway = ""
+  public internal(set) var gnssPresent = false
   public internal(set) var gpsPresent = false
   public internal(set) var gpsdoPresent = false
   public var headphoneGain = 0
@@ -399,6 +401,7 @@ public final class Radio: Identifiable, Equatable {
     case frontSpeakerMute         = "front_speaker_mute"
     case fullDuplexEnabled        = "full_duplex_enabled"
     case gateway
+    case gnss                     = "gnss_present"
     case gps
     case headphoneGain            = "headphone_gain"
     case headphoneMute            = "headphone_mute"

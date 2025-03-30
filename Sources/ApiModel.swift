@@ -106,6 +106,7 @@ final public class ApiModel: TcpProcessor {
   public var listenerSmartlink: ListenerSmartlink?
   public var listenerLocal: ListenerLocal?
 
+
   // ----------------------------------------------------------------------------
   // MARK: - Public types
   
