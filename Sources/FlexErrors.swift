@@ -22,13 +22,13 @@ final public class FlexError {
     let number = UInt32(errorCode, radix: 16) ?? 0
     
     switch number {
-    case 0x10000001...0x10000003: log?.info("FlexError: errorCode = \(errorCode), description = \(description(errorCode)), message = \(msgText)")
-    case 0x31000001...0x31000009: log?.warningExt("FlexError: errorCode = \(errorCode), description = \(description(errorCode)), message = \(msgText)")
-    case 0x50000001...0x500000A3: log?.errorExt("FlexError: errorCode = \(errorCode), description = \(description(errorCode)), message = \(msgText)")
-    case 0x50001000...0x50001017: log?.errorExt("FlexError: errorCode = \(errorCode), description = \(description(errorCode)), message = \(msgText)")
-    case 0xE2000000:              log?.errorExt("FlexError: errorCode = \(errorCode), description = \(description(errorCode)), message = \(msgText)")
-    case 0xF3000001...0xF3000004: log?.errorExt("FlexError: errorCode = \(errorCode), description = \(description(errorCode)), message = \(msgText)")
-    default:                      log?.info("FlexError: errorCode = \(errorCode), description = \(description(errorCode)), message = \(msgText)")
+    case 0x10000001...0x10000003: log?.info("FlexMsg: code <\(errorCode)>, message <\(msgText)>")
+    case 0x31000001...0x31000009: log?.warningExt("FlexError: errorCode <\(errorCode)>, description <\(description(errorCode))>, message <\(msgText)>")
+    case 0x50000001...0x500000A3: log?.errorExt("FlexError: errorCode <\(errorCode)>, description <\(description(errorCode))>, message <\(msgText)>")
+    case 0x50001000...0x50001017: log?.errorExt("FlexError: errorCode <\(errorCode)>, description <\(description(errorCode))>, message <\(msgText)>")
+    case 0xE2000000:              log?.errorExt("FlexError: errorCode <\(errorCode)>, description <\(description(errorCode))>, message <\(msgText)>")
+    case 0xF3000001...0xF3000004: log?.errorExt("FlexError: errorCode <\(errorCode)>, description <\(description(errorCode))>, message <\(msgText)>")
+    default:                      log?.info("FlexMsg: code = \(errorCode), message = \(msgText)")
     }
   }
   

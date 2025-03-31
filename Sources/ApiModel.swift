@@ -246,10 +246,10 @@ final public class ApiModel: TcpProcessor {
     }
     
     // stop any listeners
-    //    _listenerLocal?.stop()
-    //    _listenerLocal = nil
-    //    _listenerSmartlink?.stop()
-    //    _listenerSmartlink = nil
+    _listenerLocal?.stop()
+    _listenerLocal = nil
+    _listenerSmartlink?.stop()
+    _listenerSmartlink = nil
     
     _firstStatusMessageReceived = false
     
@@ -574,11 +574,11 @@ final public class ApiModel: TcpProcessor {
     var clientId = ""
     var program = ""
     var station = ""
-    var isLocalPtt = false
+    var pttEnabled = false
     
     enum Property: String {
       case clientId = "client_id"
-      case localPttEnabled = "local_ptt"
+      case pttEnabled = "local_ptt"
       case program
       case station
     }
@@ -599,7 +599,7 @@ final public class ApiModel: TcpProcessor {
       switch token {
         
       case .clientId:         clientId = property.value
-      case .localPttEnabled:  isLocalPtt = property.value.bValue
+      case .pttEnabled:       pttEnabled = property.value.bValue
       case .program:          program = property.value.trimmingCharacters(in: .whitespaces)
       case .station:          station = property.value.replacingOccurrences(of: "\u{007f}", with: "").trimmingCharacters(in: .whitespaces)
       }
@@ -610,6 +610,7 @@ final public class ApiModel: TcpProcessor {
         radio.guiClients[index].clientId = UUID(uuidString: clientId)!
         radio.guiClients[index].program = program
         radio.guiClients[index].station = station
+        radio.guiClients[index].pttEnabled = pttEnabled
         log?.debug("ApiModel/parseConnection: STATION  UPDATED Name <\(station)>, Radio <\(radio.packet.nickname)> Program <\(program)>, Ip <\(radio.guiClients[index].ip)>, Host <\(radio.guiClients[index].host)>, Handle <\(handle.hex)>, ClientId <\(UUID(uuidString: clientId)!)>")
 
         // if needed, bind to the Station
@@ -618,7 +619,7 @@ final public class ApiModel: TcpProcessor {
         }
 
       } else {
-        radio.guiClients.append( GuiClient(handle: handle.hex, station: station, program: program, clientId: UUID(uuidString: clientId)) )
+        radio.guiClients.append( GuiClient(handle: handle.hex, station: station, program: program, clientId: UUID(uuidString: clientId), pttEnabled: pttEnabled) )
         log?.debug("ApiModel/parseConnection: STATION  ADDED   Name <\(station)>, Radio <\(radio.packet.nickname)>, Program <\(program)>, Handle <\(handle.hex)>, Client Id <\(UUID(uuidString: clientId)!)>")
 
         // if needed, bind to the Station
@@ -886,8 +887,12 @@ final public class ApiModel: TcpProcessor {
             
             // Anything other than kNoError is an error, log it
             // ignore non-zero reply from "client program" command
-            if replyValue != kNoError && !replyEntry.command.hasPrefix("client program ") {
-              log?.errorExt("ApiModel/replyProcessor: replyValue >\(replyValue)<, to c\(sequenceNumber), \(replyEntry.command), \(FlexError.description(replyValue)), \(suffix)")
+            if replyValue != kNoError {
+              if replyEntry.command.hasPrefix("client program ") {
+                log?.info("FlexMsg: command <\(replyEntry.command)>, code <\(replyValue)>, message <\(FlexError.description(replyValue))>")
+              } else {
+                log?.errorExt("ApiModel/replyProcessor: command <\(replyEntry.command)>, replyValue <\(replyValue)>, description <\(FlexError.description(replyValue))>")
+              }
             }
             
             if replyEntry.replyHandler == nil {

@@ -26,8 +26,8 @@ public struct GuiClient: Equatable, Hashable, Identifiable, Sendable {
               ip: String = "",
               host: String = "",
               clientId: UUID? = nil,
-              isLocalPtt: Bool = false,
-              isAvailable: Bool = true)
+              pttEnabled: Bool = false,
+              available: Bool = true)
   {
     self.handle = handle
     self.station = station
@@ -36,8 +36,8 @@ public struct GuiClient: Equatable, Hashable, Identifiable, Sendable {
     self.host = host
 
     self.clientId = clientId
-    self.isLocalPtt = isLocalPtt
-    self.isAvailable = isAvailable
+    self.pttEnabled = pttEnabled
+    self.available = available
   }
   
   // ----------------------------------------------------------------------------
@@ -50,8 +50,8 @@ public struct GuiClient: Equatable, Hashable, Identifiable, Sendable {
   public var host: String
   
   public var clientId: UUID?
-  public var isLocalPtt: Bool
-  public var isAvailable: Bool
+  public var pttEnabled: Bool
+  public var available: Bool
   
   public var id: String { handle }
 }
