@@ -246,10 +246,10 @@ final public class ApiModel: TcpProcessor {
     }
     
     // stop any listeners
-    _listenerLocal?.stop()
-    _listenerLocal = nil
-    _listenerSmartlink?.stop()
-    _listenerSmartlink = nil
+//    _listenerLocal?.stop()
+//    _listenerLocal = nil
+//    _listenerSmartlink?.stop()
+//    _listenerSmartlink = nil
     
     _firstStatusMessageReceived = false
     
@@ -327,16 +327,25 @@ final public class ApiModel: TcpProcessor {
           log?.debug("ApiModel/process: STATION  ADDED   Name <\(newGuiClient.station)>, Radio <\(name)>, Program <\(newGuiClient.program)>, Ip <\(newGuiClient.ip)>, Host <\(newGuiClient.host)>, Handle <\(newGuiClient.handle)>, ClientId <\(newGuiClient.clientId?.uuidString ?? "Unknown")>")
         }
       }
-      // Identify and remove missing GuiClient(s)
-      let newGuiClientsSet = Set(newGuiClients) // Convert to Set for O(1) lookups
       
-      radio.guiClients.removeAll { guiClient in
-        if newGuiClientsSet.contains(guiClient) == false {
+      // Identify and remove missing GuiClient(s)
+      for (i, guiClient) in radio.guiClients.reversed().enumerated() {
+        if newGuiClients.firstIndex(where: {$0.handle == guiClient.handle}) == nil {
+          radio.guiClients.remove(at: i)
           log?.debug("ApiModel/process: STATION REMOVED  Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>")
-          return true
         }
-        return false
       }
+      
+      // Identify and remove missing GuiClient(s)
+//      let newGuiClientsSet = Set(newGuiClients) // Convert to Set for O(1) lookups
+      
+//      radio.guiClients.removeAll { guiClient in
+//        if newGuiClientsSet.contains(guiClient) == false {
+//          log?.debug("ApiModel/process: STATION REMOVED  Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>")
+//          return true
+//        }
+//        return false
+//      }
       
     } else {
       // UNKNOWN radio, add it
