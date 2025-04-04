@@ -310,11 +310,10 @@ final public class ApiModel: TcpProcessor {
       radio.discoveryData = discoveryData
       
       for newGuiClient in newGuiClients {
-        // is it already in the GuiClients
+        // is it already in GuiClients
         if let index = radio.guiClients.firstIndex(where: {$0.handle == newGuiClient.handle} ){
           // YES, found in GuiClients, update it as needed
           if radio.guiClients[index].station.isEmpty || radio.guiClients[index].program.isEmpty || radio.guiClients[index].ip.isEmpty || radio.guiClients[index].host.isEmpty {
-            // YES, update it
             if radio.guiClients[index].station.isEmpty { radio.guiClients[index].station = newGuiClient.station }
             if radio.guiClients[index].program.isEmpty { radio.guiClients[index].program = newGuiClient.program }
             if radio.guiClients[index].ip.isEmpty { radio.guiClients[index].ip = newGuiClient.ip }
@@ -327,26 +326,18 @@ final public class ApiModel: TcpProcessor {
           log?.debug("ApiModel/process: STATION  ADDED   Name <\(newGuiClient.station)>, Radio <\(name)>, Program <\(newGuiClient.program)>, Ip <\(newGuiClient.ip)>, Host <\(newGuiClient.host)>, Handle <\(newGuiClient.handle)>, ClientId <\(newGuiClient.clientId?.uuidString ?? "Unknown")>")
         }
       }
-      
-      // Identify and remove missing GuiClient(s)
-      for (i, guiClient) in radio.guiClients.reversed().enumerated() {
-        if newGuiClients.firstIndex(where: {$0.handle == guiClient.handle}) == nil {
-          radio.guiClients.remove(at: i)
-          log?.debug("ApiModel/process: STATION REMOVED  Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>")
-        }
+      // identify any missing Stations
+      let toBeRemoved = Set(radio.guiClients.map(\.station)).subtracting(Set(newGuiClients.map(\.station)))
+
+      // are ther any missing stations?
+      guard !toBeRemoved.isEmpty else { return }
+
+      // remove any missing stations
+      for station in toBeRemoved {
+        radio.guiClients.removeAll(where: { $0.station == station })
+        log?.debug("ApiModel/process: STATION REMOVED  Name <\(station)>")
       }
-      
-      // Identify and remove missing GuiClient(s)
-//      let newGuiClientsSet = Set(newGuiClients) // Convert to Set for O(1) lookups
-      
-//      radio.guiClients.removeAll { guiClient in
-//        if newGuiClientsSet.contains(guiClient) == false {
-//          log?.debug("ApiModel/process: STATION REMOVED  Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>")
-//          return true
-//        }
-//        return false
-//      }
-      
+            
     } else {
       // UNKNOWN radio, add it
       let radio = Radio(packet, newGuiClients, discoveryData)
@@ -360,31 +351,6 @@ final public class ApiModel: TcpProcessor {
     }
     
   }
-  
-  
-  /// Remove one or more Radios that are no longer visible
-//  public func removeRadios(_ now: Date, _ timeout: TimeInterval) {
-//    for (i, radio) in radios.enumerated().reversed() {
-//      if radio.packet.source == .local {
-//        let interval = now.timeIntervalSince(radio.lastSeen)
-//        radios[i].intervals[radios[i].intervalIndex] = interval
-//        radios[i].intervalIndex += 1
-//        if radios[i].intervalIndex >= 60 {
-//          radios[i].intervalIndex = 0
-//        }
-//        if interval > timeout {
-//          let name = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
-//          //          for guiClient in guiClients where {
-//          //            log?.debug("ApiModel: STATION  REMOVED Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>")
-//          //          }
-//          
-//          // remove Radio
-//          radios.remove(at: i)
-//          log?.debug("ApiModel/removeLostRadios: RADIO    REMOVED Name <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")>, timeout (\(interval) seconds)")
-//        }
-//      }
-//    }
-//  }
   
   /// Remove one or more Radios of a given source
   public func removeRadios(_ source: PacketSource) {
