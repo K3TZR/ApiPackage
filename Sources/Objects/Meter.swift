@@ -9,7 +9,7 @@
 import Foundation
 
 @MainActor
-public final class Meter: ObservableObject, Identifiable {
+public final class Meter: Identifiable, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
@@ -98,7 +98,7 @@ public final class Meter: ObservableObject, Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Properties
   
-  @Published public var value: Float = 0    // uses ObservableObject to facilitate throttling
+  @Published public var value: Float = 0
   
   public let id: UInt32
   

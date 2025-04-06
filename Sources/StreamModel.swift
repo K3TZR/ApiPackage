@@ -5,7 +5,6 @@
 //  Created by Douglas Adams on 3/22/24.
 //
 
-import Combine
 import Foundation
 
 public enum StreamType: String {
@@ -42,17 +41,7 @@ public enum VitaType: String {
   case waterfall
 }
 
-//@Observable
-//final public class StreamStatistics {
-//
-//  public init() {}
-//
-//  @Published public var meterPackets = 0
-//  @Published public var meterErrors = 0
-//}
-
-
-final public class StreamModel: ObservableObject, StreamProcessor {
+final public class StreamModel: StreamProcessor, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - initialization
 
