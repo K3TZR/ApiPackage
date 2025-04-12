@@ -66,6 +66,7 @@ public final class Equalizer: Identifiable {
     if inUse {
       if index == nil {
         apiModel.equalizers.append(Equalizer(id))
+        log?.debug("Equalizer: <\(id)> ADDED")
         apiModel.equalizers.last!.parse(Array(properties.dropFirst(1)) )
       } else {
         // parse the properties
@@ -76,7 +77,7 @@ public final class Equalizer: Identifiable {
     } else {
       // NO, remove it
       apiModel.equalizers.remove(at: index!)
-      log?.debug("Equalizer \(id): REMOVED")
+      log?.debug("Equalizer: <\(id)> REMOVED")
     }
   }
 
@@ -112,7 +113,6 @@ public final class Equalizer: Identifiable {
       if _initialized == false {
         // NO, it is now
         _initialized = true
-        log?.debug("Equalizer: ADDED")
       }
     }
   }

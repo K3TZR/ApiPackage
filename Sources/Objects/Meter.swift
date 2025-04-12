@@ -84,7 +84,7 @@ public final class Meter: Identifiable, ObservableObject {
     if _initialized == false && group != "" && units != "" {
       //NO, it is now
       _initialized = true
-      log?.debug("Meter: ADDED, name = \(self.name), source = \(self.source), group = \(self.group)")
+      log?.debug("Meter: <\(self.name)> ADDED, source <\(self.source)>, group <\(self.group)>")
     }
   }
   

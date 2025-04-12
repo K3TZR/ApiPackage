@@ -123,7 +123,7 @@ public final class Panadapter: Identifiable {
     if _initialized == false && center != 0 && bandwidth != 0 && (minDbm != 0.0 || maxDbm != 0.0) {
       // NO, it is now
       _initialized = true
-      log?.debug("Panadapter: ADDED, center = \(self.center.hzToMhz), bandwidth = \(self.bandwidth.hzToMhz)")
+      log?.debug("Panadapter: <\(self.id.hex)> ADDED, center <\(self.center.hzToMhz)>, bandwidth <\(self.bandwidth.hzToMhz)>")
       
       // FIXME: ????
 //      _apiModel.activePanadapter = self

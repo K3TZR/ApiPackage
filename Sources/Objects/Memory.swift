@@ -81,7 +81,7 @@ public final class Memory: Identifiable {
       } else {
         // NO, remove it
         apiModel.memories.remove(at: index!)
-        log?.debug("Memory \(id): REMOVED")
+        log?.debug("Memory: <\(id)> REMOVED")
       }
     }
   }
@@ -106,13 +106,13 @@ public final class Memory: Identifiable {
       case .digitalLowerOffset:       digitalLowerOffset = property.value.iValue
       case .digitalUpperOffset:       digitalUpperOffset = property.value.iValue
       case .frequency:                frequency = property.value.mhzToHz
-      case .group:                    group = property.value.replacingSpaces()
+      case .group:                    group = property.value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
       case .highlight:                break   // ignored here
       case .highlightColor:           break   // ignored here
-      case .mode:                     mode = property.value.replacingSpaces()
-      case .name:                     name = property.value.replacingSpaces()
-      case .owner:                    owner = property.value.replacingSpaces()
-      case .repeaterOffsetDirection:  offsetDirection = property.value.replacingSpaces()
+      case .mode:                     mode = property.value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
+      case .name:                     name = property.value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
+      case .owner:                    owner = property.value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
+      case .repeaterOffsetDirection:  offsetDirection = property.value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
       case .repeaterOffset:           offset = property.value.iValue
       case .rfPower:                  rfPower = property.value.iValue
       case .rttyMark:                 rttyMark = property.value.iValue
@@ -122,17 +122,17 @@ public final class Memory: Identifiable {
       case .squelchEnabled:           squelchEnabled = property.value.bValue
       case .squelchLevel:             squelchLevel = property.value.iValue
       case .step:                     step = property.value.iValue
-      case .toneMode:                 toneMode = property.value.replacingSpaces()
+      case .toneMode:                 toneMode = property.value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
       case .toneValue:                toneValue = property.value.fValue
         
       case .apply, .create, .remove:  break   // ignored here
       }
-      // is it initialized?
-      if _initialized == false {
-        // NO, it is now
-        _initialized = true
-        log?.debug("Memory: ADDED")
-      }
+    }
+    // is it initialized?
+    if _initialized == false {
+      // NO, it is now
+      _initialized = true
+      log?.debug("Memory: <\(self.name)> ADDED")
     }
   }
 

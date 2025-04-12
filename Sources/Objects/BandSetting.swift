@@ -63,8 +63,9 @@ public final class BandSetting: Identifiable {
 
       } else {
         // NO, remove it
+        let name = apiModel.bandSettings[index!].name
         apiModel.bandSettings.remove(at: index!)
-        log?.debug("BandSetting \(id): REMOVED")
+        log?.debug("BandSetting: \(name): REMOVED")
       }
     }
   }
@@ -102,7 +103,7 @@ public final class BandSetting: Identifiable {
       if _initialized == false {
         // NO, it is now
         _initialized = true
-        log?.debug("BandSetting: ADDED, name = \(self.name)")
+        log?.debug("BandSetting: <\(self.name)> ADDED")
       }
     }
   }

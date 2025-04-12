@@ -226,7 +226,7 @@ public final class Slice: Identifiable {
     if _initialized == false && panadapterId != 0 && frequency != 0 && mode != "" {
       // NO, it is now
       _initialized = true
-      log?.debug("Slice: ADDED, frequency = \(self.frequency.hzToMhz), panadapter = \(self.panadapterId.hex)")
+      log?.debug("Slice: <\(self.id.hex)> ADDED, frequency <\(self.frequency.hzToMhz)>, panadapter <\(self.panadapterId.hex)>")
     }
   }
   

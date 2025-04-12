@@ -61,12 +61,12 @@ public final class Tcp: NSObject {
         
         // connect via the localInterface
         try _socket.connect(toHost: packet.publicIp, onPort: UInt16(portToUse), viaInterface: localInterface, withTimeout: _timeout)
-        log?.debug("Tcp: connect on the \(String(describing: localInterface)) interface to \(packet.publicIp) port \(portToUse)")
+        log?.debug("Tcp: connect on <\(String(describing: localInterface))> to <\(packet.publicIp)> port <\(portToUse)>")
 
       } else {
         // connect on the default interface
         try _socket.connect(toHost: packet.publicIp, onPort: UInt16(portToUse), withTimeout: _timeout)
-        log?.debug("Tcp: connect on the default interface to \(packet.publicIp) port \(portToUse)")
+        log?.debug("Tcp: connect on <default interface> to <\(packet.publicIp)> port <\(portToUse)>")
       }
       
 //    } catch _ {

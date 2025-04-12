@@ -103,7 +103,7 @@ public final class Waterfall: Identifiable {
     if _initialized == false && panadapterId != 0 {
       // NO, it is now
       _initialized = true
-      log?.debug("Waterfall: ADDED handle = \(self.clientHandle.hex)")
+      log?.debug("Waterfall: <\(self.id.hex)> ADDED handle <\(self.clientHandle.hex)>")
     }
   }
   

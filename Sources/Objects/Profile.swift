@@ -48,14 +48,22 @@ public final class Profile {
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+    let components = properties[0].key.components(separatedBy: " ")
+    
+    guard components.count == 2 else {
+      log?.warningExt("Profile: unexpected format, \(properties[0].key)")
+      return
+    }
+    
     // get the id
-    let id = properties[0].key
+    let id = components[0]
     let index = apiModel.profiles.firstIndex(where: { $0.id == id })
     // is it in use?
     if inUse {
       // YES, add it if not already present
       if index == nil {
         apiModel.profiles.append(Profile(id))
+        log?.debug("Profile: <\(id)> ADDED")
         apiModel.profiles.last!.parse(properties)
       } else {
         // parse the properties
@@ -65,7 +73,7 @@ public final class Profile {
     } else {
       // NO, remove it
       apiModel.profiles.remove(at: index!)
-      log?.debug("Tnf \(id): REMOVED")
+      log?.debug("Profile: <\(id)> REMOVED")
     }
   }
   
@@ -76,6 +84,11 @@ public final class Profile {
   /// - Parameter statusMessage:       String
   public func parse(_ properties: KeyValuesArray) {
     let components = properties[0].key.components(separatedBy: " ")
+    
+    guard components.count == 2 else {
+      log?.warningExt("Profile: unexpected format, \(properties[0].key)")
+      return
+    }
     
     // check for unknown Key
     guard let token = Profile.Property(rawValue: components[1]) else {
@@ -106,7 +119,6 @@ public final class Profile {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      log?.debug("Profile: ADDED")
     }
   }
 

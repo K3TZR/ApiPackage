@@ -215,7 +215,7 @@ public final class Radio: Identifiable, Equatable {
     if !_initialized {
       // YES, notify all observers
       _initialized = true
-      log?.debug("Radio: initialized, name = \(self.name)")
+      log?.debug("Radio: <\(self.name)> initialized")
     }
   }
   

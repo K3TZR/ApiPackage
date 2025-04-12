@@ -51,7 +51,7 @@ public final class Wan {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      log?.debug("Wan: initialized ServerConnected = \(self.serverConnected), RadioAuthenticated = \(self.radioAuthenticated)")
+      log?.debug("Wan: initialized ServerConnected <\(self.serverConnected)>, RadioAuthenticated <\(self.radioAuthenticated)>")
     }
   }
   

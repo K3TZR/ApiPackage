@@ -208,7 +208,7 @@ final public class ApiModel: TcpProcessor {
       
       // bind UDP
       let ports = try _udp.bind(radio.packet)
-      log?.debug("ApiModel/connect: UDP bound, receive port = \(ports!.0), send port = \(ports!.1)")
+      log?.debug("ApiModel/connect: UDP bound, receive port <\(ports!.0)>, send port <\(ports!.1)>")
       
       // is this a Wan connection?
       if radio.packet.source == .smartlink {
@@ -220,20 +220,20 @@ final public class ApiModel: TcpProcessor {
         let replyComponents = await sendTcpAwaitReply("client ip")
         //      sendTcp("client ip", replyHandler: ipReplyHandler)
         //      let reply = await clientIpValidation()
-        log?.debug("ApiModel/connect: Client ip = \(String(describing: replyComponents))")
+        log?.debug("ApiModel/connect: Client ip <\(String(describing: replyComponents))>")
       }
       
       // send the initial commands
       sendInitialCommands(isGui, programName, selection.station, mtuValue, lowBandwidthDax, lowBandwidthConnect, guiClientId)
-      log?.debug("ApiModel/connect: initial commands sent (isGui = \(isGui))")
+      log?.debug("ApiModel/connect: initial commands sent, isGui <\(isGui)>")
       
       startPinging()
-      log?.debug("ApiModel/connect: pinging \(radio.packet.publicIp)")
+      log?.debug("ApiModel/connect: pinging <\(radio.packet.publicIp)>")
       
       // set the UDP port for a Local connection
       if radio.packet.source == .local {
         sendTcp("client udpport " + "\(_udp.sendPort)")
-        log?.debug("ApiModel/connect: Client Udp port set to \(self._udp.sendPort)")
+        log?.debug("ApiModel/connect: Client Udp port <\(self._udp.sendPort)>")
       }
     }
   }
@@ -445,12 +445,12 @@ final public class ApiModel: TcpProcessor {
       // the first character indicates the type of message
       switch msg.prefix(1).uppercased() {
         
-      case "H":  connectionHandle = String(msg.dropFirst()).handle ; log?.debug("ApiModel/tcpProcessor: connectionHandle = \(self.connectionHandle?.hex ?? "missing")")
+      case "H":  connectionHandle = String(msg.dropFirst()).handle ; log?.debug("ApiModel/tcpProcessor: connectionHandle <\(self.connectionHandle?.hex ?? "missing")>")
       case "M":  parseMessage( msg )
       case "R":  replyProcessor( msg )
       case "S":  parseStatus( msg )
       case "V":  hardwareVersion = String(msg.dropFirst())
-      default:   log?.warningExt("ApiModel/tcpProcessor: unexpected message = \(msg)")
+      default:   log?.warningExt("ApiModel/tcpProcessor: unexpected message <\(msg)>")
       }
     }}
   }
@@ -471,11 +471,11 @@ final public class ApiModel: TcpProcessor {
     let components = reply.components(separatedBy: "|")
     // ignore incorrectly formatted replies
     if components.count < 2 {
-      log?.warningExt("ApiModel/commandsReplyHandler: incomplete reply, r\(reply)")
+      log?.warningExt("ApiModel/commandsReplyHandler: incomplete reply, <r\(reply)>")
       return
     }
     if components[1] != kNoError {
-      log?.warningExt("ApiModel/commandsReplyHandler: non-zero reply for command \(command), \(reply)")
+      log?.warningExt("ApiModel/commandsReplyHandler: non-zero reply for command <\(command)>, <\(reply)>")
       return
     }
     
@@ -788,7 +788,6 @@ final public class ApiModel: TcpProcessor {
     case .xvtr:                 xvtrs.removeAll()
     default:            break
     }
-    log?.debug("ApiModel/removeAll: removed all \(type.rawValue) objects")
   }
   
   /// Remove all Radio objects
@@ -805,6 +804,7 @@ final public class ApiModel: TcpProcessor {
     removeAll(of: .usbCable)
     removeAll(of: .waterfall)
     removeAll(of: .xvtr)
+    log?.debug("ApiModel/removeAll: removed all objects")
   }
   
   private func replyHandlerIp(_ command: String, _ reply: String) {

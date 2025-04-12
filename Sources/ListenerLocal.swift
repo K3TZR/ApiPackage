@@ -31,7 +31,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
     _udpSocket.setIPv6Enabled(false)
     do {
       try _udpSocket.enableReusePort(true)
-      log?.errorExt("Local Listener: socket REUSE enabled")
+      log?.debug("Local Listener: socket REUSE enabled")
     } catch let error as NSError {
       log?.errorExt("Local Listener: socket REUSE, error <\(error.localizedDescription)>, code <(\(error.code)>")
     }
