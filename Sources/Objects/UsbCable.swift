@@ -14,7 +14,9 @@ public final class UsbCable {
   // ------------------------------------------------------------------------------
   // MARK: - Initialization
   
-  public init() {}
+  public init(_ id: String) {
+    self.id = id
+  }
 
   // ----------------------------------------------------------------------------
   // MARK: - Public Static command methods
@@ -75,17 +77,22 @@ public final class UsbCable {
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
     let id = properties[0].key
+    let index = apiModel.usbCables.firstIndex(where: { $0.id == id })
     // is it in use?
     if inUse {
       // YES, add it if not already present
-      if apiModel.usbCables[id] == nil { apiModel.usbCables[id] = UsbCable() }
-      // parse the properties
-      apiModel.usbCables[id]!.parse(Array(properties.dropFirst(1)) )
+      if index == nil {
+        apiModel.usbCables.append(UsbCable(id))
+        apiModel.usbCables.last!.parse(Array(properties.dropFirst(1)) )
+      } else {
+        // parse the properties
+        apiModel.usbCables[index!].parse(Array(properties.dropFirst(1)) )
+      }
       
     } else {
       // NO, remove it
-      apiModel.usbCables[id] = nil
-      log?.debug("USBCable \(id): REMOVED")
+      apiModel.usbCables.remove(at: index!)
+      log?.debug("UsbCable \(id): REMOVED")
     }
   }
 
@@ -152,6 +159,8 @@ public final class UsbCable {
   // ----------------------------------------------------------------------------
   // MARK: - Properties
   
+  public let id: String
+
   public var autoReport = false
   public var band = ""
   public var cableType = "bcd"

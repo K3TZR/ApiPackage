@@ -86,7 +86,7 @@ final public class ApiModel: TcpProcessor {
   public var radios = [Radio]()
   public var slices = [Slice]()
   public var tnfs = [Tnf]()
-  public var usbCables = [String:UsbCable]()
+  public var usbCables = [UsbCable]()
   public var waterfalls = [Waterfall]()
   public var xvtrs = [Xvtr]()
   
@@ -106,6 +106,10 @@ final public class ApiModel: TcpProcessor {
   public var listenerSmartlink: ListenerSmartlink?
   public var listenerLocal: ListenerLocal?
 
+  @ObservationIgnored
+  public var pingIntervals: [TimeInterval] = Array(repeating: 0.0, count: 60)
+  @ObservationIgnored
+  public var pingIntervalIndex = 0
 
   // ----------------------------------------------------------------------------
   // MARK: - Public types
@@ -389,7 +393,7 @@ final public class ApiModel: TcpProcessor {
       _tcp.send(command + "\n", sequenceNumber)
       
       // sent messages provided to the Tester (if Tester exists)
-      testDelegate?.tcpProcessor(command, isInput: true)
+      testDelegate?.tcpProcessor(command, isInput: false)
     }
   }
   
@@ -406,7 +410,7 @@ final public class ApiModel: TcpProcessor {
     _tcp.send(command + "\n", sequenceNumber)
     
     // sent messages provided to the Tester (if Tester exists)
-    testDelegate?.tcpProcessor(command, isInput: true)
+    testDelegate?.tcpProcessor(command, isInput: false)
     
     // wait for the reply
     let replyComponents = await tcpReply()
@@ -533,7 +537,7 @@ final public class ApiModel: TcpProcessor {
     case .tnf:                  Tnf.status(self, statusMessage.keyValuesArray(), !statusMessage.contains(kRemoved))
     case .transmit:             preProcessTransmit(statusMessage)
     case .usbCable:             UsbCable.status(self, statusMessage.keyValuesArray(), !statusMessage.contains(kRemoved))
-    case .wan:                  wan.parse(Array(statusMessage.keyValuesArray().dropFirst(1)) )
+    case .wan:                  wan.parse(Array(statusMessage.keyValuesArray()) )
     case .waveform:             waveform.parse(Array(statusMessage.keyValuesArray(delimiter: "=").dropFirst(1)) )
     case .xvtr:                 Xvtr.status(self, statusMessage.keyValuesArray(), !statusMessage.contains(kNotInUse))
       
@@ -848,7 +852,7 @@ final public class ApiModel: TcpProcessor {
       } else {
         
         Task {
-          var keyValues: KeyValuesArray
+          var keyValues = KeyValuesArray()
           
           let sequenceNumber = components.0
           let replyValue = components.1
@@ -879,6 +883,7 @@ final public class ApiModel: TcpProcessor {
               case "ant list":      keyValues = "ant_list=\(suffix)".keyValuesArray()
               case "mic list":      keyValues = "mic_list=\(suffix)".keyValuesArray()
               case "info":          keyValues = suffix.keyValuesArray(delimiter: ",")
+              case "ping":          updatePingInterval(replyEntry.timeStamp)
               default: return
               }
               
@@ -897,6 +902,12 @@ final public class ApiModel: TcpProcessor {
         }
       }
     }
+  }
+  
+  private func updatePingInterval(_ timeStamp: Date) {
+    let now = Date()
+    pingIntervals[pingIntervalIndex] = now.timeIntervalSince(timeStamp)
+    pingIntervalIndex = (pingIntervalIndex + 1) % pingIntervals.count
   }
   
   private func sendInitialCommands(_ isGui: Bool,
@@ -968,15 +979,13 @@ final public class ApiModel: TcpProcessor {
       guard let self = self else { return }
       
       Task { await MainActor.run {
-        let now = Date()
         for (i, radio) in self.radios.enumerated().reversed() {
           if radio.packet.source == .local {
-            let interval = now.timeIntervalSince(radio.lastSeen)
+            let interval = Date().timeIntervalSince(radio.lastSeen)
             self.radios[i].intervals[self.radios[i].intervalIndex] = interval
-            self.radios[i].intervalIndex += 1
-            if self.radios[i].intervalIndex >= 60 {
-              self.radios[i].intervalIndex = 0
-            }
+            
+            self.radios[i].intervalIndex = (self.radios[i].intervalIndex + 1) % self.radios[i].intervals.count
+            
             if interval > self._broadcastTimeout {
               let name = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
               //              for guiClient in radio.guiClients {

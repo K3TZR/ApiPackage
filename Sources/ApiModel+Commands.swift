@@ -407,8 +407,8 @@ extension ApiModel {
   // MARK: - UsbCable methods
   
   public func usbCableSet(_ id: String, _ property: UsbCable.Property, _ value: String) {
-    usbCables[id]?.parse([(property.rawValue, value)])
-    sendTcp(UsbCable.set(id: id, property: property, value: value))
+//    usbCables[id]?.parse([(property.rawValue, value)])
+//    sendTcp(UsbCable.set(id: id, property: property, value: value))
   }
   
   // ----------------------------------------------------------------------------

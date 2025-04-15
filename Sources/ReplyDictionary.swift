@@ -55,6 +55,7 @@ public typealias ReplyHandler = @MainActor @Sendable (String, String) -> Void
 public struct ReplyEntry: Sendable {
   public let command: String
   public let replyHandler: ReplyHandler?
+  public let timeStamp: Date = Date()
   
   public init(_ command: String, _ replyHandler: ReplyHandler? = nil) {
     self.command = command

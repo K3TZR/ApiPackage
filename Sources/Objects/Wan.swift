@@ -17,11 +17,6 @@ public final class Wan {
   public init() {}
   
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-  
-  // TODO:
-  
-  // ----------------------------------------------------------------------------
   // MARK: - Public parse method
   
   /// Parse status message
@@ -51,7 +46,7 @@ public final class Wan {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      log?.debug("Wan: initialized ServerConnected <\(self.serverConnected)>, RadioAuthenticated <\(self.radioAuthenticated)>")
+      log?.debug("Wan: initialized RadioAuthenticated <\(self.radioAuthenticated)>, ServerConnected <\(self.serverConnected)>")
     }
   }
   

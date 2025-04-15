@@ -89,7 +89,7 @@ public final class BandSetting: Identifiable {
         
       case .accTxEnabled:     accTxEnabled = property.value.bValue
       case .accTxReqEnabled:  accTxReqEnabled = property.value.bValue
-      case .name:             name = property.value == "GEN" ? 999 : property.value.iValue
+      case .name:             name = property.value
       case .hwAlcEnabled:     hwAlcEnabled = property.value.bValue
       case .inhibit:          inhibit = property.value.bValue
       case .rcaTxReqEnabled:  rcaTxReqEnabled = property.value.bValue
@@ -115,7 +115,7 @@ public final class BandSetting: Identifiable {
   
   public var accTxEnabled: Bool = false
   public var accTxReqEnabled: Bool = false
-  public var name = 999
+  public var name = ""
   public var hwAlcEnabled: Bool = false
   public var inhibit: Bool = false
   public var rcaTxReqEnabled: Bool = false
