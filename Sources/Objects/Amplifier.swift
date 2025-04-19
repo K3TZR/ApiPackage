@@ -43,7 +43,7 @@ public final class Amplifier: Identifiable {
       } else {
         // NO, remove it
         apiModel.amplifiers.remove(at: index!)
-        log?.debug("Amplifier \(id.hex): REMOVED")
+        Task { await ApiLog.debug("Amplifier \(id.hex): REMOVED") }
       }
     }
   }
@@ -59,7 +59,7 @@ public final class Amplifier: Identifiable {
       // check for unknown Keys
       guard let token = Amplifier.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log?.warningExt("Amplifier: unknown propety, \(property.key) = \(property.value)")
+        Task { await ApiLog.warning("Amplifier: unknown propety, \(property.key) = \(property.value)") }
         continue
       }
       // known keys
@@ -77,7 +77,7 @@ public final class Amplifier: Identifiable {
       if _initialized == false {
         // NO, it is now
         _initialized = true
-        log?.debug("Amplifier: ADDED, model = \(self.model)")
+        Task { await ApiLog.debug("Amplifier: ADDED, model = \(self.model)") }
       }
     }
   }

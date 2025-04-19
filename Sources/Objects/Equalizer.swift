@@ -66,7 +66,7 @@ public final class Equalizer: Identifiable {
     if inUse {
       if index == nil {
         apiModel.equalizers.append(Equalizer(id))
-        log?.debug("Equalizer: <\(id)> ADDED")
+        Task { await ApiLog.debug("Equalizer: <\(id)> ADDED") }
         apiModel.equalizers.last!.parse(Array(properties.dropFirst(1)) )
       } else {
         // parse the properties
@@ -77,7 +77,7 @@ public final class Equalizer: Identifiable {
     } else {
       // NO, remove it
       apiModel.equalizers.remove(at: index!)
-      log?.debug("Equalizer: <\(id)> REMOVED")
+      Task { await ApiLog.debug("Equalizer: <\(id)> REMOVED") }
     }
   }
 
@@ -92,7 +92,7 @@ public final class Equalizer: Identifiable {
       // check for unknown Keys
       guard let token = Equalizer.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log?.warningExt("Equalizer: unknown property, \(property.key) = \(property.value)")
+        Task { await ApiLog.warning("Equalizer: unknown property, \(property.key) = \(property.value)") }
         continue
       }
       // known keys

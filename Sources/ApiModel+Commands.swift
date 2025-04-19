@@ -1,6 +1,6 @@
 //
 //  ApiModel+Commands.swift
-//  
+//
 //
 //  Created by Douglas Adams on 5/25/23.
 //
@@ -27,7 +27,7 @@ extension ApiModel {
   public func setCwKeyImmediate(state: Bool, replyHandler: ReplyHandler? = nil) {
     sendTcp("cw key immediate" + " \(state.as1or0)", replyHandler: replyHandler)
   }
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Amplifier methods
   
@@ -36,10 +36,10 @@ extension ApiModel {
   }
   
   public func amplifierSet(_ id: UInt32, _ property: Amplifier.Property, _ value: String) {
-//    amplifiers[id]?.parse([(property.rawValue, value)])
+    //    amplifiers[id]?.parse([(property.rawValue, value)])
     // FIXME: add send code
   }
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Atu methods
   
@@ -52,7 +52,7 @@ extension ApiModel {
     default:                  break
     }
   }
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - BandSetting methods
   
@@ -71,15 +71,15 @@ extension ApiModel {
   }
   
   public func bandSettingSet(_ id: UInt32, _ property: BandSetting.Property, _ value: String) {
-//    bandSettings[id]?.parse([(property.rawValue, value)])
-//    switch property {
-//    case .inhibit, .hwAlcEnabled, .rfPower, .tunePower:
-//      sendTcp("transmit bandset \(id) \(property.rawValue)=\(value)")
-//    case .accTxEnabled, .accTxReqEnabled, .rcaTxReqEnabled, .tx1Enabled, .tx2Enabled, .tx3Enabled:
-//      sendTcp("interlock bandset \(id) \(property.rawValue)=\(value)")
-//    case .name:
-//      break
-//    }
+    //    bandSettings[id]?.parse([(property.rawValue, value)])
+    //    switch property {
+    //    case .inhibit, .hwAlcEnabled, .rfPower, .tunePower:
+    //      sendTcp("transmit bandset \(id) \(property.rawValue)=\(value)")
+    //    case .accTxEnabled, .accTxReqEnabled, .rcaTxReqEnabled, .tx1Enabled, .tx2Enabled, .tx3Enabled:
+    //      sendTcp("interlock bandset \(id) \(property.rawValue)=\(value)")
+    //    case .name:
+    //      break
+    //    }
   }
   
   // ----------------------------------------------------------------------------
@@ -97,43 +97,43 @@ extension ApiModel {
     // ask the Radio for an Equalizer's settings
     sendTcp("eq " + eqType + " info", replyHandler: replyHandler)
   }
-
+  
   public func equalizerSet(_ id: String, _ property: Equalizer.Property, _ value: String) {
-//    equalizers[id]?.parse([(property.rawValue, value)])
-//    var rawProperty = property.rawValue
-//    
-//    // is there an alternate property REQUIRED when sending to the radio?
-//    if let altValue = Equalizer.altProperty[property] {
-//      // YES
-//      rawProperty = altValue
-//    }
-//    sendTcp("eq \(id) \(rawProperty)=\(value)")
-//  }
-//
-//  public func equalizerFlat(_ id: String) {
-//    equalizerSet(id, .hz63, "0")
-//    equalizerSet(id, .hz125, "0")
-//    equalizerSet(id, .hz250, "0")
-//    equalizerSet(id, .hz500, "0")
-//    equalizerSet(id, .hz1000, "0")
-//    equalizerSet(id, .hz2000, "0")
-//    equalizerSet(id, .hz4000, "0")
-//    equalizerSet(id, .hz8000, "0")
+    //    equalizers[id]?.parse([(property.rawValue, value)])
+    //    var rawProperty = property.rawValue
+    //
+    //    // is there an alternate property REQUIRED when sending to the radio?
+    //    if let altValue = Equalizer.altProperty[property] {
+    //      // YES
+    //      rawProperty = altValue
+    //    }
+    //    sendTcp("eq \(id) \(rawProperty)=\(value)")
+    //  }
+    //
+    //  public func equalizerFlat(_ id: String) {
+    //    equalizerSet(id, .hz63, "0")
+    //    equalizerSet(id, .hz125, "0")
+    //    equalizerSet(id, .hz250, "0")
+    //    equalizerSet(id, .hz500, "0")
+    //    equalizerSet(id, .hz1000, "0")
+    //    equalizerSet(id, .hz2000, "0")
+    //    equalizerSet(id, .hz4000, "0")
+    //    equalizerSet(id, .hz8000, "0")
   }
   
   // ----------------------------------------------------------------------------
   // MARK: - Memory methods
   
   public func memorySet(_ id: UInt32, _ property: Memory.Property, _ value: String) {
-//    memories[id]?.parse([(property.rawValue, value)])
-//    switch property {
-//    case .apply, .remove:   sendTcp("memory \(property.rawValue) \(id)")
-//    case .create:           sendTcp("memory create")
-//    default:                sendTcp("memory set \(id) \(property.rawValue)=\(value)")
-//    }
-//    sendTcp("memory set \(id) \(property.rawValue)=\(value)")
+    //    memories[id]?.parse([(property.rawValue, value)])
+    //    switch property {
+    //    case .apply, .remove:   sendTcp("memory \(property.rawValue) \(id)")
+    //    case .create:           sendTcp("memory create")
+    //    default:                sendTcp("memory set \(id) \(property.rawValue)=\(value)")
+    //    }
+    //    sendTcp("memory set \(id) \(property.rawValue)=\(value)")
   }
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Panadapter methods
   
@@ -144,65 +144,65 @@ extension ApiModel {
   public func panadapterRequest(replyHandler: ReplyHandler? = nil) {
     sendTcp("display panafall create x=50, y=50", replyHandler: replyHandler)
   }
-
+  
   public func panadapterRfGainList(_ streamId: UInt32, replyHandler: ReplyHandler? = nil) {
     sendTcp("display pan rfgain_info \(streamId.hex)", replyHandler: replyHandler)
   }
-
+  
   public func panadapterSet(_ id: UInt32, _ property: Panadapter.Property, _ value: String) {
     var adjustedValue = value
     
-//    if property == .rxAnt { adjustedValue = apiModel.stdAntennaName(value) }
-
-//    switch property {
-//    case .band:
-//      if value == "WWV" { adjustedValue = "33"}
-//      if value == "GEN" { adjustedValue = "34"}
-//    default: break
-//    }
-//    panadapters[id]?.parse([(property.rawValue, adjustedValue)])
-//    sendTcp("display pan set \(id.hex) \(property.rawValue)=\(value)")
+    //    if property == .rxAnt { adjustedValue = apiModel.stdAntennaName(value) }
+    
+    //    switch property {
+    //    case .band:
+    //      if value == "WWV" { adjustedValue = "33"}
+    //      if value == "GEN" { adjustedValue = "34"}
+    //    default: break
+    //    }
+    //    panadapters[id]?.parse([(property.rawValue, adjustedValue)])
+    //    sendTcp("display pan set \(id.hex) \(property.rawValue)=\(value)")
   }
   
-//  public enum ZoomType {
-//    case band
-//    case minus
-//    case plus
-//    case segment
-//  }
+  //  public enum ZoomType {
+  //    case band
+  //    case minus
+  //    case plus
+  //    case segment
+  //  }
   
-//  public func panadapterZoom(_ id: UInt32, _ type: ZoomType) {
-//    
-//    switch type {
-//    case .band:
-//      print("zoom to band")
-//      
-//    case .minus:
-//      if bandwidth * 2 > maxBw {
-//        // TOO Wide, make the bandwidth maximum value
-//        panadapterSet(id, .bandwidth, maxBw.hzToMhz)
-//        
-//      } else {
-//        // OK, make the bandwidth twice its current value
-//        panadapterSet(id, .bandwidth, (bandwidth * 2).hzToMhz)
-//      }
-//    
-//    case .plus:
-//      if bandwidth / 2 < minBw {
-//        // TOO Narrow, make the bandwidth minimum value
-//        panadapterSet(id, .bandwidth, minBw.hzToMhz)
-//        
-//      } else {
-//        // OK, make the bandwidth half its current value
-//        panadapterSet(id, .bandwidth, (bandwidth / 2).hzToMhz)
-//      }
-//      
-//    case .segment:
-//      print("zoom to segment")
-//    }
-//  }
-
-
+  //  public func panadapterZoom(_ id: UInt32, _ type: ZoomType) {
+  //
+  //    switch type {
+  //    case .band:
+  //      print("zoom to band")
+  //
+  //    case .minus:
+  //      if bandwidth * 2 > maxBw {
+  //        // TOO Wide, make the bandwidth maximum value
+  //        panadapterSet(id, .bandwidth, maxBw.hzToMhz)
+  //
+  //      } else {
+  //        // OK, make the bandwidth twice its current value
+  //        panadapterSet(id, .bandwidth, (bandwidth * 2).hzToMhz)
+  //      }
+  //
+  //    case .plus:
+  //      if bandwidth / 2 < minBw {
+  //        // TOO Narrow, make the bandwidth minimum value
+  //        panadapterSet(id, .bandwidth, minBw.hzToMhz)
+  //
+  //      } else {
+  //        // OK, make the bandwidth half its current value
+  //        panadapterSet(id, .bandwidth, (bandwidth / 2).hzToMhz)
+  //      }
+  //
+  //    case .segment:
+  //      print("zoom to segment")
+  //    }
+  //  }
+  
+  
   // ----------------------------------------------------------------------------
   // MARK: - Profile methods
   
@@ -221,13 +221,13 @@ extension ApiModel {
   public func txProfileRequest(replyHandler: ReplyHandler? = nil) {
     sendTcp("profile tx info", replyHandler: replyHandler)
   }
-
+  
   public func profileSet(_ id: String, _ cmd: String, _ profileName: String) {
     guard id == "mic" || id == "tx" || id == "global" else { return }
     guard cmd == "load" || cmd == "reset" || cmd == "delete" || cmd == "create" else { return }
     sendTcp("profile \(id) \(cmd) \"\(profileName)\"")
   }
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Radio methods
   
@@ -257,11 +257,11 @@ extension ApiModel {
   public func persistenceOffRequest(replyHandler: ReplyHandler? = nil) {
     sendTcp("client program start_persistence off", replyHandler: replyHandler)
   }
-
+  
   public func reebootRequest(replyHandler: ReplyHandler? = nil) {
     sendTcp("radio reboot", replyHandler: replyHandler)
   }
-
+  
   public func uptimeRequest(replyHandler: ReplyHandler? = nil) {
     sendTcp("radio uptime", replyHandler: replyHandler )
   }
@@ -269,8 +269,8 @@ extension ApiModel {
   public func versionRequest(replyHandler: ReplyHandler? = nil) {
     sendTcp("version", replyHandler: replyHandler )
   }
-    
- // ----------------------------------------------------------------------------
+  
+  // ----------------------------------------------------------------------------
   // MARK: - Slice methods
   
   public func sliceAdd(panadapterId: UInt32? = nil, mode: String = "", frequency: Hz = 0,  rxAntenna: String = "", usePersistence: Bool = false, replyHandler: ReplyHandler? = nil) {
@@ -280,26 +280,26 @@ extension ApiModel {
     sendTcp(Slice.remove(id: id), replyHandler: replyHandler)
   }
   public func sliceSet(_ id: UInt32, _ property: Slice.Property, _ value: String) {
-//    var adjustedValue = value
+    //    var adjustedValue = value
     
-//    if property == .rxAnt { adjustedValue = apiModel.stdAntennaName(value) }
-//    if property == .txAnt { adjustedValue = apiModel.stdAntennaName(value) }
-
-//    slices[id]?.parse([(property.rawValue, value)])
-//    switch property {
-//    case .filterLow:
-//      sendTcp("filt \(id) filterLow=\(value)")
-//    case .filterHigh:
-//      sendTcp("filt \(id) filterHigh=\(value)")
-//    case .frequency:
-//      sendTcp("slice tune \(id) \(value) " + "autopan" + "=\(slices[id]?.autoPan.as1or0 ?? "0")")
-//    case .locked:
-//      sendTcp("slice \(value == "0" ? "unlock" : "lock" ) \(id)")
-//    case .audioGain, .audioLevel:
-//      sendTcp("slice set \(id) audio_level=\(value)")
-//    default:
-//      sendTcp("slice set \(id) \(property.rawValue)=\(value)")
-//    }
+    //    if property == .rxAnt { adjustedValue = apiModel.stdAntennaName(value) }
+    //    if property == .txAnt { adjustedValue = apiModel.stdAntennaName(value) }
+    
+    //    slices[id]?.parse([(property.rawValue, value)])
+    //    switch property {
+    //    case .filterLow:
+    //      sendTcp("filt \(id) filterLow=\(value)")
+    //    case .filterHigh:
+    //      sendTcp("filt \(id) filterHigh=\(value)")
+    //    case .frequency:
+    //      sendTcp("slice tune \(id) \(value) " + "autopan" + "=\(slices[id]?.autoPan.as1or0 ?? "0")")
+    //    case .locked:
+    //      sendTcp("slice \(value == "0" ? "unlock" : "lock" ) \(id)")
+    //    case .audioGain, .audioLevel:
+    //      sendTcp("slice set \(id) audio_level=\(value)")
+    //    default:
+    //      sendTcp("slice set \(id) \(property.rawValue)=\(value)")
+    //    }
   }
   
   /// Find a Slice by DAX Channel
@@ -333,7 +333,7 @@ extension ApiModel {
     //      }
     //    }
   }
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Transmit methods
   
@@ -350,18 +350,18 @@ extension ApiModel {
     switch property {
     case .mox:
       sendTcp("xmit \(value)")
-
+      
     case .cwBreakInEnabled, .cwBreakInDelay, .cwlEnabled, .cwIambicEnabled,
         .cwPitch, .cwSidetoneEnabled, .cwSyncCwxEnabled, .cwIambicMode,
         .cwSwapPaddles, .cwSpeed:
       sendTcp("cw \(rawProperty) \(value)")
-
+      
     case .micBiasEnabled, .micBoostEnabled, .micSelection, .micAccEnabled:
       sendTcp("mic \(rawProperty) \(value)")
-
+      
     case .tune:
       sendTcp("transmit \(rawProperty) \(value)")
-
+      
     default:
       sendTcp("transmit set \(rawProperty)=\(value)")
     }
@@ -369,10 +369,10 @@ extension ApiModel {
   
   // ----------------------------------------------------------------------------
   // MARK: - Private Send methods
-
+  
   private func send(_ property: Slice.Property, _ value: String) {
   }
-
+  
   //  @MainActor public func sliceMakeActive(_ slice: Slice) {
   //    for slice in apiModel.slices {
   //      slice.active = false
@@ -389,11 +389,11 @@ extension ApiModel {
   }
   public func tnfRemove(_ id: UInt32, replyHandler: ReplyHandler? = nil) {
     sendTcp(Tnf.remove(id: id), replyHandler: replyHandler)
-
+    
     // remove it immediately (Tnf does not send status on removal)
     if let index = tnfs.firstIndex(where: {$0.id == id}) {
       tnfs.remove(at: index)
-      log?.debug("Tnf, removed: id = \(id)")
+      Task { await ApiLog.debug("Tnf, removed: id = \(id)") }
     }
   }
   public func tnfSet(_ id: UInt32, _ property: Tnf.Property, _ value: String) {
@@ -407,16 +407,16 @@ extension ApiModel {
   // MARK: - UsbCable methods
   
   public func usbCableSet(_ id: String, _ property: UsbCable.Property, _ value: String) {
-//    usbCables[id]?.parse([(property.rawValue, value)])
-//    sendTcp(UsbCable.set(id: id, property: property, value: value))
+    //    usbCables[id]?.parse([(property.rawValue, value)])
+    //    sendTcp(UsbCable.set(id: id, property: property, value: value))
   }
   
   // ----------------------------------------------------------------------------
   // MARK: - Waterfall methods
   
   public func waterfallSet(_ id: UInt32,_ property: Waterfall.Property, _ value: String) {
-//    waterfalls[id]?.parse([(property.rawValue, value)])
-//   sendTcp("display panafall set \(id.toHex()) \(property.rawValue)=\(value)")
+    //    waterfalls[id]?.parse([(property.rawValue, value)])
+    //   sendTcp("display panafall set \(id.toHex()) \(property.rawValue)=\(value)")
   }
   
   // ----------------------------------------------------------------------------
@@ -446,11 +446,11 @@ extension ApiModel {
     default: return
     }
   }
-
+  
   public func streamRemove(_ streamId: UInt32?)  {
     if let streamId {
       sendTcp("stream remove \(streamId.hex)")
     }
   }
-
+  
 }

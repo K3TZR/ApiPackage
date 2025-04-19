@@ -50,7 +50,7 @@ public final class DaxTxAudio {
       // check for unknown keys
       guard let token = Property(rawValue: property.key) else {
         // unknown Key, log it and ignore the Key
-        log?.warningExt("DaxTxAudio: unknown property, \(property.key) = \(property.value)")
+        Task { await ApiLog.warning("DaxTxAudio: unknown property, \(property.key) = \(property.value)") }
         continue
       }
       // known keys, in alphabetical order
@@ -66,7 +66,7 @@ public final class DaxTxAudio {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      log?.debug("DaxTxAudio ADDED: handle = \(self.clientHandle.hex)")
+      Task { await ApiLog.debug("DaxTxAudio ADDED: handle = \(self.clientHandle.hex)") }
     }
   }
   

@@ -51,7 +51,7 @@ public final class Profile {
     let components = properties[0].key.components(separatedBy: " ")
     
     guard components.count == 2 else {
-      log?.warningExt("Profile: unexpected format, \(properties[0].key)")
+      Task { await ApiLog.warning("Profile: unexpected format, \(properties[0].key)") }
       return
     }
     
@@ -63,7 +63,7 @@ public final class Profile {
       // YES, add it if not already present
       if index == nil {
         apiModel.profiles.append(Profile(id))
-        log?.debug("Profile: <\(id)> ADDED")
+        Task { await ApiLog.debug("Profile: <\(id)> ADDED") }
         apiModel.profiles.last!.parse(properties)
       } else {
         // parse the properties
@@ -73,7 +73,7 @@ public final class Profile {
     } else {
       // NO, remove it
       apiModel.profiles.remove(at: index!)
-      log?.debug("Profile: <\(id)> REMOVED")
+      Task { await ApiLog.debug("Profile: <\(id)> REMOVED") }
     }
   }
   
@@ -86,14 +86,14 @@ public final class Profile {
     let components = properties[0].key.components(separatedBy: " ")
     
     guard components.count == 2 else {
-      log?.warningExt("Profile: unexpected format, \(properties[0].key)")
+      Task { await ApiLog.warning("Profile: unexpected format, \(properties[0].key)") }
       return
     }
     
     // check for unknown Key
     guard let token = Profile.Property(rawValue: components[1]) else {
       // log it and ignore the Key
-      log?.warningExt("Profile: unknown property, \(properties[1].key)")
+      Task { await ApiLog.warning("Profile: unknown property, \(properties[1].key)") }
       return
     }
     // known keys

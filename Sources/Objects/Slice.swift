@@ -112,7 +112,7 @@ public final class Slice: Identifiable {
       } else {
         // NO, remove it
         apiModel.slices.remove(at: index!)
-        log?.debug("Slice \(id) REMOVED")
+        Task { await ApiLog.debug("Slice \(id) REMOVED") }
       }
     }
   }
@@ -128,7 +128,7 @@ public final class Slice: Identifiable {
       // check for unknown Keys
       guard let token = Slice.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log?.warningExt("Slice: unknown property, \(property.key) = \(property.value)")
+        Task { await ApiLog.warning("Slice: unknown property, \(property.key) = \(property.value)") }
         continue
       }
       // Known keys, in alphabetical order
@@ -226,7 +226,7 @@ public final class Slice: Identifiable {
     if _initialized == false && panadapterId != 0 && frequency != 0 && mode != "" {
       // NO, it is now
       _initialized = true
-      log?.debug("Slice: <\(self.id.hex)> ADDED, frequency <\(self.frequency.hzToMhz)>, panadapter <\(self.panadapterId.hex)>")
+      Task { await ApiLog.debug("Slice: <\(self.id.hex)> ADDED, frequency <\(self.frequency.hzToMhz)>, panadapter <\(self.panadapterId.hex)>") }
     }
   }
   

@@ -61,7 +61,7 @@ public final class Tnf: Identifiable {
       } else {
         // NO, remove it
         apiModel.tnfs.remove(at: index!)
-        log?.debug("Tnf \(id): REMOVED")
+        Task { await ApiLog.debug("Tnf \(id): REMOVED") }
       }
     }
   }
@@ -77,7 +77,7 @@ public final class Tnf: Identifiable {
       // check for unknown Keys
       guard let token = Tnf.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        log?.warningExt("Tnf: unknown property, \(property.key) = \(property.value)")
+        Task { await ApiLog.warning("Tnf: unknown property, \(property.key) = \(property.value)") }
         continue
       }
       // known keys
@@ -92,7 +92,7 @@ public final class Tnf: Identifiable {
       if _initialized == false && frequency != 0 {
         // NO, it is now
         _initialized = true
-        log?.debug("Tnf: ADDED, frequency = \(self.frequency.hzToMhz)")
+        Task { await ApiLog.debug("Tnf: ADDED, frequency = \(self.frequency.hzToMhz)") }
       }
     }
   }

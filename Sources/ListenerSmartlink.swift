@@ -20,7 +20,7 @@ public enum ListenerError: String, Error {
 ///
 ///      listens for the Smartlink messages of a Flex-6000 Radio
 ///
-//@MainActor
+@MainActor
 public final class ListenerSmartlink: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
@@ -42,38 +42,38 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Public methods
   
-//  public func start(_ tokens: Tokens) async -> Tokens? {
-//      return connect(tokens)
-//  }
-
-//  public func start(refreshToken: String) async -> Tokens? {
-//    if let idToken = await requestIdToken(refreshToken: refreshToken) {
-//      log?.debug("Smartlink Listener: IdToken obtained from refresh token")
-//      return connect(using: Tokens(idToken, refreshToken))
-//    }
-//    log?.debug("Smartlink Listener: Failed to obtain IdToken from refresh token")
-//    return nil
-//  }
+  //  public func start(_ tokens: Tokens) async -> Tokens? {
+  //      return connect(tokens)
+  //  }
+  
+  //  public func start(refreshToken: String) async -> Tokens? {
+  //    if let idToken = await requestIdToken(refreshToken: refreshToken) {
+  //      Task { await ApiLog.debug("Smartlink Listener: IdToken obtained from refresh token")
+  //      return connect(using: Tokens(idToken, refreshToken))
+  //    }
+  //    Task { await ApiLog.debug("Smartlink Listener: Failed to obtain IdToken from refresh token")
+  //    return nil
+  //  }
   
   /// Start listening given a User / Pwd
   /// - Parameters:
   ///   - user:           user value
   ///   - pwd:            user password
-//  func start(_ user: String, _ pwd: String) async -> Tokens? {
-//    if let tokens = await requestTokens(user: user, pwd: pwd) {
-//      log?.debug("Smartlink Listener: IdToken obtained from login credentials")
-//      return connect(using: tokens)
-//    }
-//    log?.debug("Smartlink Listener: Failed to obtain IdToken from login credentials")
-//    return nil
-//  }
+  //  func start(_ user: String, _ pwd: String) async -> Tokens? {
+  //    if let tokens = await requestTokens(user: user, pwd: pwd) {
+  //      Task { await ApiLog.debug("Smartlink Listener: IdToken obtained from login credentials")
+  //      return connect(using: tokens)
+  //    }
+  //    Task { await ApiLog.debug("Smartlink Listener: Failed to obtain IdToken from login credentials")
+  //    return nil
+  //  }
   
   /// stop the listener
   public func stop() {
     _pingTimer?.cancel()
-//    _tcpSocket?.disconnect()
+    //    _tcpSocket?.disconnect()
     _tcpSocket?.disconnectAfterReadingAndWriting()
-    log?.debug("Smartlink Listener: STOPPED")
+    Task { await ApiLog.debug("Smartlink Listener: STOPPED") }
   }
   
   /// Initiate a smartlink connection to a radio
@@ -85,7 +85,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
     
     return try await withCheckedThrowingContinuation{ continuation in
       _awaitWanHandle = continuation
-      log?.debug("Smartlink Listener: Connect sent to serial <\(serial)>")
+      Task { await ApiLog.debug("Smartlink Listener: Connect sent to serial <\(serial)>") }
       // send a command to SmartLink to request a connection to the specified Radio
       sendTlsCommand("application connect serial=\(serial) hole_punch_port=\(holePunchPort))")
     }
@@ -94,7 +94,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   /// Disconnect a smartlink Radio
   /// - Parameter serialNumber:         the serial number of the Radio
   public func smartlinkDisconnect(for serial: String) {
-    log?.debug("Smartlink Listener: Disconnect sent to serial <\(serial)>")
+    Task { await ApiLog.debug("Smartlink Listener: Disconnect sent to serial <\(serial)>") }
     // send a command to SmartLink to request disconnection from the specified Radio
     sendTlsCommand("application disconnect_users serial=\(serial)")
   }
@@ -104,7 +104,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   ///   - serialNumber:         the serial number of the Radio
   ///   - handle:               the handle of the Client
   public func smartlinkDisconnectClient(for serial: String, handle: UInt32) {
-    log?.debug("Smartlink Listener: Disconnect sent to serial <\(serial)>, handle <\(handle.hex)>")
+    Task { await ApiLog.debug("Smartlink Listener: Disconnect sent to serial <\(serial)>, handle <\(handle.hex)>") }
     // send a command to SmartLink to request disconnection from the specified Radio
     sendTlsCommand("application disconnect_users serial=\(serial) handle=\(handle.hex)")
   }
@@ -117,26 +117,30 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
     // use the ID Token to connect to the Smartlink service
     do {
       try _tcpSocket.connect(toHost: kSmartlinkHost, onPort: kSmartlinkPort, withTimeout: _timeout)
-      log?.debug("Smartlink Listener: TCP Socket connection initiated")
+      Task { await ApiLog.debug("Smartlink Listener: TCP Socket connection initiated") }
       return true
-
+      
     } catch {
-      log?.debug("Smartlink Listener: TCP Socket connection FAILED")
+      Task { await ApiLog.debug("Smartlink Listener: TCP Socket connection FAILED") }
       return false
     }
   }
-
+  
+  private func readData() {
+    _tcpSocket.readData(to: GCDAsyncSocket.lfData(), withTimeout: -1, tag: 0)
+  }
+  
   /// Test connection
   /// - Parameter serialNumber:         the serial number of the Radio
   ///
   public func sendSmartlinkTest(for serialNumber: String) {
     // insure that the WanServer is connected to SmartLink
-    log?.info("Smartlink Listener:, smartLink test initiated to serial <\(serialNumber)>")
+    Task { await ApiLog.info("Smartlink Listener:, smartLink test initiated to serial <\(serialNumber)>") }
     
     // send a command to SmartLink to test the connection for the specified Radio
     sendTlsCommand("application test_connection serial=\(serialNumber)", timeout: _timeout)
   }
-
+  
   /// Send a command to the server using TLS
   /// - Parameter cmd:                command text
   private func sendTlsCommand(_ cmd: String, timeout: TimeInterval = 5.0, tag: Int = 1) {
@@ -144,7 +148,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
     let command = cmd + "\n"
     _tcpSocket.write(command.data(using: String.Encoding.utf8, allowLossyConversion: false)!, withTimeout: timeout, tag: 0)
   }
-
+  
   /// Ping the SmartLink server
   private func startPinging() {
     // create the timer's dispatch source
@@ -160,9 +164,13 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
     })
     // start the timer
     _pingTimer.resume()
-    log?.debug("Smartlink Listener: STARTED pinging <\(self._host ?? "????")>")
+    Task { await ApiLog.debug("Smartlink Listener: STARTED pinging") }
   }
-    
+  
+  private func startTLS(_ tlsSettings: [String : NSObject]) {
+    _tcpSocket.startTLS(tlsSettings)
+  }
+  
   // ----------------------------------------------------------------------------
   // MARK: - Properties
   
@@ -188,11 +196,11 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   private var _timeout = 0.0                // seconds
   private var _user: String?
   private var _wanHandle: String?
-
+  
   private let kSmartlinkHost = "smartlink.flexradio.com"
   private let kSmartlinkPort: UInt16 = 443
   private let kPlatform = "macOS"
-
+  
   private let kDomain             = "https://frtest.auth0.com/"
   private let kClientId           = "4Y9fEIIsVYyQo5u6jr7yBWc4lV5ugC2m"
   private let kServiceName        = ".oauth-token"
@@ -239,61 +247,65 @@ extension ListenerSmartlink: GCDAsyncSocketDelegate {
   //      If a TLS negotiation fails (invalid certificate, etc) then the socket will immediately close,
   //      and the socketDidDisconnect:withError: delegate method will be called with an error code.
   //
-  public func socket(_ sock: GCDAsyncSocket,
+  public nonisolated func socket(_ sock: GCDAsyncSocket,
                      didConnectToHost host: String,
                      port: UInt16) {
-    _host = host
-    log?.debug("Smartlink Listener: TCP Socket didConnectToHost <\(host):\(port)>")
+//    _host = host
+    Task { await ApiLog.debug("Smartlink Listener: TCP Socket didConnectToHost <\(host):\(port)>") }
     
     // initiate a secure (TLS) connection to the Smartlink server
     var tlsSettings = [String : NSObject]()
     tlsSettings[kCFStreamSSLPeerName as String] = kSmartlinkHost as NSObject
-    _tcpSocket.startTLS(tlsSettings)
     
-    log?.debug("Smartlink Listener: TLS Socket connection initiated")
+    Task {
+      await startTLS(tlsSettings)
+      await ApiLog.debug("Smartlink Listener: TLS Socket connection initiated")
+    }
   }
   
-  public func socketDidSecure(_ sock: GCDAsyncSocket) {
-    log?.debug("Smartlink Listener: TLS socketDidSecure")
+  public nonisolated func socketDidSecure(_ sock: GCDAsyncSocket) {
     
-    // start pinging SmartLink server
-    startPinging()
-    
-    // register the Application / token pair with the SmartLink server
-    sendTlsCommand("application register name=\(_appName!) platform=\(kPlatform) token=\(_currentTokens!.idToken)", timeout: _timeout, tag: 0)
-    log?.debug("Smartlink Listener: Application registered, name <\(self._appName!)> platform <\(self.kPlatform)>")
-    
-    // start reading
-    _tcpSocket.readData(to: GCDAsyncSocket.lfData(), withTimeout: -1, tag: 0)
-    log?.info("Smartlink Listener: STARTED")
+    Task {
+      await ApiLog.debug("Smartlink Listener: TLS socketDidSecure")
+      
+      // start pinging SmartLink server
+      await startPinging()
+      // register the Application / token pair with the SmartLink server
+      await sendTlsCommand("application register name=\(_appName!) platform=\(kPlatform) token=\(_currentTokens!.idToken)", timeout: _timeout, tag: 0)
+      await ApiLog.debug("Smartlink Listener: Application registered, name <\(self._appName!)> platform <\(self.kPlatform)>")
+      // start reading
+      await readData()
+
+      await ApiLog.info("Smartlink Listener: STARTED")
+    }
   }
   
-  public func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
+  public nonisolated func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
     // get the bytes that were read
     if let msg = String(data: data, encoding: .ascii) {
       // process the message
-      parseVitaPayload(msg)
+      Task { await parseVitaPayload(msg) }
     }
     // trigger the next read
-    _tcpSocket.readData(to: GCDAsyncSocket.lfData(), withTimeout: -1, tag: 0)
+    Task { await readData() }
   }
   
-  public func socketDidDisconnect(_ sock: GCDAsyncSocket, withError err: Error?) {
+  public nonisolated func socketDidDisconnect(_ sock: GCDAsyncSocket, withError err: Error?) {
     // Disconnected from the Smartlink server
     let error = (err == nil ? "" : " with error: " + err!.localizedDescription)
     if err == nil {
-      log?.debug("SmartlinkListener: TCP socketDidDisconnect")
+      Task { await ApiLog.debug("SmartlinkListener: TCP socketDidDisconnect") }
     } else {
-      log?.errorExt("SmartlinkListener: TCP socketDidDisconnect <\(error)>")
+      Task { await ApiLog.error("SmartlinkListener: TCP socketDidDisconnect <\(error)>") }
     }
-    if err != nil { stop() }
+//    if err != nil { stop() }
   }
   
-  public func socket(_ sock: GCDAsyncSocket, shouldTimeoutWriteWithTag tag: Int, elapsed: TimeInterval, bytesDone length: UInt) -> TimeInterval {
+  public nonisolated func socket(_ sock: GCDAsyncSocket, shouldTimeoutWriteWithTag tag: Int, elapsed: TimeInterval, bytesDone length: UInt) -> TimeInterval {
     return 0
   }
   
-  public func socket(_ sock: GCDAsyncSocket, shouldTimeoutReadWithTag tag: Int, elapsed: TimeInterval, bytesDone length: UInt) -> TimeInterval {
+  public nonisolated func socket(_ sock: GCDAsyncSocket, shouldTimeoutReadWithTag tag: Int, elapsed: TimeInterval, bytesDone length: UInt) -> TimeInterval {
     return 30.0
   }
 }
@@ -443,11 +455,11 @@ extension ListenerSmartlink {
   private func updateClaims(from idToken: IdToken?) {
     if let idToken = idToken, let jwt = try? decode(jwt: idToken) {
       Task {
-        await _smartlinkImage = getImage(jwt.claim(name: kClaimPicture).string)
-      }
-      //      settingModel.shared.smartlinkUser = jwt.claim(name: kClaimEmail).string ?? ""
+        await _smartlinkImage = getImage(jwt.claim(name: kClaimPicture).string) }
     }
+    //      settingModel.shared.smartlinkUser = jwt.claim(name: kClaimEmail).string ?? ""
   }
+  
   
   private func getImage(_ claimString: String?) async -> Image {
     guard let urlString = claimString, let url = URL(string: urlString) else {
@@ -463,22 +475,22 @@ extension ListenerSmartlink {
       }
       
     } catch {
-      log?.errorExt("Smartlink Listener: Error loading image <\(error)>")
+      Task { await ApiLog.error("Smartlink Listener: Error loading image <\(error)>") }
     }
     return Image(systemName: kDefaultPicture)
   }
   
   func imageFromData(_ data: Data) -> Image? {
-      #if os(macOS)
-      if let nsImage = NSImage(data: data) {
-          return Image(nsImage: nsImage)
-      }
-      #else
-      if let uiImage = UIImage(data: data) {
-          return Image(uiImage: uiImage)
-      }
-      #endif
-      return nil
+#if os(macOS)
+    if let nsImage = NSImage(data: data) {
+      return Image(nsImage: nsImage)
+    }
+#else
+    if let uiImage = UIImage(data: data) {
+      return Image(uiImage: uiImage)
+    }
+#endif
+    return nil
   }
   
 }
@@ -487,7 +499,7 @@ extension ListenerSmartlink {
 // MARK: - ListenerSmartlink extension - Smartlink data Parsing
 
 extension ListenerSmartlink {
-
+  
   /// Parse a Vita payload
   /// - Parameter text:   a Vita payload
   func parseVitaPayload(_ text: String) {
@@ -497,27 +509,27 @@ extension ListenerSmartlink {
       case Received
     }
     let msg = text.trimmingCharacters(in: .whitespacesAndNewlines)
-
+    
     let properties = msg.keyValuesArray()
-
+    
     // Check for unknown properties
     guard let token = Property(rawValue: properties[0].key)  else {
       // log it
-      log?.warningExt("Smartlink Listener: unknown message property <\(msg)>")
+      Task { await ApiLog.warning("Smartlink Listener: unknown message property <\(msg)>") }
       return
     }
     // which primary message type?
     switch token {
-
+      
     case .application:    parseApplication(Array(properties.dropFirst()))
     case .radio:          parseRadio(Array(properties.dropFirst()), msg: msg)
     case .Received:       break   // ignore message on Test connection
     }
   }
-
+  
   // ------------------------------------------------------------------------------
   // MARK: - Private methods
-
+  
   /// Parse a received "application" message
   /// - Parameter properties:        message KeyValue pairs
   private func parseApplication(_ properties: KeyValuesArray) {
@@ -526,21 +538,21 @@ extension ListenerSmartlink {
       case registrationInvalid = "registration_invalid"
       case userSettings        = "user_settings"
     }
-
+    
     // Check for unknown properties
     guard let token = Property(rawValue: properties[0].key)  else {
       // log it and ignore the message
-      log?.warningExt("Smartlink Listener: unknown application property <\(properties[1].key)>")
+      Task { await ApiLog.warning("Smartlink Listener: unknown application property <\(properties[1].key)>") }
       return
     }
     switch token {
-
+      
     case .info:                     parseApplicationInfo(Array(properties.dropFirst()))
     case .registrationInvalid:      parseRegistrationInvalid(properties)
     case .userSettings:             parseUserSettings(Array(properties.dropFirst()))
     }
   }
-
+  
   /// Parse a received "radio" message
   /// - Parameter msg:        the message (after the primary type)
   private func parseRadio(_ properties: KeyValuesArray, msg: String) {
@@ -549,62 +561,62 @@ extension ListenerSmartlink {
       case list
       case testConnection = "test_connection"
     }
-
+    
     // Check for unknown properties
     guard let token = Property(rawValue: properties[0].key)  else {
       // log it and ignore the message
-      log?.warningExt("Smartlink Listener: unknown radio property <\(properties[1].key)>")
+      Task { await ApiLog.warning("Smartlink Listener: unknown radio property <\(properties[1].key)>") }
       return
     }
     // which secondary message type?
     switch token {
-
+      
     case .connectReady:
       parseRadioConnectReady(Array(properties.dropFirst()))
     case .list:               parseRadioList(msg.dropFirst(11))
     case .testConnection:     parseTestConnectionResults(Array(properties.dropFirst()))
     }
   }
-
+  
   /// Parse a received "application" message
   /// - Parameter properties:         a KeyValuesArray
   private func parseApplicationInfo(_ properties: KeyValuesArray) {
     enum Property: String {
       case publicIp = "public_ip"
     }
-
-    log?.debug("Smartlink Listener: ApplicationInfo received")
-
+    
+    Task { await ApiLog.debug("Smartlink Listener: ApplicationInfo received") }
+    
     // process each key/value pair, <key=value>
     for property in properties {
       // Check for unknown properties
       guard let token = Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log?.warningExt("Smartlink Listener: unknown info property <\(property.key)>")
+        Task { await ApiLog.warning("Smartlink Listener: unknown info property <\(property.key)>") }
         continue
       }
       // Known tokens, in alphabetical order
       switch token {
-
+        
       case .publicIp:       _publicIp = property.value
       }
       if _publicIp != nil {
         // stream it
-
+        
         // NOTE:
-//        Task {
-//        _listenerModel.statusUpdate(WanStatus(.publicIp, _firstName! + " " + _lastName!, _callsign!, _serial, _wanHandle, _publicIp))
-//        }
+        //        Task {
+        //        _listenerModel.statusUpdate(WanStatus(.publicIp, _firstName! + " " + _lastName!, _callsign!, _serial, _wanHandle, _publicIp))
+        //        }
       }
     }
   }
-
+  
   /// Respond to an Invalid registration
   /// - Parameter msg:                the message text
   private func parseRegistrationInvalid(_ properties: KeyValuesArray) {
-    log?.warningExt("Smartlink Listener: invalid registration \(properties.count == 3 ? "<\(properties[2].key)>" : "<>")")
+    Task { await ApiLog.warning("Smartlink Listener: invalid registration \(properties.count == 3 ? "<\(properties[2].key)>" : "<>")") }
   }
-
+  
   /// Parse a received "user settings" message
   /// - Parameter properties:         a KeyValuesArray
   private func parseUserSettings(_ properties: KeyValuesArray) {
@@ -613,34 +625,34 @@ extension ListenerSmartlink {
       case firstName    = "first_name"
       case lastName     = "last_name"
     }
-
-    log?.debug("Smartlink Listener: UserSettings received")
-
+    
+    Task { await ApiLog.debug("Smartlink Listener: UserSettings received") }
+    
     // process each key/value pair, <key=value>
     for property in properties {
       // Check for Unknown properties
       guard let token = Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log?.warningExt("Smartlink Listener: unknown user setting <\(property.key)>")
+        Task { await ApiLog.warning("Smartlink Listener: unknown user setting <\(property.key)>") }
         continue
       }
       // Known tokens, in alphabetical order
       switch token {
-
+        
       case .callsign:       _callsign = property.value
       case .firstName:      _firstName = property.value
       case .lastName:       _lastName = property.value
       }
     }
-
+    
     if _firstName != nil && _lastName != nil && _callsign != nil {
       // NOTE:
-//      Task {
-//      _listenerModel.statusUpdate(WanStatus(.settings, _firstName! + " " + _lastName!, _callsign!, _serial, _wanHandle, _publicIp))
-//      }
+      //      Task {
+      //      _listenerModel.statusUpdate(WanStatus(.settings, _firstName! + " " + _lastName!, _callsign!, _serial, _wanHandle, _publicIp))
+      //      }
     }
   }
-
+  
   /// Parse a received "connect ready" message
   /// - Parameter properties:         a KeyValuesArray
   private func parseRadioConnectReady(_ properties: KeyValuesArray) {
@@ -648,20 +660,20 @@ extension ListenerSmartlink {
       case handle
       case serial
     }
-
-    log?.debug("Smartlink Listener: ConnectReady received")
-
+    
+    Task { await ApiLog.debug("Smartlink Listener: ConnectReady received") }
+    
     // process each key/value pair, <key=value>
     for property in properties {
       // Check for unknown properties
       guard let token = Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log?.warningExt("Smartlink Listener: unknown connect property, \(property.key)")
+        Task { await ApiLog.warning("Smartlink Listener: unknown connect property, \(property.key)") }
         continue
       }
       // Known tokens, in alphabetical order
       switch token {
-
+        
       case .handle:         _wanHandle = property.value
       case .serial:         _serial = property.value
       }
@@ -673,17 +685,17 @@ extension ListenerSmartlink {
       _awaitWanHandle?.resume(throwing: ListenerError.wanConnect)
     }
   }
-
+  
   /// Parse a received "radio list" message
   /// - Parameter msg:        the list
   private func parseRadioList(_ msg: String.SubSequence) {
     var publicTlsPortToUse: Int?
     var publicUdpPortToUse: Int?
     var packet: Packet
-
+    
     // several radios are possible, separate list into its components
     let radioMessages = msg.components(separatedBy: "|")
-
+    
     for message in radioMessages where message != "" {
       packet = Packet( .smartlink, message.keyValuesArray() )
       // now continue to fill the radio parameters
@@ -691,13 +703,13 @@ extension ListenerSmartlink {
       if let tlsPort = packet.publicTlsPort, let udpPort = packet.publicUdpPort {
         publicTlsPortToUse = tlsPort
         publicUdpPortToUse = udpPort
-        packet.isPortForwardOn = true;
+        packet.isPortForwardOn = true
       } else if (packet.upnpSupported) {
         publicTlsPortToUse = packet.publicUpnpTlsPort!
         publicUdpPortToUse = packet.publicUpnpUdpPort!
         packet.isPortForwardOn = false
       }
-
+      
       if ( !packet.upnpSupported && !packet.isPortForwardOn ) {
         /* This will require extra negotiation that chooses
          * a port for both sides to try
@@ -712,12 +724,14 @@ extension ListenerSmartlink {
         packet.localInterfaceIP = localAddr
       }
       // processs the packet
-      Task { await self._apiModel?.process(.smartlink, message.keyValuesArray() ,nil) }
+      _apiModel?.process(.smartlink, message.keyValuesArray() ,nil)
 
-      log?.debug("Smartlink Listener: Radio <\(packet.nickname)> parsed")
+      let nickname = packet.nickname
+      Task {
+        await ApiLog.debug("Smartlink Listener: Radio <\(nickname)> parsed") }
     }
   }
-
+  
   /// Parse a received "test results" message
   /// - Parameter properties:         a KeyValuesArray
   private func parseTestConnectionResults(_ properties: KeyValuesArray) {
@@ -729,21 +743,21 @@ extension ListenerSmartlink {
       case upnpTcpPortWorking    = "upnp_tcp_port_working"
       case upnpUdpPortWorking    = "upnp_udp_port_working"
     }
-
+    
     var result = SmartlinkTestResult()
-
+    
     // process each key/value pair, <key=value>
     for property in properties {
       // Check for unknown properties
       guard let token = Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        log?.warningExt("Smartlink Listener: unknown testConnection property <\(property.key)>")
+        Task { await ApiLog.warning("Smartlink Listener: unknown testConnection property <\(property.key)>") }
         continue
       }
-
+      
       // Known tokens, in alphabetical order
       switch token {
-
+        
       case .forwardTcpPortWorking:      result.forwardTcpPortWorking = property.value.tValue
       case .forwardUdpPortWorking:      result.forwardUdpPortWorking = property.value.tValue
       case .natSupportsHolePunch:       result.natSupportsHolePunch = property.value.tValue
@@ -751,7 +765,7 @@ extension ListenerSmartlink {
       case .upnpTcpPortWorking:         result.upnpTcpPortWorking = property.value.tValue
       case .upnpUdpPortWorking:         result.upnpUdpPortWorking = property.value.tValue
       }
-
+      
       Task { [newResult = result] in
         await MainActor.run {
           _apiModel.smartlinkTestResult = newResult
@@ -760,9 +774,9 @@ extension ListenerSmartlink {
     }
     // log the result
     if result.success {
-      log?.info("Smartlink Listener: Test <SUCCESS>")
+      Task { await ApiLog.info("Smartlink Listener: Test <SUCCESS>") }
     } else {
-      log?.info("Smartlink Listener: Test <FAILURE>")
+      Task { await ApiLog.info("Smartlink Listener: Test <FAILURE>") }
     }
   }
 }

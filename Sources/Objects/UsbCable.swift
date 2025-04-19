@@ -92,7 +92,7 @@ public final class UsbCable {
     } else {
       // NO, remove it
       apiModel.usbCables.remove(at: index!)
-      log?.debug("UsbCable \(id): REMOVED")
+      Task { await ApiLog.debug("UsbCable \(id): REMOVED") }
     }
   }
 
@@ -116,7 +116,7 @@ public final class UsbCable {
         // check for unknown Keys
         guard let token = UsbCable.Property(rawValue: property.key) else {
           // log it and ignore the Key
-          log?.warningExt("USBCable: unknown property, \(property.key) = \(property.value)")
+          Task { await ApiLog.warning("USBCable: unknown property, \(property.key) = \(property.value)") }
           continue
         }
         // Known keys, in alphabetical order
@@ -152,7 +152,7 @@ public final class UsbCable {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      log?.debug("USBCable: ADDED, name = \(self.name)")
+      Task { await ApiLog.debug("USBCable: ADDED, name = \(self.name)") }
     }
   }
 

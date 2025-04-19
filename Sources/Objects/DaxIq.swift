@@ -50,7 +50,7 @@ public final class DaxIq {
       
       guard let token = Property(rawValue: property.key) else {
         // unknown Key, log it and ignore the Key
-        log?.warningExt("DaxIq: unknown property, \(property.key) = \(property.value)")
+        Task { await ApiLog.warning("DaxIq: unknown property, \(property.key) = \(property.value)") }
         continue
       }
       // known keys, in alphabetical order
@@ -69,7 +69,7 @@ public final class DaxIq {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      log?.debug("DaxIq ADDED: channel = \(self.channel)")
+      Task { await ApiLog.debug("DaxIq ADDED: channel = \(self.channel)") }
     }
   }
   
