@@ -691,44 +691,46 @@ extension ListenerSmartlink {
   private func parseRadioList(_ msg: String.SubSequence) {
     var publicTlsPortToUse: Int?
     var publicUdpPortToUse: Int?
-    var packet: Packet
     
-    // several radios are possible, separate list into its components
+    // Several radios are possible, separate list into its components
     let radioMessages = msg.components(separatedBy: "|")
     
-    for message in radioMessages where message != "" {
-      packet = Packet( .smartlink, message.keyValuesArray() )
-      // now continue to fill the radio parameters
-      // favor using the manually defined forwarded ports if they are defined
+    for message in radioMessages where !message.isEmpty {
+      var packet = Packet(.smartlink, message.keyValuesArray())
+      
+      // Prefer manually defined forwarded ports if available
       if let tlsPort = packet.publicTlsPort, let udpPort = packet.publicUdpPort {
         publicTlsPortToUse = tlsPort
         publicUdpPortToUse = udpPort
         packet.isPortForwardOn = true
-      } else if (packet.upnpSupported) {
-        publicTlsPortToUse = packet.publicUpnpTlsPort!
-        publicUdpPortToUse = packet.publicUpnpUdpPort!
+      } else if packet.upnpSupported,
+                let tlsPort = packet.publicUpnpTlsPort,
+                let udpPort = packet.publicUpnpUdpPort {
+        publicTlsPortToUse = tlsPort
+        publicUdpPortToUse = udpPort
         packet.isPortForwardOn = false
       }
       
-      if ( !packet.upnpSupported && !packet.isPortForwardOn ) {
-        /* This will require extra negotiation that chooses
-         * a port for both sides to try
-         */
-        // TODO: We also need to check the NAT for preserve_ports coming from radio here
-        // if the NAT DOES NOT preserve ports then we can't do hole punch
+      if !packet.upnpSupported && !packet.isPortForwardOn {
+        // TODO: Check NAT for preserve_ports — necessary for hole punching
         packet.requiresHolePunch = true
       }
+      
       packet.publicTlsPort = publicTlsPortToUse
       packet.publicUdpPort = publicUdpPortToUse
+      
       if let localAddr = _tcpSocket.localHost {
         packet.localInterfaceIP = localAddr
       }
-      // processs the packet
-      _apiModel?.process(.smartlink, message.keyValuesArray() ,nil)
-
+      
+      // Process the packet
+      _apiModel?.process(.smartlink, message.keyValuesArray(), nil)
+      
+      // Log the parsed packet
       let nickname = packet.nickname
       Task {
-        await ApiLog.debug("Smartlink Listener: Radio <\(nickname)> parsed") }
+        await ApiLog.debug("Smartlink Listener: Radio <\(nickname)> parsed")
+      }
     }
   }
   
