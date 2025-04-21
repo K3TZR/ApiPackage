@@ -324,7 +324,8 @@ final public class ApiModel: TcpProcessor {
             if radio.guiClients[index].program.isEmpty { radio.guiClients[index].program = newGuiClient.program }
             if radio.guiClients[index].ip.isEmpty { radio.guiClients[index].ip = newGuiClient.ip }
             if radio.guiClients[index].host.isEmpty { radio.guiClients[index].host = newGuiClient.host }
-            Task { await ApiLog.debug("ApiModel/process: STATION  UPDATED Name <\(radio.guiClients[index].station)>, Radio <\(name)>, Program <\(radio.guiClients[index].program)>, Ip <\(radio.guiClients[index].ip)>, Host <\(radio.guiClients[index].host)>, Handle <\(radio.guiClients[index].handle)>, ClientId <\(radio.guiClients[index].clientId?.uuidString ?? "Unknown")>") }
+            let i = index
+            Task { await ApiLog.debug("ApiModel/process: STATION  UPDATED Name <\(radio.guiClients[i].station)>, Radio <\(name)>, Program <\(radio.guiClients[i].program)>, Ip <\(radio.guiClients[i].ip)>, Host <\(radio.guiClients[i].host)>, Handle <\(radio.guiClients[i].handle)>, ClientId <\(radio.guiClients[i].clientId?.uuidString ?? "Unknown")>") }
           }
         } else {
           // NO, not found in GuiClients, add it
@@ -592,7 +593,8 @@ final public class ApiModel: TcpProcessor {
         radio.guiClients[index].program = program
         radio.guiClients[index].station = station
         radio.guiClients[index].pttEnabled = pttEnabled
-        Task { await ApiLog.debug("ApiModel/parseConnection: STATION  UPDATED Name <\(station)>, Radio <\(radio.packet.nickname)> Program <\(program)>, Ip <\(radio.guiClients[index].ip)>, Host <\(radio.guiClients[index].host)>, Handle <\(handle.hex)>, ClientId <\(UUID(uuidString: clientId)!)>") }
+        let i = index
+        Task { await ApiLog.debug("ApiModel/parseConnection: STATION  UPDATED Name <\(station)>, Radio <\(radio.packet.nickname)> Program <\(program)>, Ip <\(radio.guiClients[i].ip)>, Host <\(radio.guiClients[i].host)>, Handle <\(handle.hex)>, ClientId <\(UUID(uuidString: clientId)!)>") }
         
         // if needed, bind to the Station
         if connectionIsGui == false && station == activeSelection?.station && boundClientId == nil {

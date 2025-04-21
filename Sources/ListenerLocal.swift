@@ -42,15 +42,20 @@ public final class ListenerLocal: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Internal methods
   
-  public func start(port: UInt16 = 4992, checkInterval: Int = 1, timeout: TimeInterval = 20.0) async {
+  public func start(port: UInt16, checkInterval: Int = 1, timeout: TimeInterval = 20.0) async {
     do {
       try _udpSocket!.bind(toPort: port)
       Task { await ApiLog.debug("Local Listener: socket bound to port <\(port)>") }
-      try _udpSocket!.beginReceiving()
-      Task { await ApiLog.debug("Local Listener: socket STARTED") }
       
     } catch let error as NSError {
-      Task { await ApiLog.error("Error starting socket, error <\(error.localizedDescription)>, code <(\(error.code)>") }
+      Task { await ApiLog.error("Local Listener: Error binding to port <\(port)>, <\(error.localizedDescription)>, code <\(error.code)>") }
+      return
+    }
+    do {
+      try _udpSocket!.beginReceiving()
+      Task { await ApiLog.debug("Local Listener: socket STARTED") }
+    } catch let error as NSError {
+      Task { await ApiLog.error("Local Listener: Error starting to receive, <\(error.localizedDescription)>, code <\(error.code)>") }
     }
   }
   
