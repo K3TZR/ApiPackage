@@ -80,7 +80,7 @@ final public class MeterStream {
                 adjNewValue = Float(exactly: newValue)! / kDbDbmDbfsSwrDenom
                 
               case .volts, .amps:
-                var denom :Float = 256.0
+                let denom :Float = 256.0
                 adjNewValue = Float(exactly: newValue)! / denom
                 
               case .degc, .degf:
