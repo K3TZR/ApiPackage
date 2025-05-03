@@ -22,11 +22,6 @@ public final class DaxTxAudio {
   public init(_ id: UInt32) { self.id = id}
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-  
-  //TODO:
-  
-  // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray) {
@@ -71,7 +66,7 @@ public final class DaxTxAudio {
   }
   
   // ------------------------------------------------------------------------------
-  // MARK: - Properties
+  // MARK: - Public Properties
   
   public var id: UInt32
   public var delegate: DaxAudioInputHandler?
@@ -99,7 +94,20 @@ public final class DaxTxAudio {
     case type
   }
   
+  // ------------------------------------------------------------------------------
+  // MARK: - Private Properties
+  
   private var _initialized = false
   private var _txSequenceNumber: UInt8 = 0
   private var _vita: Vita?
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+  
+  public static func create(compression: String) -> String {
+    "stream create type=dax_tx compression=\(compression)"
+  }
+  public static func remove(_ id: UInt32) -> String {
+    "stream remove \(id.hex)"
+  }
 }

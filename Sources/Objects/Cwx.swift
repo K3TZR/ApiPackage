@@ -24,22 +24,6 @@ public final class Cwx {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-  
-  /*
-   "cwx macro save " + (index + 1) + " \"" + msg + “\""
-   "cwx send \"" + msg + “\""
-   "cwx erase " + num_chars
-   "cwx erase " + num_chars + " " + radio_index
-   "cwx clear”
-   "cwx delay " + _delay
-   "cwx wpm " + _speed
-   "cwx qsk_enabled " + (_qskEnabled ? "1" : “0")
-   */
-  
-  // TODO:
-
-  // ----------------------------------------------------------------------------
   // MARK: - Public parse method
   
   /// Parse Cwx key/value pairs, called by Radio
@@ -264,7 +248,7 @@ public final class Cwx {
   //    }
   
   // ----------------------------------------------------------------------------
-  // MARK: - Properties
+  // MARK: - Public Properties
   
   public internal(set) var breakInDelay = 0
   public internal(set) var qskEnabled = false
@@ -284,6 +268,26 @@ public final class Cwx {
   
   var macros: [String]
   let kMaxNumberOfMacros = 12
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Properties
 
   private var _initialized = false
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+  
+  /*
+   "cwx macro save " + (index + 1) + " \"" + msg + “\""
+   "cwx send \"" + msg + “\""
+   "cwx erase " + num_chars
+   "cwx erase " + num_chars + " " + radio_index
+   "cwx clear”
+   "cwx delay " + _delay
+   "cwx wpm " + _speed
+   "cwx qsk_enabled " + (_qskEnabled ? "1" : “0")
+   */
+  
+  // TODO:
+
 }

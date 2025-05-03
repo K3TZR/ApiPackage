@@ -15,29 +15,6 @@ public final class Atu {
   // MARK: - Initialization
   
   public init() {}
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-
-  /* ----- from the FlexApi source -----
-   "atu bypass"
-   "atu clear"
-   "atu set memories_enabled=" + Convert.ToByte(_atuMemoriesEnabled)
-   "atu start"
-   */
-
-  public static func bypass() -> String {
-    "atu bypass"
-  }
-  public static func clear() -> String {
-    "atu clear"
-  }
-  public static func set(id: UInt32, property: Property, value: String) -> String {
-    "atu set \(property.rawValue)=\(value)"
-  }
-  public static func start() -> String {
-    "atu start"
-  }
   
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method
@@ -71,7 +48,7 @@ public final class Atu {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Properties
+  // MARK: - Public Properties
   
   public var enabled: Bool = false
   public var memoriesEnabled: Bool = false
@@ -97,6 +74,32 @@ public final class Atu {
     case memoriesEnabled    = "memories_enabled"
     case usingMemory        = "using_mem"
   }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Properties
   
   private var _initialized = false
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+
+  /* ----- from the FlexApi source -----
+   "atu bypass"
+   "atu clear"
+   "atu set memories_enabled=" + Convert.ToByte(_atuMemoriesEnabled)
+   "atu start"
+   */
+
+  public static func bypass() -> String {
+    "atu bypass"
+  }
+  public static func clear() -> String {
+    "atu clear"
+  }
+  public static func set(id: UInt32, property: Property, value: String) -> String {
+    "atu set \(property.rawValue)=\(value)"
+  }
+  public static func start() -> String {
+    "atu start"
+  }
 }

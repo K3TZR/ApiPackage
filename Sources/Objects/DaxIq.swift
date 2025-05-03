@@ -20,12 +20,7 @@ public final class DaxIq {
   // MARK: - Initialization
   
   public init() {}
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
   
-  //TODO:
-
   // ----------------------------------------------------------------------------
   // MARK: - Public static status method
   
@@ -38,7 +33,7 @@ public final class DaxIq {
       apiModel.daxIqs[id]!.parse( Array(properties.dropFirst(1)) )
     }
   }
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method
   
@@ -74,7 +69,7 @@ public final class DaxIq {
   }
   
   // ------------------------------------------------------------------------------
-  // MARK: - Properties
+  // MARK: - Public Properties
   
   public var delegate: StreamHandler?
   
@@ -95,10 +90,23 @@ public final class DaxIq {
     case type
   }
   
+  // ------------------------------------------------------------------------------
+  // MARK: - Private Properties
+  
   private var _initialized = false
   
   private var _rxPacketCount      = 0
   private var _rxLostPacketCount  = 0
   private var _txSampleCount      = 0
   private var _rxSequenceNumber   = -1
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+  
+  public static func create(_ channel: Int) -> String {
+    "stream create type=dax_iq channel=\(channel)"
+  }
+  public static func remove(_ id: UInt32) -> String {
+    "stream remove \(id.hex)"
+  }
 }

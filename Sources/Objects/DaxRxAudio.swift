@@ -19,7 +19,7 @@ public final class DaxRxAudio {
   // MARK: - Initialization
   
   public init() {}
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Public Static command methods
   
@@ -37,7 +37,7 @@ public final class DaxRxAudio {
       apiModel.daxRxAudios[id]!.parse( Array(properties.dropFirst(1)) )
     }
   }
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method
   
@@ -58,19 +58,19 @@ public final class DaxRxAudio {
       case .daxChannel:   daxChannel = property.value.iValue
       case .ip:           ip = property.value
       case .sliceLetter:  sliceLetter = property.value
-//        // do we have a good reference to the GUI Client?
-//        if let handle = radio.findHandle(for: radio.boundClientId) {
-//          // YES,
-//          self.slice = radio.findSlice(letter: property.value, guiClientHandle: handle)
-//          let gain = rxGain
-//          rxGain = 0
-//          rxGain = gain
-//        } else {
-//          // NO, clear the Slice reference and carry on
-//          slice = nil
-//          continue
-//        }
-
+        //        // do we have a good reference to the GUI Client?
+        //        if let handle = radio.findHandle(for: radio.boundClientId) {
+        //          // YES,
+        //          self.slice = radio.findSlice(letter: property.value, guiClientHandle: handle)
+        //          let gain = rxGain
+        //          rxGain = 0
+        //          rxGain = gain
+        //        } else {
+        //          // NO, clear the Slice reference and carry on
+        //          slice = nil
+        //          continue
+        //        }
+        
       case .type:         break  // included to inhibit unknown token warnings
       }
     }
@@ -85,14 +85,14 @@ public final class DaxRxAudio {
   // ------------------------------------------------------------------------------
   // MARK: - Properties
   
-//  public var audioOutput: RxAudioOutput?
-
+  //  public var audioOutput: RxAudioOutput?
+  
   public var clientHandle: UInt32 = 0
   public var ip = ""
   public var sliceLetter = ""
   public var daxChannel = 0
   public var rxGain = 0
-    
+  
   public enum Property: String {
     case clientHandle   = "client_handle"
     case daxChannel     = "dax_channel"
@@ -105,8 +105,19 @@ public final class DaxRxAudio {
   private var _rxPacketCount      = 0
   private var _rxLostPacketCount  = 0
   private var _rxSequenceNumber   = -1
-
+  
   private static let elementSizeStandard = MemoryLayout<Float>.size
   private static let elementSizeReduced = MemoryLayout<Int16>.size
   private static let channelCount = 2
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+  
+  public static func create(channel: Int, compression: String) -> String {
+    "stream create type=dax_rx channel=\(channel) compression=\(compression)"
+  }
+  public static func remove(_ id: UInt32) -> String {
+    "stream remove \(id.hex)"
+  }
 }
+

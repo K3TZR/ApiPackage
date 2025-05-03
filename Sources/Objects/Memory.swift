@@ -13,52 +13,9 @@ import Foundation
 public final class Memory: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
-
+  
   public init(_ id: UInt32) {
     self.id = id
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-
-  /* ----- from the FlexApi source -----
-   memory set " + _index + " digl_offset=" + _diglOffset
-   memory set " + _index + " digu_offset=" + _diguOffset
-   memory set " + _index + " freq=" + StringHelper.DoubleToString(_freq, "f6")
-   memory set " + _index + " group=" + _group.Replace(' ', '\u007f')
-   memory set " + _index + " name=" + _name.Replace(' ', '\u007f')
-   memory set " + _index + " mode=" + _mode
-   memory set " + _index + " owner=" + _owner.Replace(' ', '\u007f')
-   memory set " + _index + " power=" + _rfPower
-   memory set " + _index + " repeater=" + FMTXOffsetDirectionToString(_offsetDirection)
-   memory set " + _index + " repeater_offset=" + StringHelper.DoubleToString(_repeaterOffset, "f6")
-   memory set " + _index + " rtty_mark=" + _rttyMark
-   memory set " + _index + " rtty_shift=" + _rttyShift
-   memory set " + _index + " rx_filter_low=" + _rxFilterLow
-   memory set " + _index + " rx_filter_high=" + _rxFilterHigh
-   memory set " + _index + " squelch=" + Convert.ToByte(_squelchOn)
-   memory set " + _index + " squelch_level=" + _squelchLevel
-   memory set " + _index + " step=" + _step
-   memory set " + _index + " tone_mode=" + FMToneModeToString(_toneMode)
-   memory set " + _index + " tone_value=" + _toneValue
-   
-   memory apply " + _index
-   memory remove " + _index
-   
-   memory create
-   */
-
-  public static func create(id: Int) -> String {
-    "memory create"
-  }
-  public static func apply(id: Int) -> String {
-    "memory apply \(id)"
-  }
-  public static func remove(id: Int) -> String {
-    "memory remove \(id)"
-  }
-  public static func set(id: Int, property: Property, value: String) -> String {
-    "memory set \(id) \(property.rawValue)=\(value)"
   }
   
   // ----------------------------------------------------------------------------
@@ -77,7 +34,7 @@ public final class Memory: Identifiable {
           // parse the properties
           apiModel.memories[index!].parse(Array(properties.dropFirst(1)) )
         }
-
+        
       } else {
         // NO, remove it
         apiModel.memories.remove(at: index!)
@@ -85,7 +42,7 @@ public final class Memory: Identifiable {
       }
     }
   }
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Public Parse method
   
@@ -135,12 +92,12 @@ public final class Memory: Identifiable {
       Task { await ApiLog.debug("Memory: <\(self.name)> ADDED") }
     }
   }
-
+  
   // ----------------------------------------------------------------------------
-  // MARK: - Properties
+  // MARK: - Public Properties
   
   public let id: UInt32
-
+  
   public var digitalLowerOffset = 0
   public var digitalUpperOffset = 0
   public var filterHigh = 0
@@ -160,7 +117,7 @@ public final class Memory: Identifiable {
   public var step = 0
   public var toneMode = ""
   public var toneValue: Float = 0
-
+  
   public enum Property: String {
     case apply
     case create
@@ -188,5 +145,51 @@ public final class Memory: Identifiable {
     case toneValue                  = "tone_value"
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Properties
+  
   private var _initialized = false
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+
+  /* ----- from the FlexApi source -----
+   memory set " + _index + " digl_offset=" + _diglOffset
+   memory set " + _index + " digu_offset=" + _diguOffset
+   memory set " + _index + " freq=" + StringHelper.DoubleToString(_freq, "f6")
+   memory set " + _index + " group=" + _group.Replace(' ', '\u007f')
+   memory set " + _index + " name=" + _name.Replace(' ', '\u007f')
+   memory set " + _index + " mode=" + _mode
+   memory set " + _index + " owner=" + _owner.Replace(' ', '\u007f')
+   memory set " + _index + " power=" + _rfPower
+   memory set " + _index + " repeater=" + FMTXOffsetDirectionToString(_offsetDirection)
+   memory set " + _index + " repeater_offset=" + StringHelper.DoubleToString(_repeaterOffset, "f6")
+   memory set " + _index + " rtty_mark=" + _rttyMark
+   memory set " + _index + " rtty_shift=" + _rttyShift
+   memory set " + _index + " rx_filter_low=" + _rxFilterLow
+   memory set " + _index + " rx_filter_high=" + _rxFilterHigh
+   memory set " + _index + " squelch=" + Convert.ToByte(_squelchOn)
+   memory set " + _index + " squelch_level=" + _squelchLevel
+   memory set " + _index + " step=" + _step
+   memory set " + _index + " tone_mode=" + FMToneModeToString(_toneMode)
+   memory set " + _index + " tone_value=" + _toneValue
+   
+   memory apply " + _index
+   memory remove " + _index
+   
+   memory create
+   */
+
+  public static func create(id: Int) -> String {
+    "memory create"
+  }
+  public static func apply(id: Int) -> String {
+    "memory apply \(id)"
+  }
+  public static func remove(id: Int) -> String {
+    "memory remove \(id)"
+  }
+  public static func set(id: Int, property: Property, value: String) -> String {
+    "memory set \(id) \(property.rawValue)=\(value)"
+  }
 }

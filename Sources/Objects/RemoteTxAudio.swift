@@ -21,11 +21,6 @@ public final class RemoteTxAudio: Identifiable {
   public init(_ id: UInt32) { self.id = id }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-  
-  //TODO:
-
-  // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray) {
@@ -113,7 +108,7 @@ public final class RemoteTxAudio: Identifiable {
   }
   
   // ------------------------------------------------------------------------------
-  // MARK: - Properties
+  // MARK: - Public Properties
   
   public let id : UInt32
   
@@ -127,7 +122,20 @@ public final class RemoteTxAudio: Identifiable {
     case ip
   }
   
+  // ------------------------------------------------------------------------------
+  // MARK: - Private Properties
+  
   private var _initialized = false
   private var _txSequenceNumber = 0
   private var _vita: Vita?
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+  
+  public static func create(compression: String) -> String {
+    "stream create type=remote_audio_tx compression=\(compression)"
+  }
+  public static func remove(_ id: UInt32) -> String {
+    "stream remove \(id.hex)"
+  }
 }

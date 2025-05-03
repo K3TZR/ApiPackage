@@ -19,33 +19,6 @@ public final class Panadapter: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-  
-  /* ----- from the FlexApi source -----
-   "display pan set 0x" + _streamID.ToString("X") + " wnb=" + Convert.ToByte(value)
-   "display pan set 0x" + _streamID.ToString("X") + " wnb_level=" + _wnb_level
-   "display pan set 0x" + _streamID.ToString("X") + " rxant=" + _rxant
-   "display pan set 0x" + _streamID.ToString("X") + " rfgain=" + _rfGain
-   "display pan set 0x" + _streamID.ToString("X") + " daxiq_channel=" + _daxIQChannel
-   "display pan set 0x" + _streamID.ToString("X") + " xpixels=" + _width
-   "display pan set 0x" + _streamID.ToString("X") + " ypixels=" + _height
-   "display pan set 0x" + _streamID.ToString("X") + " band=" + _band
-   "display pan set 0x" + _streamID.ToString("X") + " fps=" + value
-   "display pan set 0x" + _streamID.ToString("X") + " average=" + value
-   "display pan set 0x" + _streamID.ToString("x") + " weighted_average=" + Convert.ToByte(_weightedAverage)
-   "display pan set 0x" + _streamID.ToString("x") + " n1mm_spectrum_enable=" + Convert.ToByte(_loggerDisplayEnabled)
-   "display pan set 0x" + _streamID.ToString("x") + " n1mm_address=" + _loggerDisplayIPAddress.ToString()
-   "display pan set 0x" + _streamID.ToString("x") + " n1mm_port=" + _loggerDisplayPort
-   "display pan set 0x" + _streamID.ToString("x") + " n1mm_radio=" + _loggerDisplayRadioNum
-   "display pan set 0x" + _streamID.ToString("X") + " loopa=" + Convert.ToByte(_loopA)
-   "display pan set 0x" + _streamID.ToString("X") + " loopb=" + Convert.ToByte(_loopB)
-   */
-  
-  public static func set(id: UInt32, property: Property, value: String) -> String {
-    "display pan set \(id.hex) \(property.rawValue)=\(value)"
-  }
-
-  // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
@@ -179,7 +152,7 @@ public final class Panadapter: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Properties
+  // MARK: - Public Properties
   
   public let id: UInt32
 
@@ -283,11 +256,41 @@ public final class Panadapter: Identifiable {
     public var value: CGFloat      // actual value
     public var lineCount: CGFloat
   }
-  
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Properties
+
   private var _initialized = false
   
   private static let dbmMax: CGFloat = 20
   private static let dbmMin: CGFloat = -180
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+  
+  /* ----- from the FlexApi source -----
+   "display pan set 0x" + _streamID.ToString("X") + " wnb=" + Convert.ToByte(value)
+   "display pan set 0x" + _streamID.ToString("X") + " wnb_level=" + _wnb_level
+   "display pan set 0x" + _streamID.ToString("X") + " rxant=" + _rxant
+   "display pan set 0x" + _streamID.ToString("X") + " rfgain=" + _rfGain
+   "display pan set 0x" + _streamID.ToString("X") + " daxiq_channel=" + _daxIQChannel
+   "display pan set 0x" + _streamID.ToString("X") + " xpixels=" + _width
+   "display pan set 0x" + _streamID.ToString("X") + " ypixels=" + _height
+   "display pan set 0x" + _streamID.ToString("X") + " band=" + _band
+   "display pan set 0x" + _streamID.ToString("X") + " fps=" + value
+   "display pan set 0x" + _streamID.ToString("X") + " average=" + value
+   "display pan set 0x" + _streamID.ToString("x") + " weighted_average=" + Convert.ToByte(_weightedAverage)
+   "display pan set 0x" + _streamID.ToString("x") + " n1mm_spectrum_enable=" + Convert.ToByte(_loggerDisplayEnabled)
+   "display pan set 0x" + _streamID.ToString("x") + " n1mm_address=" + _loggerDisplayIPAddress.ToString()
+   "display pan set 0x" + _streamID.ToString("x") + " n1mm_port=" + _loggerDisplayPort
+   "display pan set 0x" + _streamID.ToString("x") + " n1mm_radio=" + _loggerDisplayRadioNum
+   "display pan set 0x" + _streamID.ToString("X") + " loopa=" + Convert.ToByte(_loopA)
+   "display pan set 0x" + _streamID.ToString("X") + " loopb=" + Convert.ToByte(_loopB)
+   */
+  
+  public static func set(id: UInt32, property: Property, value: String) -> String {
+    "display pan set \(id.hex) \(property.rawValue)=\(value)"
+  }
 }
 
 public struct Legend: Identifiable {

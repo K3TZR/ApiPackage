@@ -21,13 +21,8 @@ public final class DaxMicAudio: Identifiable {
   public init(_ id: UInt32) { self.id = id }
   
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-  
-  //TODO:
-  
-  // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
-
+  
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray) {
     // get the id
     if let id = properties[0].key.streamId {
@@ -37,10 +32,10 @@ public final class DaxMicAudio: Identifiable {
       apiModel.daxMicAudio?.parse( Array(properties.dropFirst(1)) )
     }
   }
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method
-
+  
   /// Parse key/value pairs
   /// - Parameter properties:       a KeyValuesArray
   public func parse(_ properties: KeyValuesArray) {
@@ -67,12 +62,12 @@ public final class DaxMicAudio: Identifiable {
       Task { await ApiLog.debug("DaxMicAudio \(self.id.hex) ADDED: handle = \(self.clientHandle.hex)") }
     }
   }
-
+  
   // ------------------------------------------------------------------------------
-  // MARK: - Properties
+  // MARK: - Public Properties
   
   public let id: UInt32
-
+  
   public var clientHandle: UInt32 = 0
   public var ip = ""
   public var micGain = 0 {
@@ -101,9 +96,22 @@ public final class DaxMicAudio: Identifiable {
     case type
   }
   
+  // ------------------------------------------------------------------------------
+  // MARK: - Private Properties
+  
   private var _initialized = false
   private var _rxLostPacketCount = 0
   private var _rxPacketCount = 0
   private var _rxSequenceNumber = -1
   private var _streamActive = false
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+  
+  public static func create() -> String {
+    "stream create type=dax_mic"
+  }
+  public static func remove(_ id: UInt32) -> String {
+    "stream remove \(id.hex)"
+  }
 }

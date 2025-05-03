@@ -19,11 +19,6 @@ public final class Amplifier: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-  
-  //TODO:
-
-  // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
@@ -103,7 +98,7 @@ public final class Amplifier: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Properties
+  // MARK: - Public Properties
   
   public let id: UInt32
 
@@ -125,6 +120,14 @@ public final class Amplifier: Identifiable {
     case serialNumber  = "serial_num"
     case state
   }
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Properties
   
-  public var _initialized = false
+  private var _initialized = false
+
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+  
+  // TODO:
 }

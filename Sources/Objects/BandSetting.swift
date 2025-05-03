@@ -13,35 +13,9 @@ import Foundation
 public final class BandSetting: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
-
+  
   public init(_ id: UInt32) {
     self.id = id
-  }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-
-  /* ----- from the FlexApi source -----
-   "transmit bandset {BandId} hwalc_enabled={Convert.ToByte(_isHwAlcEnabled)}"
-   "transmit bandset {BandId} inhibit={Convert.ToByte(_isPttInhibit)}"
-   "transmit bandset {BandId} rfpower={_powerLevel}"
-   "transmit bandset {BandId} tunepower={_tuneLevel}"
-   
-   "interlock bandset {BandId} acc_tx_enabled={Convert.ToByte(_isAccTxEnabled)}"
-   "interlock bandset {BandId} acc_txreq_enable={Convert.ToByte(_isAccTxReqEnabled)}")
-   "interlock bandset {BandId} rca_txreq_enable={Convert.ToByte(_isRcaTxReqEnabled)}"
-   "interlock bandset {BandId} tx1_enabled={Convert.ToByte(_isRcaTx1Enabled)}"
-   "interlock bandset {BandId} tx2_enabled={Convert.ToByte(_isRcaTx2Enabled)}"
-   "interlock bandset {BandId} tx3_enabled={Convert.ToByte(_isRcaTx3Enabled)}"
-   */
-
-  public static func set(id: UInt32, property: Property, value: String) -> String {
-    switch property {
-    case .hwAlcEnabled, .inhibit, .rfPower, .tunePower:
-      "transmit bandset \(id) \(property.rawValue)=\(value)"
-    default:
-      "interlock bandset \(id) \(property.rawValue)=\(value)"
-    }
   }
   
   // ----------------------------------------------------------------------------
@@ -60,7 +34,7 @@ public final class BandSetting: Identifiable {
           // parse the properties
           apiModel.bandSettings[index!].parse(Array(properties.dropFirst(1)) )
         }
-
+        
       } else {
         // NO, remove it
         let name = apiModel.bandSettings[index!].name
@@ -69,7 +43,7 @@ public final class BandSetting: Identifiable {
       }
     }
   }
-
+  
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method
   
@@ -107,9 +81,9 @@ public final class BandSetting: Identifiable {
       }
     }
   }
-
+  
   // ----------------------------------------------------------------------------
-  // MARK: - Properties
+  // MARK: - Public Properties
   
   public let id: UInt32
   
@@ -124,7 +98,7 @@ public final class BandSetting: Identifiable {
   public var tx1Enabled: Bool = false
   public var tx2Enabled: Bool = false
   public var tx3Enabled: Bool  = false
-
+  
   public enum Property: String {
     // transmit
     case hwAlcEnabled       = "hwalc_enabled" //
@@ -138,9 +112,38 @@ public final class BandSetting: Identifiable {
     case tx1Enabled         = "tx1_enabled"
     case tx2Enabled         = "tx2_enabled"
     case tx3Enabled         = "tx3_enabled"
-
+    
     case name               = "band_name"
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Properties
+  
   private var _initialized = false
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+
+  /* ----- from the FlexApi source -----
+   "transmit bandset {BandId} hwalc_enabled={Convert.ToByte(_isHwAlcEnabled)}"
+   "transmit bandset {BandId} inhibit={Convert.ToByte(_isPttInhibit)}"
+   "transmit bandset {BandId} rfpower={_powerLevel}"
+   "transmit bandset {BandId} tunepower={_tuneLevel}"
+   
+   "interlock bandset {BandId} acc_tx_enabled={Convert.ToByte(_isAccTxEnabled)}"
+   "interlock bandset {BandId} acc_txreq_enable={Convert.ToByte(_isAccTxReqEnabled)}")
+   "interlock bandset {BandId} rca_txreq_enable={Convert.ToByte(_isRcaTxReqEnabled)}"
+   "interlock bandset {BandId} tx1_enabled={Convert.ToByte(_isRcaTx1Enabled)}"
+   "interlock bandset {BandId} tx2_enabled={Convert.ToByte(_isRcaTx2Enabled)}"
+   "interlock bandset {BandId} tx3_enabled={Convert.ToByte(_isRcaTx3Enabled)}"
+   */
+
+  public static func set(id: UInt32, property: Property, value: String) -> String {
+    switch property {
+    case .hwAlcEnabled, .inhibit, .rfPower, .tunePower:
+      "transmit bandset \(id) \(property.rawValue)=\(value)"
+    default:
+      "interlock bandset \(id) \(property.rawValue)=\(value)"
+    }
+  }
 }

@@ -23,11 +23,6 @@ public final class RemoteRxAudio: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-  
-  //TODO:
-
-  // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray) {
@@ -71,7 +66,7 @@ public final class RemoteRxAudio: Identifiable {
   }
   
   // ----------------------------------------------------------------------------
-  // MARK: - Properties
+  // MARK: - Public Properties
   
   public let id: UInt32
   
@@ -90,8 +85,21 @@ public final class RemoteRxAudio: Identifiable {
     case ip
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Properties
+  
   private var _initialized = false
   private var _rxLostPacketCount = 0
   private var _rxPacketCount = 0
   private var _rxSequenceNumber = -1
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+  
+  public static func create(compression: String) -> String {
+    "stream create type=remote_audio_rx compression=\(compression)"
+  }
+  public static func remove(_ id: UInt32) -> String {
+    "stream remove \(id.hex)"
+  }
 }

@@ -17,42 +17,6 @@ public final class Equalizer: Identifiable {
   public init(_ id: String) {
     self.id = id
   }
-
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-  
-  /* ----- from the FlexApi source -----
-   eq " + id + "mode="   + 1/0
-   eq " + id + "32Hz="   + hz32
-   eq " + id + "63Hz="   + hz63
-   eq " + id + "125Hz="  + hz125
-   eq " + id + "250Hz="  + hz250
-   eq " + id + "500Hz="  + hz500
-   eq " + id + "1000Hz=" + hz1000
-   eq " + id + "2000Hz=" + hz2000
-   eq " + id + "4000Hz=" + hz4000
-   eq " + id + "8000Hz=" + hz8000
-   eq " + id + "info"
-   eq apf gain=" + apfGain
-   eq apf mode=" + apfMode
-   eq apf qfactor=" + apfQFactor
-   */
-
-  //  static let altProperty: [Property : String] = [
-  //    // alternate properties REQUIRED when sending to the radio
-  //    .hz63 : "63Hz",
-  //    .hz125 : "125Hz",
-  //    .hz250 : "250Hz",
-  //    .hz500 : "500Hz",
-  //    .hz1000 : "1000Hz",
-  //    .hz2000 : "2000Hz",
-  //    .hz4000 : "4000Hz",
-  //    .hz8000 : "8000Hz"
-  //  ]
-
-  public static func set(id: String, property: Property, value: String) -> String {
-    "eq \(id) \(property.rawValue)=\(value)"
-  }
   
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
@@ -90,7 +54,7 @@ public final class Equalizer: Identifiable {
     // process each key/value pair, <key=value>
     for property in properties {
       // check for unknown Keys
-      guard let token = Equalizer.Property(rawValue: property.key) else {
+      guard let token = Property(rawValue: property.key) else {
         // log it and ignore the Key
         Task { await ApiLog.warning("Equalizer: unknown property, \(property.key) = \(property.value)") }
         continue
@@ -98,6 +62,8 @@ public final class Equalizer: Identifiable {
       // known keys
       switch token {
         
+      case .eqEnabled:        eqEnabled = property.value.bValue
+
       case .hz63:      hz63 = property.value.iValue
       case .hz125:    hz125 = property.value.iValue
       case .hz250:    hz250 = property.value.iValue
@@ -106,8 +72,6 @@ public final class Equalizer: Identifiable {
       case .hz2000:  hz2000 = property.value.iValue
       case .hz4000:  hz4000 = property.value.iValue
       case .hz8000:  hz8000 = property.value.iValue
-        
-      case .eqEnabled:        eqEnabled = property.value.bValue
       }
       // is it initialized?
       if _initialized == false {
@@ -118,7 +82,7 @@ public final class Equalizer: Identifiable {
   }
 
   // ----------------------------------------------------------------------------
-  // MARK: - Properties
+  // MARK: - Public Properties
   
   public let id: String
 
@@ -135,6 +99,7 @@ public final class Equalizer: Identifiable {
   
   public enum Property: String {
     // properties received from the radio
+    case eqEnabled = "mode"
     case hz63   = "63hz"
     case hz125  = "125hz"
     case hz250  = "250hz"
@@ -143,22 +108,66 @@ public final class Equalizer: Identifiable {
     case hz2000 = "2000hz"
     case hz4000 = "4000hz"
     case hz8000 = "8000hz"
-    case eqEnabled = "mode"
   }
 
-  public enum AltProperty: String {
-    // properties sent to the radio
-    case hz63   = "63Hz"
-    case hz125  = "125Hz"
-    case hz250  = "250Hz"
-    case hz500  = "500Hz"
-    case hz1000 = "1000Hz"
-    case hz2000 = "2000Hz"
-    case hz4000 = "4000Hz"
-    case hz8000 = "8000Hz"
-    case eqEnabled = "mode"
-  }
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Properties
   
+  private enum SendableProperty: String {
+    // properties sent to the radio
+    case eqEnabled = "mode"
+    case hZ63   = "63Hz"
+    case hZ125  = "125Hz"
+    case hZ250  = "250Hz"
+    case hZ500  = "500Hz"
+    case hZ1000 = "1000Hz"
+    case hZ2000 = "2000Hz"
+    case hZ4000 = "4000Hz"
+    case hZ8000 = "8000Hz"
+  }
+
   private var _initialized = false
 
+  // ----------------------------------------------------------------------------
+  // MARK: - Public Static command methods
+  
+  /* ----- from the FlexApi source -----
+   eq " + id + "mode="   + 1/0
+   eq " + id + "32Hz="   + hz32
+   eq " + id + "63Hz="   + hz63
+   eq " + id + "125Hz="  + hz125
+   eq " + id + "250Hz="  + hz250
+   eq " + id + "500Hz="  + hz500
+   eq " + id + "1000Hz=" + hz1000
+   eq " + id + "2000Hz=" + hz2000
+   eq " + id + "4000Hz=" + hz4000
+   eq " + id + "8000Hz=" + hz8000
+   eq " + id + "info"
+   
+   // the following are properties on Radio
+   eq apf gain=" + apfGain
+   eq apf mode=" + apfMode
+   eq apf qfactor=" + apfQFactor
+   */
+
+  public static func set(id: String, property: Property, value: String) -> String {
+    var sendableProperty: SendableProperty
+    
+    switch property {
+    case .eqEnabled:  sendableProperty = .eqEnabled
+    case .hz63:       sendableProperty = .hZ63
+    case .hz125:      sendableProperty = .hZ125
+    case .hz250:      sendableProperty = .hZ250
+    case .hz500:      sendableProperty = .hZ500
+    case .hz1000:     sendableProperty = .hZ1000
+    case .hz2000:     sendableProperty = .hZ2000
+    case .hz4000:     sendableProperty = .hZ4000
+    case .hz8000:     sendableProperty = .hZ8000
+    }
+    return "eq \(id) \(sendableProperty.rawValue)=\(value)"
+  }
+
+  public static func infof(id: String) -> String {
+    "eq \(id) info"
+  }
 }

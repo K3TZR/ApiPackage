@@ -90,6 +90,8 @@ public final class Radio: Identifiable, Equatable {
       return "radio set \(property.rawValue)=\(value)"
     }
   }
+  
+  // Filters
   public static func filterVoice(property: Property, value: String) -> String {
     "radio filter_sharpness voice \(property.rawValue)=\(value)"
   }
@@ -99,6 +101,28 @@ public final class Radio: Identifiable, Equatable {
   public static func filterDigital(property: Property, value: String) -> String {
     "radio filter_sharpness digital \(property.rawValue)=\(value)"
   }
+  public static func pllStart() -> String {
+    "radio pll_start"
+  }
+  
+  // Streams
+  public static func streamCreate(type: StreamType, channel: Int? = nil, compression: String? = nil) -> String? {
+    switch type {
+    case .daxRxAudioStream:       return "stream create type=\(type.rawValue) channel=\(channel ?? 1) compression=\(compression ?? "none")"
+    case .daxIqStream:            return "stream create type=\(type.rawValue) channel=\(channel ?? 1)"
+    case .daxMicAudioStream:      return "stream create type=\(type.rawValue)"
+    case .daxTxAudioStream:       return "stream create type=\(type.rawValue) compression=\(compression ?? "none")"
+    case .remoteRxAudioStream:    return "stream create type=\(type.rawValue) compression=\(compression ?? "none")"
+    case .remoteTxAudioStream:    return "stream create type=\(type.rawValue) compression=\(compression ?? "none")"
+    
+    // should never occur
+    case .panadapter, .waterfall: fatalError("Invalid stream type requested: \(type.rawValue)")
+    }
+  }
+  public static func streamRemove(id: UInt32) -> String {
+    "stream remove \(id.hex)"
+  }
+
 
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method

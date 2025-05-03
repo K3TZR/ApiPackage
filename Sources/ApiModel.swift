@@ -593,8 +593,9 @@ final public class ApiModel: TcpProcessor {
         radio.guiClients[index].program = program
         radio.guiClients[index].station = station
         radio.guiClients[index].pttEnabled = pttEnabled
-        let i = index
-        Task { await ApiLog.debug("ApiModel/parseConnection: STATION  UPDATED Name <\(station)>, Radio <\(radio.packet.nickname)> Program <\(program)>, Ip <\(radio.guiClients[i].ip)>, Host <\(radio.guiClients[i].host)>, Handle <\(handle.hex)>, ClientId <\(UUID(uuidString: clientId)!)>") }
+        let ip = radio.guiClients[index].ip
+        let host = radio.guiClients[index].host
+        Task { await ApiLog.debug("ApiModel/parseConnection: STATION  UPDATED Name <\(station)>, Radio <\(radio.packet.nickname)> Program <\(program)>, Ip <\(ip)>, Host <\(host)>, Handle <\(handle.hex)>, ClientId <\(UUID(uuidString: clientId)!)>") }
         
         // if needed, bind to the Station
         if connectionIsGui == false && station == activeSelection?.station && boundClientId == nil {

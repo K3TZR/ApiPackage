@@ -83,22 +83,10 @@
   //        return selectedStreams[0]
   //    }
   
-  // ----------------------------------------------------------------------------
-  // MARK: - DaxMicAudioStream methods
-  
-  //    public func requestDaxMicAudioStream(callback: ReplyProcessor? = nil) {
-  //        // tell the Radio to create a Stream
-  //        _api.send("stream create type=dax_mic", replyProcessor: replyProcessor)
-  //    }
   
   // ----------------------------------------------------------------------------
   // MARK: - DaxRxAudioStream methods
   
-  //    public func requestDaxRxAudioStream(_ channel: String, replyhandler: ReplyHandler? = nil) {
-  //        // tell the Radio to create a Stream
-  //        _api.send("stream create type=dax_rx dax_channel=\(channel)", replyProcessor: replyProcessor)
-  //    }
-  //
   //    public func findDaxRxAudioStream(with channel: Int) -> DaxRxAudioStream? {
   //        // find the DaxRxAudioStream with the specified Channel (if any)
   //        let streams = daxRxAudioStreams.values.filter { $0.daxChannel == channel }
@@ -344,27 +332,6 @@
 //    apiModel.sendTcp("radio static_net_params" + " ip=\(staticIp) gateway=\(staticGateway) netmask=\(staticMask)")
 //  }
   
-  // ----------------------------------------------------------------------------
-  // MARK: -  RemoteRxAudioStream methods
-  
-//  public func requestRemoteRxAudioStream(compression: String = RemoteRxAudioStream.Compression.opus.rawValue, replyhandler: ReplyHandler? = nil) async throws -> String {
-//    try await sendAwaitReply("stream create type=remote_audio_rx compression=\(compression)", replyProcessor: replyProcessor)
-//  }
-  
-//  public func removeRemoteRxAudioStream() {
-//    streamModel.removeRemoteRxAudioStream(connectionHandle)
-//  }
-  
-  // ----------------------------------------------------------------------------
-  // MARK: -  RemoteTxAudioStream methods
-  
-//  public func requestRemoteTxAudioStream(callback: ReplyProcessor? = nil)  async throws -> String {
-//    try await sendAwaitReply("stream create type=remote_audio_tx", replyProcessor: replyProcessor)
-//  }
-  
-//  public func removeRemoteTxAudioStream() {
-//    streamModel.removeRemoteTxAudioStream(connectionHandle)
-//  }
 
   // ----------------------------------------------------------------------------
   // MARK: - Slice methods
