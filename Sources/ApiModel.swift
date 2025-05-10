@@ -1132,26 +1132,25 @@ final public class ApiModel: TcpProcessor {
     try await withCheckedThrowingContinuation { continuation in
       Task { @MainActor in
         _awaitFirstStatusMessage = continuation
-        Task { await ApiLog.debug("ApiModel/awaitFirstStatusMessage: waiting for first status message") }
-      }
-      
-      Task {
-        try await Task.sleep(for: .seconds(timeout))
+        await ApiLog.debug("ApiModel/awaitFirstStatusMessage: waiting for first status message")
         
-        await MainActor.run {
-          if let continuation = _awaitFirstStatusMessage {
-            _awaitFirstStatusMessage = nil
-            continuation.resume(throwing: NSError(
-              domain: "ApiModel",
-              code: 1,
-              userInfo: [NSLocalizedDescriptionKey: "Timeout waiting for first status message"]
-            ))
+        Task {
+          try await Task.sleep(for: .seconds(timeout))
+          await MainActor.run {
+            if let continuation = _awaitFirstStatusMessage {
+              _awaitFirstStatusMessage = nil
+              continuation.resume(throwing: NSError(
+                domain: "ApiModel",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Timeout waiting for first status message"]
+              ))
+            }
           }
         }
       }
     }
   }
-  
+      
   private func clientIpValidation() async -> (String) {
     return await withCheckedContinuation{ continuation in
       _awaitClientIpValidation = continuation
