@@ -892,7 +892,7 @@ final public class ApiModel: TcpProcessor {
               default: return
               }
               
-              if let radio = radios.first(where: {$0.id == activeSelection!.radioId }) {
+              if let activeSelection, let radio = radios.first(where: {$0.id == activeSelection.radioId }) {
                 radio.parse(keyValues)
               }
               
