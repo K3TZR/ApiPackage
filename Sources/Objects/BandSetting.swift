@@ -39,7 +39,7 @@ public final class BandSetting: Identifiable {
         // NO, remove it
         let name = apiModel.bandSettings[index!].name
         apiModel.bandSettings.remove(at: index!)
-        Task { await ApiLog.debug("BandSetting: \(name): REMOVED") }
+        Task { await ApiLog.debug("BandSetting: REMOVED Id <\(id.hex)> Name <\(name)>") }
       }
     }
   }
@@ -77,7 +77,7 @@ public final class BandSetting: Identifiable {
       if _initialized == false {
         // NO, it is now
         _initialized = true
-        Task { await ApiLog.debug("BandSetting: <\(self.name)> ADDED") }
+        Task { await ApiLog.debug("BandSetting: ADDED Name <\(self.name)>") }
       }
     }
   }

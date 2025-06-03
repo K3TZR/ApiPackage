@@ -59,7 +59,7 @@ public final class DaxMicAudio: Identifiable {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("DaxMicAudio \(self.id.hex) ADDED: handle = \(self.clientHandle.hex)") }
+      Task { await ApiLog.debug("DaxMicAudio: ADDED Id <\(self.id.hex)> handle <\(self.clientHandle.hex)>") }
     }
   }
   

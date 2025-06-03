@@ -142,7 +142,8 @@ public final class Udp: NSObject {
   private var _delegate: StreamProcessor?
   private var _isBound = false
   private var _receivePort: UInt16 = 0
-  private let _receiveQ = DispatchQueue(label: "UdpStream.ReceiveQ", qos: .userInteractive)
+//  private let _receiveQ = DispatchQueue(label: "UdpStream.ReceiveQ", qos: .userInteractive)
+  private let _receiveQ = DispatchQueue(label: "UdpStream.ReceiveQ")
   private var _socket: GCDAsyncUdpSocket!
 
   private let kMaxBindAttempts = 20

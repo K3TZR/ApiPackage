@@ -78,7 +78,7 @@ public final class DaxRxAudio {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("DaxRxAudio ADDED: channel = \(self.daxChannel), handle = \(self.clientHandle.hex)") }
+      Task { await ApiLog.debug("DaxRxAudio: ADDED channel <\(self.daxChannel)> handle <\(self.clientHandle.hex)>") }
     }
   }
   

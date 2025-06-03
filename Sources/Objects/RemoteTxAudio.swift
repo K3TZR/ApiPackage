@@ -46,7 +46,7 @@ public final class RemoteTxAudio: Identifiable {
       // check for unknown Keys
       guard let token = Property(rawValue: property.key) else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("RemoteTxAudio \(self.id.hex): unknown property, \(property.key) = \(property.value)") }
+        Task { await ApiLog.warning("RemoteTxAudio: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>") }
         continue
       }
       // known Keys, in alphabetical order
@@ -63,7 +63,7 @@ public final class RemoteTxAudio: Identifiable {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("RemoteTxAudio \(self.id.hex) ADDED: handle = \(self.clientHandle.hex)") }
+      Task { await ApiLog.debug("RemoteTxAudio: ADDED Id <\(self.id.hex)> handle <\(self.clientHandle.hex)>") }
     }
   }
 

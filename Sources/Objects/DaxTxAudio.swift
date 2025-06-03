@@ -61,7 +61,7 @@ public final class DaxTxAudio {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("DaxTxAudio ADDED: handle = \(self.clientHandle.hex)") }
+      Task { await ApiLog.debug("DaxTxAudio: ADDED handle <\(self.clientHandle.hex)>") }
     }
   }
   

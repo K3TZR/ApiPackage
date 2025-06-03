@@ -571,25 +571,25 @@ extension Version {
 // ----------------------------------------------------------------------------
 // MARK: - Property Wrappers
 
-@propertyWrapper
-final public class Atomic<Value> {
-    private let queue = DispatchQueue(label: "net.k3tzr.atomic", qos: .userInitiated, attributes: [.concurrent])
-    private var value: Value
-
-    public init(wrappedValue: Value) {
-        self.value = wrappedValue
-    }
-
-    public var wrappedValue: Value {
-        get {
-            queue.sync { value }
-        }
-        set {
-            queue.sync(flags: .barrier) { value = newValue }
-        }
-    }
-
-    public func mutate(_ mutation: (inout Value) -> Void) {
-        return queue.sync(flags: .barrier)  { mutation(&value) }
-    }
-}
+//@propertyWrapper
+//final public class Atomic<Value> {
+//    private let queue = DispatchQueue(label: "net.k3tzr.atomic", qos: .userInitiated, attributes: [.concurrent])
+//    private var value: Value
+//
+//    public init(wrappedValue: Value) {
+//        self.value = wrappedValue
+//    }
+//
+//    public var wrappedValue: Value {
+//        get {
+//            queue.sync { value }
+//        }
+//        set {
+//            queue.sync(flags: .barrier) { value = newValue }
+//        }
+//    }
+//
+//    public func mutate(_ mutation: (inout Value) -> Void) {
+//        return queue.sync(flags: .barrier)  { mutation(&value) }
+//    }
+//}

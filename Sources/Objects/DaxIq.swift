@@ -64,7 +64,7 @@ public final class DaxIq {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("DaxIq ADDED: channel = \(self.channel)") }
+      Task { await ApiLog.debug("DaxIq: ADDED channel <\(self.channel)>") }
     }
   }
   

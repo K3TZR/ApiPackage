@@ -35,7 +35,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
       try _udpSocket.enableReusePort(true)
       Task { await ApiLog.debug("Local Listener: socket REUSE enabled") }
     } catch let error as NSError {
-      Task { await ApiLog.error("Local Listener: socket REUSE, error <\(error.localizedDescription)>, code <(\(error.code)>") }
+      Task { await ApiLog.error("Local Listener: socket REUSE, error <\(error.localizedDescription)> code <(\(error.code)>") }
     }
   }
   
@@ -48,14 +48,14 @@ public final class ListenerLocal: NSObject, ObservableObject {
       Task { await ApiLog.debug("Local Listener: socket bound to port <\(port)>") }
       
     } catch let error as NSError {
-      Task { await ApiLog.error("Local Listener: Error binding to port <\(port)>, <\(error.localizedDescription)>, code <\(error.code)>") }
+      Task { await ApiLog.error("Local Listener: Error binding to port <\(port)> <\(error.localizedDescription)> code <\(error.code)>") }
       return
     }
     do {
       try _udpSocket!.beginReceiving()
       Task { await ApiLog.debug("Local Listener: socket STARTED") }
     } catch let error as NSError {
-      Task { await ApiLog.error("Local Listener: Error starting to receive, <\(error.localizedDescription)>, code <\(error.code)>") }
+      Task { await ApiLog.error("Local Listener: Error starting to receive <\(error.localizedDescription)> code <\(error.code)>") }
     }
   }
   

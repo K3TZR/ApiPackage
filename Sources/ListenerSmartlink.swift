@@ -104,7 +104,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   ///   - serialNumber:         the serial number of the Radio
   ///   - handle:               the handle of the Client
   public func smartlinkDisconnectClient(for serial: String, handle: UInt32) {
-    Task { await ApiLog.debug("Smartlink Listener: Disconnect sent to serial <\(serial)>, handle <\(handle.hex)>") }
+    Task { await ApiLog.debug("Smartlink Listener: Disconnect sent to serial <\(serial)> handle <\(handle.hex)>") }
     // send a command to SmartLink to request disconnection from the specified Radio
     sendTlsCommand("application disconnect_users serial=\(serial) handle=\(handle.hex)")
   }

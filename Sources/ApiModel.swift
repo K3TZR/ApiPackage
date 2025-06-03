@@ -187,7 +187,7 @@ final public class ApiModel: TcpProcessor {
     
     if let radio = radios.first(where: {$0.id == selection.radioId} ) {
       try _tcp.connect(radio.packet)
-      Task { await ApiLog.debug("ApiModel/connect: Tcp connection established") }
+      Task { await ApiLog.debug("ApiModel: Tcp connection established") }
       
       if selection.disconnectHandle != nil {
         // pending disconnect
@@ -196,50 +196,50 @@ final public class ApiModel: TcpProcessor {
       
       // wait for the first Status message with my handle
       try await awaitFirstStatusMessage()
-      Task { await ApiLog.debug("ApiModel/connect: First status message received") }
+      Task { await ApiLog.debug("ApiModel: First status message received") }
       
       // is this a Wan connection?
       if radio.packet.source == .smartlink {
         // YES, send Wan Connect message & wait for the reply
         _wanHandle = try await self.listenerSmartlink?.smartlinkConnect(for: radio.packet.serial, holePunchPort: radio.packet.negotiatedHolePunchPort)
         if _wanHandle == nil { throw ApiError.connection }
-        Task { await ApiLog.debug("ApiModel/connect: wanHandle received") }
+        Task { await ApiLog.debug("ApiModel: wanHandle received") }
         
         // send Wan Validate & wait for the reply
         Task { await ApiLog.debug("ApiModel: Wan validate sent for handle=\(self._wanHandle!)") }
         let replyComponents = await sendTcpAwaitReply("wan validate handle=\(_wanHandle!)")
         //      let reply = await wanValidation()
-        Task { await ApiLog.debug("ApiModel/connect: Wan validation = \(String(describing: replyComponents))") }
+        Task { await ApiLog.debug("ApiModel: Wan validation = \(String(describing: replyComponents))") }
       }
       
       // bind UDP
       let ports = try _udp.bind(radio.packet)
-      Task { await ApiLog.debug("ApiModel/connect: UDP bound, receive port <\(ports!.0)>, send port <\(ports!.1)>") }
+      Task { await ApiLog.debug("ApiModel: UDP bound, receive port <\(ports!.0)> send port <\(ports!.1)>") }
       
       // is this a Wan connection?
       if radio.packet.source == .smartlink {
         // send Wan Register (no reply)
         sendUdp("client udp_register handle=" + connectionHandle!.hex )
-        Task { await ApiLog.debug("ApiModel/connect: UDP registration sent") }
+        Task { await ApiLog.debug("ApiModel: UDP registration sent") }
         
         // send Client Ip & wait for the reply
         let replyComponents = await sendTcpAwaitReply("client ip")
         //      sendTcp("client ip", replyHandler: ipReplyHandler)
         //      let reply = await clientIpValidation()
-        Task { await ApiLog.debug("ApiModel/connect: Client ip <\(String(describing: replyComponents))>") }
+        Task { await ApiLog.debug("ApiModel: Client ip <\(String(describing: replyComponents))>") }
       }
       
       // send the initial commands
       sendInitialCommands(isGui, programName, selection.station, mtuValue, lowBandwidthDax, lowBandwidthConnect, guiClientId)
-      Task { await ApiLog.debug("ApiModel/connect: initial commands sent, isGui <\(isGui)>") }
+      Task { await ApiLog.debug("ApiModel: initial commands sent, isGui <\(isGui)>") }
       
       startPinging()
-      Task { await ApiLog.debug("ApiModel/connect: pinging <\(radio.packet.publicIp)>") }
+      Task { await ApiLog.debug("ApiModel: pinging <\(radio.packet.publicIp)>") }
       
       // set the UDP port for a Local connection
       if radio.packet.source == .local {
         sendTcp("client udpport " + "\(_udp.sendPort)")
-        Task { await ApiLog.debug("ApiModel/connect: Client Udp port <\(self._udp.sendPort)>") }
+        Task { await ApiLog.debug("ApiModel: Client Udp port <\(self._udp.sendPort)>") }
       }
     }
   }
@@ -248,7 +248,7 @@ final public class ApiModel: TcpProcessor {
   /// - Parameter reason: an optional reason
   public func disconnect(_ reason: String? = nil) async {
     if reason == nil {
-      Task { await ApiLog.debug("ApiModel/disconnect: Disconnect, \((reason == nil ? "User initiated" : reason!))") }
+      Task { await ApiLog.debug("ApiModel: Disconnect, \((reason == nil ? "User initiated" : reason!))") }
     }
     
     // stop any listeners
@@ -261,13 +261,13 @@ final public class ApiModel: TcpProcessor {
     
     // stop pinging (if active)
     stopPinging()
-    Task { await ApiLog.debug("ApiModel/disconnect: Pinging STOPPED") }
+    Task { await ApiLog.debug("ApiModel: Pinging STOPPED") }
     
     connectionHandle = nil
     
     // stop udp
     _udp.unbind()
-    Task { await ApiLog.debug("ApiModel/disconnect: Disconnect, UDP unbound") }
+    Task { await ApiLog.debug("ApiModel: Disconnect, UDP unbound") }
     
     _tcp.disconnect()
     
@@ -276,7 +276,7 @@ final public class ApiModel: TcpProcessor {
     
     await _replyDictionary.removeAll()
     await _sequencer.reset()
-    Task { await ApiLog.debug("ApiModel/disconnect: Disconnect, Objects removed") }
+    Task { await ApiLog.debug("ApiModel: Disconnect, Objects removed") }
   }
   
   public func meterBy(shortName: Meter.ShortName, sliceId: UInt32? = nil) -> Meter? {
@@ -309,7 +309,7 @@ final public class ApiModel: TcpProcessor {
       if radio.packet != packet {
         // YES, overwrite the Packet
         radio.packet = packet
-        //        Task { await ApiLog.debug("ApiModel: RADIO    UPDATED Name <\(name)>, Serial <\(packet.serial)>, Source <\(packet.source == .local ? "Local" : "Smartlink")>") }
+        //        Task { await ApiLog.debug("ApiModel: RADIO    UPDATED Name <\(name)> Serial <\(packet.serial)> Source <\(packet.source == .local ? "Local" : "Smartlink")>") }
       }
       // update the TimeStamp
       radio.lastSeen = Date()
@@ -325,12 +325,12 @@ final public class ApiModel: TcpProcessor {
             if radio.guiClients[index].ip.isEmpty { radio.guiClients[index].ip = newGuiClient.ip }
             if radio.guiClients[index].host.isEmpty { radio.guiClients[index].host = newGuiClient.host }
             let i = index
-            Task { await ApiLog.debug("ApiModel/process: STATION  UPDATED Name <\(radio.guiClients[i].station)>, Radio <\(name)>, Program <\(radio.guiClients[i].program)>, Ip <\(radio.guiClients[i].ip)>, Host <\(radio.guiClients[i].host)>, Handle <\(radio.guiClients[i].handle)>, ClientId <\(radio.guiClients[i].clientId?.uuidString ?? "Unknown")>") }
+            Task { await ApiLog.debug("ApiModel: STATION  UPDATED Name <\(radio.guiClients[i].station)> Radio <\(name)> Program <\(radio.guiClients[i].program)> Ip <\(radio.guiClients[i].ip)> Host <\(radio.guiClients[i].host)> Handle <\(radio.guiClients[i].handle)> ClientId <\(radio.guiClients[i].clientId?.uuidString ?? "Unknown")>") }
           }
         } else {
           // NO, not found in GuiClients, add it
           radio.guiClients.append(newGuiClient)
-          Task { await ApiLog.debug("ApiModel/process: STATION  ADDED   Name <\(newGuiClient.station)>, Radio <\(name)>, Program <\(newGuiClient.program)>, Ip <\(newGuiClient.ip)>, Host <\(newGuiClient.host)>, Handle <\(newGuiClient.handle)>, ClientId <\(newGuiClient.clientId?.uuidString ?? "Unknown")>") }
+          Task { await ApiLog.debug("ApiModel: STATION  ADDED   Name <\(newGuiClient.station)> Radio <\(name)> Program <\(newGuiClient.program)> Ip <\(newGuiClient.ip)> Host <\(newGuiClient.host)> Handle <\(newGuiClient.handle)> ClientId <\(newGuiClient.clientId?.uuidString ?? "Unknown")>") }
         }
       }
       // identify any missing Stations
@@ -342,18 +342,18 @@ final public class ApiModel: TcpProcessor {
       // remove any missing stations
       for station in toBeRemoved {
         radio.guiClients.removeAll(where: { $0.station == station })
-        Task { await ApiLog.debug("ApiModel/process: STATION REMOVED  Name <\(station)>") }
+        Task { await ApiLog.debug("ApiModel: STATION REMOVED  Name <\(station)>") }
       }
       
     } else {
       // UNKNOWN radio, add it
       let radio = Radio(packet, newGuiClients, discoveryData)
       radios.append( radio )
-      Task { await ApiLog.debug("ApiModel/process: RADIO    ADDED   Name <\(name)>, Serial <\(packet.serial)>, Source <\(packet.source == .local ? "Local" : "Smartlink")>, timeStamp <\(radio.lastSeen)>") }
+      Task { await ApiLog.debug("ApiModel: RADIO    ADDED   Name <\(name)> Serial <\(packet.serial)> Source <\(packet.source == .local ? "Local" : "Smartlink")> timeStamp <\(radio.lastSeen)>") }
       
       // log the GuiClients
       for guiClient in newGuiClients {
-        Task { await ApiLog.debug("ApiModel/process: STATION  ADDED   Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>") }
+        Task { await ApiLog.debug("ApiModel: STATION  ADDED   Name <\(guiClient.station)> Radio <\(name)> Program <\(guiClient.program)> Ip <\(guiClient.ip)> Host <\(guiClient.host)> Handle <\(guiClient.handle)> ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>") }
       }
     }
     
@@ -364,11 +364,11 @@ final public class ApiModel: TcpProcessor {
     for (i, radio) in radios.enumerated().reversed() where radio.packet.source == source {
       let name = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
       //      for guiClient in radio.guiClients {
-      //        Task { await ApiLog.debug("ApiModel: STATION  REMOVED Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>") }
+      //        Task { await ApiLog.debug("ApiModel: STATION  REMOVED Name <\(guiClient.station)> Radio <\(name)> Program <\(guiClient.program)> Ip <\(guiClient.ip)> Host <\(guiClient.host)> Handle <\(guiClient.handle)> ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>") }
       //      }
       // remove Radio
       radios.remove(at: i)
-      Task { await ApiLog.debug("ApiModel/removeRadios: RADIO    REMOVED Name <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")>") }
+      Task { await ApiLog.debug("ApiModel: RADIO    REMOVED Name <\(name)> Serial <\(radio.packet.serial)> Source <\(radio.packet.source == .local ? "Local" : "Smartlink")>") }
     }
   }
   
@@ -420,9 +420,9 @@ final public class ApiModel: TcpProcessor {
     _awaitTcpReply = nil
     
     if replyComponents.0 != sequenceNumber {
-      fatalError("ApiModel/sendTcpAwaitReply: wrong reply: \(String(describing: replyComponents))")
+      fatalError("ApiModel: wrong reply: \(String(describing: replyComponents))")
     } else {
-      Task { await ApiLog.debug("ApiModel/sendTcpAwaitReply: TCP reply = \(String(describing: replyComponents))") }
+      Task { await ApiLog.debug("ApiModel: TCP reply = \(String(describing: replyComponents))") }
     }
     return replyComponents
   }
@@ -452,12 +452,12 @@ final public class ApiModel: TcpProcessor {
       // the first character indicates the type of message
       switch msg.prefix(1).uppercased() {
         
-      case "H":  connectionHandle = String(msg.dropFirst()).handle ; Task { await ApiLog.debug("ApiModel/tcpProcessor: connectionHandle <\(self.connectionHandle?.hex ?? "missing")>") }
+      case "H":  connectionHandle = String(msg.dropFirst()).handle ; Task { await ApiLog.debug("ApiModel: connectionHandle <\(self.connectionHandle?.hex ?? "missing")>") }
       case "M":  parseMessage( msg )
       case "R":  replyProcessor( msg )
       case "S":  parseStatus( msg )
       case "V":  hardwareVersion = String(msg.dropFirst())
-      default:   Task { await ApiLog.warning("ApiModel/tcpProcessor: unexpected message <\(msg)>") }
+      default:   Task { await ApiLog.warning("ApiModel: unexpected message <\(msg)>") }
       }
     }}
   }
@@ -468,7 +468,7 @@ final public class ApiModel: TcpProcessor {
   private func bind(_ station: String, _ clientId: String) {
     boundClientId = clientId
     sendTcp("client bind client_id=\(clientId)")
-    Task { await ApiLog.info("ApiModel/bind: NonGui bound to <\(station)>, Client ID <\(clientId)>") }
+    Task { await ApiLog.info("ApiModel: NonGui bound to <\(station)> Client ID <\(clientId)>") }
   }
   
   public func commandsReplyHandler(_ command: String, _ reply: String) {
@@ -478,11 +478,11 @@ final public class ApiModel: TcpProcessor {
     let components = reply.components(separatedBy: "|")
     // ignore incorrectly formatted replies
     if components.count < 2 {
-      Task { await ApiLog.warning("ApiModel/commandsReplyHandler: incomplete reply, <r\(reply)>") }
+      Task { await ApiLog.warning("ApiModel: incomplete reply, <r\(reply)>") }
       return
     }
     if components[1] != kNoError {
-      Task { await ApiLog.warning("ApiModel/commandsReplyHandler: non-zero reply for command <\(command)>, <\(reply)>") }
+      Task { await ApiLog.warning("ApiModel: non-zero reply for command <\(command)> <\(reply)>") }
       return
     }
     
@@ -517,7 +517,7 @@ final public class ApiModel: TcpProcessor {
     // Check for unknown Object Types
     guard let objectType = ObjectType(rawValue: statusType)  else {
       // log it and ignore the message
-      Task { await ApiLog.warning("ApiModel/parse: unknown status token = \(statusType)") }
+      Task { await ApiLog.warning("ApiModel: unknown status token = \(statusType)") }
       return
     }
     
@@ -574,7 +574,7 @@ final public class ApiModel: TcpProcessor {
       // check for unknown properties
       guard let token = Property(rawValue: property.key) else {
         // log it and ignore this Key
-        Task { await ApiLog.warning("ApiModel/parseConnection: unknown client property, \(property.key)=\(property.value)") }
+        Task { await ApiLog.warning("ApiModel: unknown client property, \(property.key)=\(property.value)") }
         continue
       }
       // Known properties, in alphabetical order
@@ -595,7 +595,7 @@ final public class ApiModel: TcpProcessor {
         radio.guiClients[index].pttEnabled = pttEnabled
         let ip = radio.guiClients[index].ip
         let host = radio.guiClients[index].host
-        Task { await ApiLog.debug("ApiModel/parseConnection: STATION  UPDATED Name <\(station)>, Radio <\(radio.packet.nickname)> Program <\(program)>, Ip <\(ip)>, Host <\(host)>, Handle <\(handle.hex)>, ClientId <\(UUID(uuidString: clientId)!)>") }
+        Task { await ApiLog.debug("ApiModel: STATION  UPDATED Name <\(station)> Radio <\(radio.packet.nickname)> Program <\(program)> Ip <\(ip)> Host <\(host)> Handle <\(handle.hex)> ClientId <\(UUID(uuidString: clientId)!)>") }
         
         // if needed, bind to the Station
         if connectionIsGui == false && station == activeSelection?.station && boundClientId == nil {
@@ -604,7 +604,7 @@ final public class ApiModel: TcpProcessor {
         
       } else {
         radio.guiClients.append( GuiClient(handle: handle.hex, station: station, program: program, clientId: UUID(uuidString: clientId), pttEnabled: pttEnabled) )
-        Task { await ApiLog.debug("ApiModel/parseConnection: STATION  ADDED   Name <\(station)>, Radio <\(radio.packet.nickname)>, Program <\(program)>, Handle <\(handle.hex)>, Client Id <\(UUID(uuidString: clientId)!)>") }
+        Task { await ApiLog.debug("ApiModel: STATION  ADDED   Name <\(station) Radio <\(radio.packet.nickname)> Program <\(program)> Handle <\(handle.hex)> Client Id <\(UUID(uuidString: clientId)!)>") }
         
         // if needed, bind to the Station
         if connectionIsGui == false && station == activeSelection?.station && boundClientId == nil {
@@ -624,7 +624,7 @@ final public class ApiModel: TcpProcessor {
   //          if !program.isEmpty { guiClient.program = program }
   //          if !station.isEmpty { guiClient.station = station }
   //          radio.guiClients.insert(guiClient)
-  //          Task { await ApiLog.debug("ApiModel: STATION  UPDATED Name <\(station)>, Program <\(program)>, Handle <\(handle.hex)>, ClientId <\(UUID(uuidString: clientId)!)> on RADIO <\(radio.packet.nickname)> ") }
+  //          Task { await ApiLog.debug("ApiModel: STATION  UPDATED Name <\(station)> Program <\(program)> Handle <\(handle.hex)> ClientId <\(UUID(uuidString: clientId)!)> on RADIO <\(radio.packet.nickname)> ") }
   //
   //          // if needed, bind to the Station
   //          if connectionIsGui == false && station == activeStation {
@@ -633,7 +633,7 @@ final public class ApiModel: TcpProcessor {
   //
   //        } else {
   //          radio.guiClients.insert(GuiClient(handle: handle.hex, station: station, program: program, clientId: UUID(uuidString: clientId)))
-  //          Task { await ApiLog.debug("ApiModel: STATION  ADDED   Name <\(station)>, Program <\(program)>, Handle <\(handle.hex)>, Client Id <\(UUID(uuidString: clientId)!)> on RADIO <\(radio.packet.nickname)>") }
+  //          Task { await ApiLog.debug("ApiModel: STATION  ADDED   Name <\(station)> Program <\(program)> Handle <\(handle.hex)> Client Id <\(UUID(uuidString: clientId)!)> on RADIO <\(radio.packet.nickname)>") }
   //
   //          // if needed, bind to the Station
   //          if connectionIsGui == false && station == activeStation {
@@ -662,7 +662,7 @@ final public class ApiModel: TcpProcessor {
         // check for unknown property
         guard let token = Property(rawValue: property.key) else {
           // log it and ignore this Key
-          Task { await ApiLog.warning("ApiModel/parseDisconnection: unknown client disconnection property, \(property.key)=\(property.value)") }
+          Task { await ApiLog.warning("ApiModel: unknown client disconnection property, \(property.key)=\(property.value)") }
           continue
         }
         // Known properties, in alphabetical order
@@ -673,7 +673,7 @@ final public class ApiModel: TcpProcessor {
         case .wanValidationFailed:  if property.value.bValue { reason = "Wan validation failed" }
         }
       }
-      Task { await ApiLog.warning("ApiModel/parseDisconnection: client disconnection, reason = \(reason)") }
+      Task { await ApiLog.warning("ApiModel: client disconnection, reason = \(reason)") }
       
       clientInitialized = false
       
@@ -684,7 +684,7 @@ final public class ApiModel: TcpProcessor {
     //        // YES, remove and log it
     //        let removed = guiClients[index]
     //        guiClients.remove(at: index)
-    //        Task { await ApiLog.debug("ApiModel: STATION  REMOVED Name <\(removed.station)>, Program <\(removed.program)>, Ip <\(removed.ip)>, Host <\(removed.host)>, Handle <\(removed.handle)>, ClientId <\(removed.clientId?.uuidString ?? "Unknown")>") }
+    //        Task { await ApiLog.debug("ApiModel: STATION  REMOVED Name <\(removed.station)> Program <\(removed.program)> Ip <\(removed.ip)> Host <\(removed.host)> Handle <\(removed.handle)> ClientId <\(removed.clientId?.uuidString ?? "Unknown")>") }
     //      }
     //    }
   }
@@ -739,7 +739,7 @@ final public class ApiModel: TcpProcessor {
     
     // ignore incorrectly formatted messages
     if components.count < 2 {
-      Task { await ApiLog.warning("ApiModel/parseMessage: incomplete message = c\(msg)") }
+      Task { await ApiLog.warning("ApiModel: incomplete message = c\(msg)") }
       return
     }
     
@@ -754,12 +754,12 @@ final public class ApiModel: TcpProcessor {
   ///   - commandSuffix:      a Command Suffix
   private func parseStatus(_ commandSuffix: String) {
     
-    // separate it into its components ( [0] = <apiHandle>, [1] = <remainder> )
+    // separate it into its components ( [0] = <apiHandle> [1] = <remainder> )
     let components = commandSuffix.dropFirst().components(separatedBy: "|")
     
     // ignore incorrectly formatted status
     guard components.count > 1 else {
-      Task { await ApiLog.warning("ApiModel/parseStatus: incomplete status = c\(commandSuffix)") }
+      Task { await ApiLog.warning("ApiModel: incomplete status = c\(commandSuffix)") }
       return
     }
     
@@ -813,7 +813,7 @@ final public class ApiModel: TcpProcessor {
     removeAll(of: .usbCable)
     removeAll(of: .waterfall)
     removeAll(of: .xvtr)
-    Task { await ApiLog.debug("ApiModel/removeAll: removed all objects") }
+    Task { await ApiLog.debug("ApiModel: removed all objects") }
   }
   
   private func replyHandlerIp(_ command: String, _ reply: String) {
@@ -831,7 +831,7 @@ final public class ApiModel: TcpProcessor {
     let components = replyMessage.dropFirst().components(separatedBy: "|")
     // ignore incorrectly formatted replies
     if components.count < 2 {
-      Task { await ApiLog.warning("ApiModel/replyParser: incomplete reply, R\(replyMessage)") }
+      Task { await ApiLog.warning("ApiModel: incomplete reply, R\(replyMessage)") }
       return nil
     }
     // get the sequence number, reply and any additional data
@@ -851,7 +851,7 @@ final public class ApiModel: TcpProcessor {
       // are we waiting for this reply?
       if _awaitTcpReply != nil {
         // YES, resume
-        Task { await ApiLog.debug( "ApiModel/replyProcessor: resuming tcpReply" ) }
+        Task { await ApiLog.debug( "ApiModel: resuming tcpReply" ) }
         _awaitTcpReply!.resume(returning: components)
         
       } else {
@@ -873,9 +873,9 @@ final public class ApiModel: TcpProcessor {
             // ignore non-zero reply from "client program" command
             if replyValue != kNoError {
               if replyEntry.command.hasPrefix("client program ") {
-                Task { await ApiLog.info("FlexMsg: command <\(replyEntry.command)>, code <\(replyValue)>, message <\(FlexError.description(replyValue))>") }
+                Task { await ApiLog.info("FlexMsg: command <\(replyEntry.command)> code <\(replyValue)> message <\(FlexError.description(replyValue))>") }
               } else {
-                Task { await ApiLog.error("ApiModel/replyProcessor: command <\(replyEntry.command)>, replyValue <\(replyValue)>, description <\(FlexError.description(replyValue))>") }
+                Task { await ApiLog.error("ApiModel: command <\(replyEntry.command)> replyValue <\(replyValue)> description <\(FlexError.description(replyValue))>") }
               }
             }
             
@@ -900,10 +900,11 @@ final public class ApiModel: TcpProcessor {
               // call the sender's Handler
               replyEntry.replyHandler?(replyEntry.command, replyMessage)
             }
-          } else {
-            // no reply entry for this sequence number
-            Task { await ApiLog.error("ApiModel/replyProcessor: sequenceNumber \(sequenceNumber) not found in the ReplyDictionary") }
           }
+//          else {
+//            // no reply entry for this sequence number
+//            Task { await ApiLog.error("ApiModel: sequenceNumber \(sequenceNumber) not found in the ReplyDictionary") }
+//          }
         }
       }
     }
@@ -994,12 +995,12 @@ final public class ApiModel: TcpProcessor {
             if interval > self._broadcastTimeout {
               let name = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
               //              for guiClient in radio.guiClients {
-              //                Task { await ApiLog.debug("ApiModel: STATION  REMOVED Name <\(guiClient.station)>, Radio <\(name)>, Program <\(guiClient.program)>, Ip <\(guiClient.ip)>, Host <\(guiClient.host)>, Handle <\(guiClient.handle)>, ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>") }
+              //                Task { await ApiLog.debug("ApiModel: STATION  REMOVED Name <\(guiClient.station)> Radio <\(name)> Program <\(guiClient.program)> Ip <\(guiClient.ip)> Host <\(guiClient.host)> Handle <\(guiClient.handle)> ClientId <\(guiClient.clientId?.uuidString ?? "Unknown")>") }
               //              }
               
               // remove Radio
               self.radios.remove(at: i)
-              Task { await ApiLog.debug("ApiModel/timeoutStart: RADIO    REMOVED Name <\(name)>, Serial <\(radio.packet.serial)>, Source <\(radio.packet.source == .local ? "Local" : "Smartlink")>, timeout (\(interval) seconds)") }
+              Task { await ApiLog.debug("ApiModel: RADIO    REMOVED Name <\(name)> Serial <\(radio.packet.serial)> Source <\(radio.packet.source == .local ? "Local" : "Smartlink")> timeout (\(interval) seconds)") }
             }
           }
         }
@@ -1064,12 +1065,12 @@ final public class ApiModel: TcpProcessor {
         if isForThisClient(properties, connectionHandle) {
           // YES
           guard properties.count > 1 else {
-            Task { await ApiLog.warning("ApiModel/preProcessStream: invalid Stream message: \(statusMessage)") }
+            Task { await ApiLog.warning("ApiModel: invalid Stream message: \(statusMessage)") }
             return
           }
           guard let token = StreamType(rawValue: properties[1].value) else {
             // log it and ignore the Key
-            Task { await ApiLog.warning("ApiModel/preProcessStream: unknown Stream type: \(properties[1].value)") }
+            Task { await ApiLog.warning("ApiModel: unknown Stream type: \(properties[1].value)") }
             return
           }
           switch token {
@@ -1086,7 +1087,7 @@ final public class ApiModel: TcpProcessor {
         }
       }
     } else {
-      Task { await ApiLog.warning("ApiModel/preProcessStream: invalid Stream message: \(statusMessage)") }
+      Task { await ApiLog.warning("ApiModel: invalid Stream message: \(statusMessage)") }
     }
   }
   
@@ -1132,7 +1133,7 @@ final public class ApiModel: TcpProcessor {
     try await withCheckedThrowingContinuation { continuation in
       Task { @MainActor in
         _awaitFirstStatusMessage = continuation
-        await ApiLog.debug("ApiModel/awaitFirstStatusMessage: waiting for first status message")
+        await ApiLog.debug("ApiModel: waiting for first status message")
         
         Task {
           try await Task.sleep(for: .seconds(timeout))
@@ -1154,21 +1155,21 @@ final public class ApiModel: TcpProcessor {
   private func clientIpValidation() async -> (String) {
     return await withCheckedContinuation{ continuation in
       _awaitClientIpValidation = continuation
-      Task { await ApiLog.debug("ApiModel/clientIpValidation: Client ip request sent") }
+      Task { await ApiLog.debug("ApiModel: Client ip request sent") }
     }
   }
   
   private func wanValidation() async -> (String) {
     return await withCheckedContinuation{ continuation in
       _awaitWanValidation = continuation
-      Task { await ApiLog.debug("ApiModel/wanValidation: Wan validate sent for handle=\(self._wanHandle!)") }
+      Task { await ApiLog.debug("ApiModel: Wan validate sent for handle=\(self._wanHandle!)") }
     }
   }
   
   private func tcpReply() async -> (Int, String, String) {
     return await withCheckedContinuation{ continuation in
       _awaitTcpReply = continuation
-      Task { await ApiLog.debug("ApiModel/tcpReply: awaiting a TCP reply") }
+      Task { await ApiLog.debug("ApiModel: awaiting a TCP reply") }
     }
   }
   
@@ -1178,27 +1179,27 @@ final public class ApiModel: TcpProcessor {
   private func removeStream(having id: UInt32) {
     if daxIqs[id] != nil {
       daxIqs[id] = nil
-      Task { await ApiLog.debug("ApiModel/removeStream: DaxIq \(id.hex): REMOVED") }
+      Task { await ApiLog.debug("ApiModel: DaxIq \(id.hex): REMOVED") }
     }
     else if daxMicAudio?.id == id {
       daxMicAudio = nil
-      Task { await ApiLog.debug("ApiModel/removeStream: DaxMicAudio \(id.hex): REMOVED") }
+      Task { await ApiLog.debug("ApiModel: DaxMicAudio \(id.hex): REMOVED") }
     }
     else if daxRxAudios[id] != nil {
       daxRxAudios[id] = nil
-      Task { await ApiLog.debug("ApiModel/removeStream: DaxRxAudio \(id.hex): REMOVED") }
+      Task { await ApiLog.debug("ApiModel: DaxRxAudio \(id.hex): REMOVED") }
       
     } else if daxTxAudio?.id == id {
       daxTxAudio = nil
-      Task { await ApiLog.debug("ApiModel/removeStream: DaxTxAudio \(id.hex): REMOVED") }
+      Task { await ApiLog.debug("ApiModel: DaxTxAudio \(id.hex): REMOVED") }
     }
     else if remoteRxAudio?.id == id {
       remoteRxAudio = nil
-      Task { await ApiLog.debug("ApiModel/removeStream: RemoteRxAudio \(id.hex): REMOVED") }
+      Task { await ApiLog.debug("ApiModel: RemoteRxAudio \(id.hex): REMOVED") }
     }
     else if remoteTxAudio?.id == id {
       remoteTxAudio = nil
-      Task { await ApiLog.debug("ApiModel/removeStream: RemoteTxAudio \(id.hex): REMOVED") }
+      Task { await ApiLog.debug("ApiModel: RemoteTxAudio \(id.hex): REMOVED") }
     }
   }
   

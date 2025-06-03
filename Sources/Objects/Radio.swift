@@ -239,7 +239,7 @@ public final class Radio: Identifiable, Equatable {
     if !_initialized {
       // YES, notify all observers
       _initialized = true
-      Task { await ApiLog.debug("Radio: <\(self.name)> initialized") }
+      Task { await ApiLog.debug("Radio: ADDED Name <\(self.name)>") }
     }
   }
   

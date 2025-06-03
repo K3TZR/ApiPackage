@@ -38,7 +38,7 @@ public final class Memory: Identifiable {
       } else {
         // NO, remove it
         apiModel.memories.remove(at: index!)
-        Task { await ApiLog.debug("Memory: <\(id)> REMOVED") }
+        Task { await ApiLog.debug("Memory: REMOVED Id <\(id)>") }
       }
     }
   }
@@ -54,7 +54,7 @@ public final class Memory: Identifiable {
       // check for unknown Keys
       guard let token = Memory.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("Memory: unknown property, \(property.key) = \(property.value)") }
+        Task { await ApiLog.warning("Memory: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>") }
         continue
       }
       // known keys
@@ -89,7 +89,7 @@ public final class Memory: Identifiable {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("Memory: <\(self.name)> ADDED") }
+      Task { await ApiLog.debug("Memory: ADDED Id <\(self.id.hex)> Name <\(self.name)>") }
     }
   }
   

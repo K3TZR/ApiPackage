@@ -63,7 +63,7 @@ public final class Profile {
       // YES, add it if not already present
       if index == nil {
         apiModel.profiles.append(Profile(id))
-        Task { await ApiLog.debug("Profile: <\(id)> ADDED") }
+        Task { await ApiLog.debug("Profile: ADDED Id <\(id)>") }
         apiModel.profiles.last!.parse(properties)
       } else {
         // parse the properties
@@ -73,7 +73,7 @@ public final class Profile {
     } else {
       // NO, remove it
       apiModel.profiles.remove(at: index!)
-      Task { await ApiLog.debug("Profile: <\(id)> REMOVED") }
+      Task { await ApiLog.debug("Profile: REMOVED Id <\(id)>") }
     }
   }
   

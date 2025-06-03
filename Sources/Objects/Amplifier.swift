@@ -38,7 +38,7 @@ public final class Amplifier: Identifiable {
       } else {
         // NO, remove it
         apiModel.amplifiers.remove(at: index!)
-        Task { await ApiLog.debug("Amplifier \(id.hex): REMOVED") }
+        Task { await ApiLog.debug("Amplifier: REMOVED Id <\(id.hex)>") }
       }
     }
   }
@@ -72,7 +72,7 @@ public final class Amplifier: Identifiable {
       if _initialized == false {
         // NO, it is now
         _initialized = true
-        Task { await ApiLog.debug("Amplifier: ADDED, model = \(self.model)") }
+        Task { await ApiLog.debug("Amplifier: ADDED model <\(self.model)>") }
       }
     }
   }

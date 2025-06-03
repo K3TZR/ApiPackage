@@ -93,12 +93,12 @@ final public class StreamModel: StreamProcessor, ObservableObject {
     // pass Stream data to the appropriate Object
     switch vita.classCode {
     case .panadapter:
-      await MainActor.run { stats[8].packets += 1  }
+//      await MainActor.run { stats[8].packets += 1  }
 //      //      if let object = panadapterStreams[id: vita.streamId] { object.streamProcessor(vita) }
       break
       
     case .waterfall:
-      await MainActor.run { stats[9].packets += 1  }
+//      await MainActor.run { stats[9].packets += 1  }
 //      //      if let object = await waterfallStreams[id: vita.streamId] { object.streamProcessor(vita) }
       break
       
@@ -113,7 +113,7 @@ final public class StreamModel: StreamProcessor, ObservableObject {
       
     case .meter:
       // update the statistics
-      await MainActor.run { stats[6].packets += 1  }
+//      await MainActor.run { stats[6].packets += 1  }
       if meterStream == nil { meterStream = MeterStream(vita.streamId, apiModel: api) }
       meterStream?.streamProcessor(vita)
       
@@ -123,7 +123,8 @@ final public class StreamModel: StreamProcessor, ObservableObject {
       break
       
     default:
-      Task { await ApiLog.debug("StreamModel: unknown Vita class code: \(vita.classCode.description()) Stream Id = \(vita.streamId.hex)") }
+//      Task { await ApiLog.debug("StreamModel: unknown Vita class code: \(vita.classCode.description()) Stream Id = \(vita.streamId.hex)") }
+      break
     }
   }
   

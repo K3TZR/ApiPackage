@@ -64,7 +64,7 @@ public final class Xvtr {
       } else {
         // NO, remove it
         apiModel.xvtrs.remove(at: index!)
-        Task { await ApiLog.debug("Tnf \(id): REMOVED") }
+        Task { await ApiLog.debug("Xvtr: REMOVED <\(id.hex)>") }
       }
     }
   }
@@ -80,7 +80,7 @@ public final class Xvtr {
       // check for unknown Keys
       guard let token = Xvtr.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("Xvtr: unknown property, \(property.key) = \(property.value)") }
+        Task { await ApiLog.warning("Xvtr: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>") }
         continue
       }
       // Known keys, in alphabetical order
@@ -106,7 +106,7 @@ public final class Xvtr {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("Xvtr: ADDED, name = \(self.name)") }
+      Task { await ApiLog.debug("Xvtr: ADDED Id <\(self.id.hex)> name <\(self.name)>") }
     }
   }
   
