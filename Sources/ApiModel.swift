@@ -195,7 +195,7 @@ final public class ApiModel: TcpProcessor {
       }
       
       // wait for the first Status message with my handle
-      try await awaitFirstStatusMessage()
+      try await awaitFirstStatusMessage(timeout: 10)
       Task { await ApiLog.debug("ApiModel: First status message received") }
       
       // is this a Wan connection?
@@ -1129,7 +1129,7 @@ final public class ApiModel: TcpProcessor {
   //    }
   //  }
   
-  private func awaitFirstStatusMessage(timeout: Int = 5) async throws {
+  private func awaitFirstStatusMessage(timeout: Int) async throws {
     try await withCheckedThrowingContinuation { continuation in
       Task { @MainActor in
         _awaitFirstStatusMessage = continuation

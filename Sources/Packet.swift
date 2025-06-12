@@ -38,6 +38,7 @@ public struct Packet: Identifiable, Comparable, Equatable, Sendable {
       case .availableSlices:            availableSlices = property.value.iValue
       case .callsign:                   callsign = property.value
       case .discoveryProtocolVersion:   discoveryProtocolVersion = property.value
+      case .externalPortLink:           externalPortLink = property.value.bValue
       case .fpcMac:                     fpcMac = property.value
       case .guiClientHandles:           guiClientHandles = property.value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
       case .guiClientHosts:             guiClientHosts = property.value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
@@ -90,6 +91,7 @@ public struct Packet: Identifiable, Comparable, Equatable, Sendable {
   public var availableSlices = 0                    //  X
   public var callsign = ""                          //  X     X
   public var discoveryProtocolVersion = ""          //  X
+  public var externalPortLink = false
   public var fpcMac = ""                            //  X
   public var guiClientHandles = [String]()
   public var guiClientHosts = [String]()
@@ -130,6 +132,7 @@ public struct Packet: Identifiable, Comparable, Equatable, Sendable {
     case availableSlices            = "available_slices"
     case callsign
     case discoveryProtocolVersion   = "discovery_protocol_version"
+    case externalPortLink           = "external_port_link"
     case fpcMac                     = "fpc_mac"
     case guiClientHandles           = "gui_client_handles"
     case guiClientHosts             = "gui_client_hosts"
