@@ -145,6 +145,7 @@ public final class Radio: Identifiable, Equatable {
         case .alpha:                    alpha = property.value.bValue                               //
         case .antList:                  antList = property.value.valuesArray()
         case .atuPresent:               atuPresent = property.value.bValue
+        case .autoSave:                 autoSave = property.value.bValue
         case .backlight:                backlight = property.value.iValue                           //
         case .bandPersistenceEnabled:   bandPersistenceEnabled = property.value.bValue              //
         case .binauralRxEnabled:        binauralRxEnabled = property.value.bValue                   //
@@ -263,7 +264,7 @@ public final class Radio: Identifiable, Equatable {
   
   private func send(_ property: Property, _ value: String) {
     switch property {
-    case .binauralRxEnabled, .calFreq, .enforcePrivateIpEnabled, .freqErrorPpb, .fullDuplexEnabled,
+    case .autoSave, .binauralRxEnabled, .calFreq, .enforcePrivateIpEnabled, .freqErrorPpb, .fullDuplexEnabled,
         .multiflexEnabled, .muteLocalAudio, .remoteOnEnabled, .rttyMark, .snapTuneEnabled, .tnfsEnabled:
 //      _apiModel.sendTcp("radio set \(property.rawValue)=\(value)")
       break
@@ -333,6 +334,7 @@ public final class Radio: Identifiable, Equatable {
   public var pingerEnabled = true
   
   public internal(set) var atuPresent = false
+  public internal(set) var autoSave = false
   public internal(set) var availablePanadapters = 0
   public internal(set) var availableSlices = 0
   public internal(set) var backlight = 0
@@ -413,6 +415,7 @@ public final class Radio: Identifiable, Equatable {
     case alpha
     case antList                  = "ant_list"
     case atuPresent               = "atu_present"
+    case autoSave                 = "auto_save"
     case backlight
     case bandPersistenceEnabled   = "band_persistence_enabled"
     case binauralRxEnabled        = "binaural_rx"

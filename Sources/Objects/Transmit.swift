@@ -129,6 +129,7 @@ public final class Transmit {
       case .speechProcessorLevel:     speechProcessorLevel = property.value.iValue
       case .ssbMonitorGain:           ssbMonitorGain = property.value.iValue
       case .ssbMonitorPan:            ssbMonitorPan = property.value.iValue
+      case .tuneMode:                 tuneMode = property.value
       case .txAntenna:                txAntenna = property.value
       case .txFilterChanges:          txFilterChanges = property.value.bValue
       case .txFilterHigh:             txFilterHigh = property.value.iValue
@@ -196,6 +197,7 @@ public final class Transmit {
   public var txFilterHigh = 0
   public var txFilterLow = 0
   public var inhibit = false
+  public var tuneMode = ""
   public var txInWaterfallEnabled = false
   public var txMonitorAvailable = false
   public var txMonitorEnabled = false
@@ -241,6 +243,7 @@ public final class Transmit {
     case ssbMonitorGain           = "mon_gain_sb"
     case ssbMonitorPan            = "mon_pan_sb"
     case tune
+    case tuneMode                 = "tune_mode"
     case tunePower                = "tunepower"
     case txAntenna                = "tx_antenna"
     case txFilterChanges          = "tx_filter_changes_allowed"

@@ -195,6 +195,7 @@ public final class Slice: Identifiable {
       case .rttyMark:                 rttyMark = property.value.iValue
       case .rttyShift:                rttyShift = property.value.iValue
       case .rxAnt:                    rxAnt = property.value
+      case .rxErrormHz:               rxErrormHz = property.value.fValue
       case .rxAntList:                rxAntList = property.value.list
       case .sampleRate:               sampleRate = property.value.iValue         // FIXME: ????? not in v3.2.15 source code
       case .sliceLetter:              sliceLetter = property.value
@@ -219,7 +220,7 @@ public final class Slice: Identifiable {
       case .daxClients:               break
       case .diversityParent:          break
       case .recordTime:               break
-      case .ghost /*, .tune */:             break
+      case .ghost /*, .tune */:       break
       }
     }
     // is it initialized?
@@ -332,6 +333,7 @@ public final class Slice: Identifiable {
   public var rttyMark: Int = 0
   public var rttyShift: Int = 0
   public var rxAnt: String = ""
+  public var rxErrormHz: Float = 0
   public var sampleRate: Int = 0
   public var splitId: UInt32?
   public var step: Int = 0
@@ -461,6 +463,7 @@ public final class Slice: Identifiable {
     case rttyShift                  = "rtty_shift"
     case rxAnt                      = "rxant"
     case rxAntList                  = "ant_list"
+    case rxErrormHz                 = "rx_error_mhz"
     case sampleRate                 = "sample_rate"
     case sliceLetter                = "index_letter"
     case squelchAvgFactor           = "squelch_avg_factor"
