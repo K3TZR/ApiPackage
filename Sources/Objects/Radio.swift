@@ -309,11 +309,14 @@ public final class Radio: Identifiable, Equatable {
   
   public let id: RadioId
 
-  @ObservationIgnored
-  public var intervals: [TimeInterval] = Array(repeating: 0.0, count: 60)
-  @ObservationIgnored
-  public var intervalIndex = 0
+//  @ObservationIgnored
+//  public var intervals: [TimeInterval] = Array(repeating: 0.0, count: 10)
+//  @ObservationIgnored
+//  public var intervalIndex = 0
   
+  public var intervalLast: TimeInterval = 0.0
+  public var intervalPeak: TimeInterval = 0.0
+
   public var discoveryData: Data?
   public var packet: Packet
   public var guiClients: [GuiClient] = []

@@ -311,9 +311,17 @@ final public class ApiModel: TcpProcessor {
         radio.packet = packet
         //        Task { await ApiLog.debug("ApiModel: RADIO    UPDATED Name <\(name)> Serial <\(packet.serial)> Source <\(packet.source == .local ? "Local" : "Smartlink")>") }
       }
+      
+      let previousSeen = radio.lastSeen
+
       // update the TimeStamp
       radio.lastSeen = Date()
       radio.discoveryData = discoveryData
+
+      radio.intervalLast = radio.lastSeen.timeIntervalSince(previousSeen)
+      if radio.intervalLast > radio.intervalPeak {
+        radio.intervalPeak = radio.intervalLast
+      }
       
       for newGuiClient in newGuiClients {
         // is it already in GuiClients
@@ -988,9 +996,11 @@ final public class ApiModel: TcpProcessor {
         for (i, radio) in self.radios.enumerated().reversed() {
           if radio.packet.source == .local {
             let interval = Date().timeIntervalSince(radio.lastSeen)
-            self.radios[i].intervals[self.radios[i].intervalIndex] = interval
-            
-            self.radios[i].intervalIndex = (self.radios[i].intervalIndex + 1) % self.radios[i].intervals.count
+//            self.radios[i].intervals[self.radios[i].intervalIndex] = interval
+//            
+//            self.radios[i].intervalIndex = (self.radios[i].intervalIndex + 1) % self.radios[i].intervals.count
+//
+//            print(radio.packet.nickname, "Last seen", radio.lastSeen, "Interval", interval)
             
             if interval > self._broadcastTimeout {
               let name = radio.packet.nickname.isEmpty ? radio.packet.model : radio.packet.nickname
