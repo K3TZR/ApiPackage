@@ -8,6 +8,11 @@
 import Foundation
 import os
 
+enum ApiContinuationError: Error {
+  case alreadyWaiting
+  case timeout
+}
+
 public typealias IdToken = String
 public typealias RefreshToken = String
 
@@ -271,6 +276,24 @@ public class ApiModel: TcpProcessor {
     
     _tcp.disconnect()
     
+    // clear any pending continuations to avoid leaks
+    if let c = _awaitFirstStatusMessage {
+      _awaitFirstStatusMessage = nil
+      c.resume(throwing: ApiContinuationError.timeout)
+    }
+    if let c = _awaitTcpReply {
+      _awaitTcpReply = nil
+      c.resume(returning: (-1, "", ""))
+    }
+    if let c = _awaitClientIpValidation {
+      _awaitClientIpValidation = nil
+      c.resume(returning: "")
+    }
+    if let c = _awaitWanValidation {
+      _awaitWanValidation = nil
+      c.resume(returning: "")
+    }
+    
     activeSelection = nil
     removeAllObjects()
     
@@ -411,8 +434,6 @@ public class ApiModel: TcpProcessor {
   public func sendTcpAwaitReply(_ cmd: String, diagnostic: Bool = false) async -> (Int, String, String)  {
     // assign sequenceNumber
     let sequenceNumber = await _sequencer.next()
-    //      // register to be notified when reply received
-    //      await _replyDictionary.add(sequenceNumber, ReplyEntry(cmd, replyHandler))
     
     // assemble the command
     let command =  "C" + "\(diagnostic ? "D" : "")" + "\(sequenceNumber)|" + cmd
@@ -423,12 +444,16 @@ public class ApiModel: TcpProcessor {
     // sent messages provided to the Tester (if Tester exists)
     testDelegate?.tcpProcessor(command, isInput: false)
     
-    // wait for the reply
-    let replyComponents = await tcpReply()
-    _awaitTcpReply = nil
+    let replyComponents: (Int, String, String)
+    do {
+      replyComponents = try await tcpReply(timeout: .seconds(10))
+    } catch {
+      apiLog(.error, "ApiModel: TCP reply timeout or error for command <\(cmd)>")
+      return (-1, "timeout", "")
+    }
     
     if replyComponents.0 != sequenceNumber {
-      fatalError("ApiModel: wrong reply: \(String(describing: replyComponents))")
+      apiLog(.warning, "ApiModel: wrong reply sequence: expected <\(sequenceNumber)> got <\(replyComponents.0)>")
     } else {
       apiLog(.debug, "ApiModel: TCP reply = \(String(describing: replyComponents))")
     }
@@ -825,13 +850,17 @@ public class ApiModel: TcpProcessor {
   }
   
   private func replyHandlerIp(_ command: String, _ reply: String) {
-    // YES, resume it
-    _awaitClientIpValidation?.resume(returning: reply)
+    if let cont = _awaitClientIpValidation {
+      _awaitClientIpValidation = nil
+      cont.resume(returning: reply)
+    }
   }
   
   private func replyHandlerWanValidation(_ command: String, _ reply: String) {
-    // YES, resume it
-    _awaitWanValidation?.resume(returning: reply)
+    if let cont = _awaitWanValidation {
+      _awaitWanValidation = nil
+      cont.resume(returning: reply)
+    }
   }
   
   private func replyParser(_ replyMessage: String) -> (Int, String, String)? {
@@ -856,64 +885,62 @@ public class ApiModel: TcpProcessor {
     
     // separate it into its components
     if let components = replyParser(replyMessage) {
-      // are we waiting for this reply?
-      if _awaitTcpReply != nil {
-        // YES, resume
-        apiLog(.debug,  "ApiModel: resuming tcpReply" )
-        _awaitTcpReply!.resume(returning: components)
+      // If someone is awaiting a raw TCP reply, resume it first
+      if let cont = _awaitTcpReply {
+        _awaitTcpReply = nil
+        cont.resume(returning: components)
+        return
+      }
+      
+      Task {
+        var keyValues = KeyValuesArray()
         
-      } else {
+        let sequenceNumber = components.0
+        let replyValue = components.1
+        let suffix = components.2
         
-        Task {
-          var keyValues = KeyValuesArray()
+        // is there a ReplyEntry for the sequence number (in the ReplyDictionary)?
+        if let replyEntry = await _replyDictionary[ sequenceNumber ] {
           
-          let sequenceNumber = components.0
-          let replyValue = components.1
-          let suffix = components.2
+          // YES, remove that entry in the ReplyDictionary
+          await _replyDictionary.remove(sequenceNumber)
           
-          // is there a ReplyEntry for the sequence number (in the ReplyDictionary)?
-          if let replyEntry = await _replyDictionary[ sequenceNumber ] {
-            
-            // YES, remove that entry in the ReplyDictionary
-            await _replyDictionary.remove(sequenceNumber)
-            
-            // Anything other than kNoError is an error, log it
-            // ignore non-zero reply from "client program" command
-            if replyValue != kNoError {
-              if replyEntry.command.hasPrefix("client program ") {
-                apiLog(.info, "FlexMsg: command <\(replyEntry.command)> code <\(replyValue)> message <\(FlexError.description(replyValue))>")
-              } else {
-                apiLog(.error, "ApiModel: command <\(replyEntry.command)> replyValue <\(replyValue)> description <\(FlexError.description(replyValue))>")
-              }
-            }
-            
-            if replyEntry.replyHandler == nil {
-              
-              // process replies to the internal "sendCommands"?
-              switch replyEntry.command {
-              case "radio uptime":  keyValues = "uptime=\(suffix)".keyValuesArray()
-              case "version":       keyValues = suffix.keyValuesArray(delimiter: "#")
-              case "ant list":      keyValues = "ant_list=\(suffix)".keyValuesArray()
-              case "mic list":      keyValues = "mic_list=\(suffix)".keyValuesArray()
-              case "info":          keyValues = suffix.keyValuesArray(delimiter: ",")
-              case "ping":          updatePingInterval(replyEntry.timeStamp)
-              default: return
-              }
-              
-              if let activeSelection, let radio = radios.first(where: {$0.id == activeSelection.radioId }) {
-                radio.parse(keyValues)
-              }
-              
+          // Anything other than kNoError is an error, log it
+          // ignore non-zero reply from "client program" command
+          if replyValue != kNoError {
+            if replyEntry.command.hasPrefix("client program ") {
+              apiLog(.info, "FlexMsg: command <\(replyEntry.command)> code <\(replyValue)> message <\(FlexError.description(replyValue))>")
             } else {
-              // call the sender's Handler
-              replyEntry.replyHandler?(replyEntry.command, replyMessage)
+              apiLog(.error, "ApiModel: command <\(replyEntry.command)> replyValue <\(replyValue)> description <\(FlexError.description(replyValue))>")
             }
           }
-//          else {
-//            // no reply entry for this sequence number
-//            Task { await ApiLog.error("ApiModel: sequenceNumber \(sequenceNumber) not found in the ReplyDictionary") }
-//          }
+          
+          if replyEntry.replyHandler == nil {
+            
+            // process replies to the internal "sendCommands"?
+            switch replyEntry.command {
+            case "radio uptime":  keyValues = "uptime=\(suffix)".keyValuesArray()
+            case "version":       keyValues = suffix.keyValuesArray(delimiter: "#")
+            case "ant list":      keyValues = "ant_list=\(suffix)".keyValuesArray()
+            case "mic list":      keyValues = "mic_list=\(suffix)".keyValuesArray()
+            case "info":          keyValues = suffix.keyValuesArray(delimiter: ",")
+            case "ping":          updatePingInterval(replyEntry.timeStamp)
+            default: return
+            }
+            
+            if let activeSelection, let radio = radios.first(where: {$0.id == activeSelection.radioId }) {
+              radio.parse(keyValues)
+            }
+            
+          } else {
+            // call the sender's Handler
+            replyEntry.replyHandler?(replyEntry.command, replyMessage)
+          }
         }
+//        else {
+//          // no reply entry for this sequence number
+//          Task { await ApiLog.error("ApiModel: sequenceNumber \(sequenceNumber) not found in the ReplyDictionary") }
+//        }
       }
     }
   }
@@ -1132,29 +1159,23 @@ public class ApiModel: TcpProcessor {
   // ----------------------------------------------------------------------------
   // MARK: - Private continuation methods
   
-  //  private func awaitFirstStatusMessage() async {
-  //    return await withCheckedContinuation{ continuation in
-  //      _awaitFirstStatusMessage = continuation
-  //      apiLog(.debug, "ApiModel: waiting for first status message")
-  //    }
-  //  }
-  
   private func awaitFirstStatusMessage(timeout: Int) async throws {
-    try await withCheckedThrowingContinuation { continuation in
+    // If a previous waiter exists, fail it to avoid leaks
+    if let previous = _awaitFirstStatusMessage {
+      _awaitFirstStatusMessage = nil
+      previous.resume(throwing: ApiContinuationError.alreadyWaiting)
+    }
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
       Task { @MainActor in
         _awaitFirstStatusMessage = continuation
         apiLog(.debug, "ApiModel: waiting for first status message")
-        
+
         Task {
-          try await Task.sleep(for: .seconds(timeout))
+          try? await Task.sleep(for: .seconds(timeout))
           await MainActor.run {
-            if let continuation = _awaitFirstStatusMessage {
+            if let cont = _awaitFirstStatusMessage {
               _awaitFirstStatusMessage = nil
-              continuation.resume(throwing: NSError(
-                domain: "ApiModel",
-                code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "Timeout waiting for first status message"]
-              ))
+              cont.resume(throwing: ApiContinuationError.timeout)
             }
           }
         }
@@ -1163,23 +1184,61 @@ public class ApiModel: TcpProcessor {
   }
       
   private func clientIpValidation() async -> (String) {
-    return await withCheckedContinuation{ continuation in
+    if let previous = _awaitClientIpValidation {
+      _awaitClientIpValidation = nil
+      previous.resume(returning: "")
+    }
+    return await withCheckedContinuation { (continuation: CheckedContinuation<String, Never>) in
       _awaitClientIpValidation = continuation
       apiLog(.debug, "ApiModel: Client ip request sent")
     }
   }
   
   private func wanValidation() async -> (String) {
-    return await withCheckedContinuation{ continuation in
+    if let previous = _awaitWanValidation {
+      _awaitWanValidation = nil
+      previous.resume(returning: "")
+    }
+    return await withCheckedContinuation { (continuation: CheckedContinuation<String, Never>) in
       _awaitWanValidation = continuation
-      apiLog(.debug, "ApiModel: Wan validate sent for handle=\(self._wanHandle!)")
+      apiLog(.debug, "ApiModel: Wan validate sent for handle=\(self._wanHandle ?? "nil")")
     }
   }
   
-  private func tcpReply() async -> (Int, String, String) {
-    return await withCheckedContinuation{ continuation in
-      _awaitTcpReply = continuation
-      apiLog(.debug, "ApiModel: awaiting a TCP reply")
+  private func tcpReply(timeout: Duration? = nil) async throws -> (Int, String, String) {
+    // fail any previous waiter to avoid leaks (must run on MainActor)
+    await MainActor.run {
+      if let previous = _awaitTcpReply {
+        _awaitTcpReply = nil
+        previous.resume(returning: (-1, "", ""))
+      }
+    }
+    if let timeout {
+      return try await withThrowingTaskGroup(of: (Int, String, String).self) { group in
+        group.addTask { [weak self] in
+          guard let self else { throw ApiContinuationError.timeout }
+          return await withCheckedContinuation { (continuation: CheckedContinuation<(Int, String, String), Never>) in
+            Task { @MainActor in
+              self._awaitTcpReply = continuation
+              apiLog(.debug, "ApiModel: awaiting a TCP reply (timeout)")
+            }
+          }
+        }
+        group.addTask {
+          try await Task.sleep(for: timeout)
+          throw ApiContinuationError.timeout
+        }
+        let result = try await group.next()!
+        group.cancelAll()
+        return result
+      }
+    } else {
+      return await withCheckedContinuation { (continuation: CheckedContinuation<(Int, String, String), Never>) in
+        Task { @MainActor in
+          _awaitTcpReply = continuation
+          apiLog(.debug, "ApiModel: awaiting a TCP reply")
+        }
+      }
     }
   }
   

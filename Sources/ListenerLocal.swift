@@ -173,24 +173,28 @@ public final class ListenerLocal: NSObject, ObservableObject {
   /// Decodes VITA packets, validates them, and sends discovery packets to the ApiModel.
   /// - Parameter data: The raw Data received from the socket.
   private func handleReceivedData(_ data: Data) {
-    // is it a VITA packet?
-    guard let vita = Vita.decode(from: data) else {
-      apiLog(.error, "Local Listener: Invalid Vita packet")
-      return
+    do {
+      let vita = try Vita.decodeThrowing(from: data)
+      guard vita.isDiscoveryPacket() else {
+        apiLog(.error, "Local Listener: not a Discovery packet")
+        return
+      }
+      // Prefer structured parsing; fall back to legacy only if parsing fails
+      do {
+        let properties = try vita.parseDiscoveryProperties(strict: false)
+        Task { await MainActor.run { self._api.process(.local, properties, data) } }
+      } catch {
+        apiLog(.error, "Local Listener: discovery payload parse failed: \(error)")
+        // Fallback legacy parsing to avoid dropping packets in production
+        let fallbackString = String(decoding: vita.payloadData, as: UTF8.self)
+          .trimmingCharacters(in: .controlCharacters)
+          .trimmingCharacters(in: CharacterSet(charactersIn: "\0"))
+        let properties = fallbackString.keyValuesArray()
+        Task { await MainActor.run { self._api.process(.local, properties, data) } }
+      }
+    } catch {
+      apiLog(.error, "Local Listener: Vita decode failed: \(error)")
     }
-    
-    // YES, is it a Discovery Packet?
-    guard vita.classIdPresent, vita.classCode == .discovery else {
-      apiLog(.error, "Local Listener: invalid Discovery Packet")
-      return
-    }
-    
-    // YES, Payload is a series of strings of the form <key=value> separated by ' ' (space)
-    let payloadString = String(decoding: vita.payloadData, as: UTF8.self).trimmingCharacters(in: .controlCharacters)
-    let properties = payloadString.trimmingCharacters(in: CharacterSet(charactersIn: "\0")).keyValuesArray()
-    
-    // process it
-    Task { await MainActor.run { self._api.process(.local, properties, data) } }
   }
 }
 

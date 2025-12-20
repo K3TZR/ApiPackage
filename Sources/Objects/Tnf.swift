@@ -66,20 +66,27 @@ public final class Tnf: Identifiable {
         apiLog(.propertyWarning, "Tnf: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
-      // known keys
-      switch token {
-        
-      case .depth:      depth = property.value.tnfDepth
-      case .frequency:  frequency = property.value.mhzToHz
-      case .permanent:  permanent = property.value.bValue
-      case .width:      width = property.value.mhzToHz
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false && frequency != 0 {
       // NO, it is now
       _initialized = true
       apiLog(.debug, "Tnf: ADDED Id <\(self.id.hex)> frequency <\(self.frequency.hzToMhz)>")
+    }
+  }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+   private func apply(property: Tnf.Property, value: String) {
+    switch property {
+      
+      // these fields in the received packet are copied to the Packet struct
+    case .depth:      depth = value.tnfDepth
+    case .frequency:  frequency = value.mhzToHz
+    case .permanent:  permanent = value.bValue
+    case .width:      width = value.mhzToHz
     }
   }
   

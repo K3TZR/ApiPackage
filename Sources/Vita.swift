@@ -463,3 +463,52 @@ public protocol AudioProcessor: AnyObject {
   func audioProcessor(_ vita: Vita)
 }
 
+// MARK: - Vita Helpers (Discovery)
+
+import Foundation
+
+public enum VitaDecodingError: Error {
+  case invalidPacket
+  case notDiscovery
+  case invalidUTF8
+}
+
+public extension Vita {
+  /// A throwing wrapper around the existing optional decode API.
+  /// Throws `VitaDecodingError.invalidPacket` if decoding fails.
+  static func decodeThrowing(from data: Data) throws -> Vita {
+    guard let vita = Self.decode(from: data) else {
+      throw VitaDecodingError.invalidPacket
+    }
+    return vita
+  }
+
+  /// Returns true if this Vita packet represents a Discovery packet.
+  func isDiscoveryPacket() -> Bool {
+    return self.classIdPresent && self.classCode == .discovery
+  }
+
+  /// Parses the discovery payload into key/value pairs.
+  /// - Parameter strict: If true, throws on malformed pairs; otherwise skips them.
+  func parseDiscoveryProperties(strict: Bool = false) throws -> [(key: String, value: String)] {
+    guard isDiscoveryPacket() else { throw VitaDecodingError.notDiscovery }
+    guard let raw = String(data: Data(self.payloadData), encoding: .utf8) else {
+      throw VitaDecodingError.invalidUTF8
+    }
+    let cleaned = raw
+      .trimmingCharacters(in: .controlCharacters)
+      .trimmingCharacters(in: CharacterSet(charactersIn: "\0"))
+
+    var result: [(key: String, value: String)] = []
+    for part in cleaned.split(separator: " ") {
+      guard let eq = part.firstIndex(of: "=") else {
+        if strict { throw VitaDecodingError.invalidPacket } else { continue }
+      }
+      let key = String(part[..<eq])
+      let value = String(part[part.index(after: eq)...])
+      result.append((key, value))
+    }
+    return result
+  }
+}
+

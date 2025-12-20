@@ -58,6 +58,8 @@ public actor ApiLog: LoggingActor {
   }
   
   public func propertyWarning(_ message: String, _ key: String) async {
+    // only report first instance
+    if _messageIssues[key] != nil { return }
     _messageIssues[key] = message
     _logger.warning("\(message)")
     NotificationCenter.default.post(
