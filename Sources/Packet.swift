@@ -30,46 +30,53 @@ public struct Packet: Identifiable, Comparable, Equatable, Sendable {
         apiLog(.propertyWarning, "Packet: Unknown property - \(property.key) = \(property.value)", property.key)
         continue
       }
-      switch token {
-        
-        // these fields in the received packet are copied to the Packet struct
-      case .availableClients:           availableClients = property.value.iValue
-      case .availablePanadapters:       availablePanadapters = property.value.iValue
-      case .availableSlices:            availableSlices = property.value.iValue
-      case .callsign:                   callsign = property.value
-      case .discoveryProtocolVersion:   discoveryProtocolVersion = property.value
-      case .externalPortLink:           externalPortLink = property.value.bValue
-      case .fpcMac:                     fpcMac = property.value
-      case .guiClientHandles:           guiClientHandles = property.value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
-      case .guiClientHosts:             guiClientHosts = property.value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
-      case .guiClientIps:               guiClientIps = property.value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
-      case .guiClientPrograms:          guiClientPrograms = property.value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
-      case .guiClientStations:          guiClientStations = property.value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
-      case .inUseHost, .inUseHostWan:   inUseHost = property.value
-      case .inUseIp, .inUseIpWan:       inUseIp = property.value
-      case .licensedClients:            licensedClients = property.value.iValue
-      case .maxLicensedVersion:         maxLicensedVersion = property.value
-      case .maxPanadapters:             maxPanadapters = property.value.iValue
-      case .maxSlices:                  maxSlices = property.value.iValue
-      case .minSoftwareVersion:         minSoftwareVersion = property.value
-      case .model:                      model = property.value
-      case .nickname, .radioName:       nickname = property.value
-      case .port:                       port = property.value.iValue
-      case .publicIp, .publicIpWan:     publicIp = property.value
-      case .publicTlsPort:              publicTlsPort = property.value.iValueOpt
-      case .publicUdpPort:              publicUdpPort = property.value.iValueOpt
-      case .publicUpnpTlsPort:          publicUpnpTlsPort = property.value.iValueOpt
-      case .publicUpnpUdpPort:          publicUpnpUdpPort = property.value.iValueOpt
-      case .radioLicenseId:             radioLicenseId = property.value
-      case .requiresAdditionalLicense:  requiresAdditionalLicense = property.value.bValue
-      case .serial:                     serial = property.value
-      case .status:                     status = property.value
-      case .upnpSupported:              upnpSupported = property.value.bValue
-      case .version:                    version = property.value
-      case .wanConnected:               wanConnected = property.value.bValue
-        
-      case .lastSeen:                   break // ignore this, will only be present in Smartlink properties
-      }
+      self.apply(property: token, value: property.value)
+    }
+  }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  private mutating func apply(property: Packet.Property, value: String) {
+    switch property {
+      
+      // these fields in the received packet are copied to the Packet struct
+    case .availableClients:           availableClients = value.iValue
+    case .availablePanadapters:       availablePanadapters = value.iValue
+    case .availableSlices:            availableSlices = value.iValue
+    case .callsign:                   callsign = value
+    case .discoveryProtocolVersion:   discoveryProtocolVersion = value
+    case .externalPortLink:           externalPortLink = value.bValue
+    case .fpcMac:                     fpcMac = value
+    case .guiClientHandles:           guiClientHandles = value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
+    case .guiClientHosts:             guiClientHosts = value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
+    case .guiClientIps:               guiClientIps = value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
+    case .guiClientPrograms:          guiClientPrograms = value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
+    case .guiClientStations:          guiClientStations = value.replacingOccurrences(of: "\u{7F}", with: "").valuesArray(delimiter: ",")
+    case .inUseHost, .inUseHostWan:   inUseHost = value
+    case .inUseIp, .inUseIpWan:       inUseIp = value
+    case .licensedClients:            licensedClients = value.iValue
+    case .maxLicensedVersion:         maxLicensedVersion = value
+    case .maxPanadapters:             maxPanadapters = value.iValue
+    case .maxSlices:                  maxSlices = value.iValue
+    case .minSoftwareVersion:         minSoftwareVersion = value
+    case .model:                      model = value
+    case .nickname, .radioName:       nickname = value
+    case .port:                       port = value.iValue
+    case .publicIp, .publicIpWan:     publicIp = value
+    case .publicTlsPort:              publicTlsPort = value.iValueOpt
+    case .publicUdpPort:              publicUdpPort = value.iValueOpt
+    case .publicUpnpTlsPort:          publicUpnpTlsPort = value.iValueOpt
+    case .publicUpnpUdpPort:          publicUpnpUdpPort = value.iValueOpt
+    case .radioLicenseId:             radioLicenseId = value
+    case .requiresAdditionalLicense:  requiresAdditionalLicense = value.bValue
+    case .serial:                     serial = value
+    case .status:                     status = value
+    case .upnpSupported:              upnpSupported = value.bValue
+    case .version:                    version = value
+    case .wanConnected:               wanConnected = value.bValue
+      
+    case .lastSeen:                   break // ignore this, will only be present in Smartlink properties
     }
   }
   
