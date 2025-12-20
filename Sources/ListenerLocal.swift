@@ -26,16 +26,16 @@ public final class ListenerLocal: NSObject, ObservableObject {
     // create a Udp socket and set options
     _udpSocket = GCDAsyncUdpSocket( delegate: self, delegateQueue: _udpQ )
     guard let _udpSocket else {
-      Task { await ApiLog.error("LocalListener: Error creating socket") }
+      apiLog(.error, "LocalListener: Error creating socket")
       return
     }
     _udpSocket.setPreferIPv4()
     _udpSocket.setIPv6Enabled(false)
     do {
       try _udpSocket.enableReusePort(true)
-      Task { await ApiLog.debug("Local Listener: socket REUSE enabled") }
+      apiLog(.debug, "Local Listener: socket REUSE enabled")
     } catch let error as NSError {
-      Task { await ApiLog.error("Local Listener: socket REUSE, error <\(error.localizedDescription)> code <(\(error.code)>") }
+      apiLog(.error, "Local Listener: socket REUSE, error <\(error.localizedDescription)> code <(\(error.code)>")
     }
   }
   
@@ -45,24 +45,24 @@ public final class ListenerLocal: NSObject, ObservableObject {
   public func start(port: UInt16, checkInterval: Int = 1, timeout: TimeInterval = 20.0) async {
     do {
       try _udpSocket!.bind(toPort: port)
-      Task { await ApiLog.debug("Local Listener: socket bound to port <\(port)>") }
+      apiLog(.debug, "Local Listener: socket bound to port <\(port)>")
       
     } catch let error as NSError {
-      Task { await ApiLog.error("Local Listener: Error binding to port <\(port)> <\(error.localizedDescription)> code <\(error.code)>") }
+      apiLog(.error, "Local Listener: Error binding to port <\(port)> <\(error.localizedDescription)> code <\(error.code)>")
       return
     }
     do {
       try _udpSocket!.beginReceiving()
-      Task { await ApiLog.debug("Local Listener: socket STARTED") }
+      apiLog(.debug, "Local Listener: socket STARTED")
     } catch let error as NSError {
-      Task { await ApiLog.error("Local Listener: Error starting to receive <\(error.localizedDescription)> code <\(error.code)>") }
+      apiLog(.error, "Local Listener: Error starting to receive <\(error.localizedDescription)> code <\(error.code)>")
     }
   }
   
   public func stop() {
     _udpSocket?.close()
     _udpSocket = nil
-    Task { await ApiLog.debug("Local Listener: socket STOPPED") }
+    apiLog(.debug, "Local Listener: socket STOPPED")
   }
   
   // ----------------------------------------------------------------------------
@@ -92,13 +92,13 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
     
     // is it a VITA packet?
     guard let vita = Vita.decode(from: data) else {
-      Task { await ApiLog.error("Local Listener: Invalid Vita packet") }
+      apiLog(.error, "Local Listener: Invalid Vita packet")
       return
     }
     
     // YES, is it a Discovery Packet?
     guard vita.classIdPresent, vita.classCode == .discovery else {
-      Task { await ApiLog.error("Local Listener: invalid Discovery Packet") }
+      apiLog(.error, "Local Listener: invalid Discovery Packet")
       return
     }
     // YES, Payload is a series of strings of the form <key=value> separated by ' ' (space)
@@ -111,9 +111,9 @@ extension ListenerLocal: GCDAsyncUdpSocketDelegate {
   
   public nonisolated func udpSocket(_ sock: GCDAsyncUdpSocket, didCloseWithError error: Error?) {
     if let error = error {
-      Task { await ApiLog.error("Local Listener: UDP socket closed with error: \(error.localizedDescription)") }
+      apiLog(.error, "Local Listener: UDP socket closed with error: \(error.localizedDescription)")
     } else {
-      Task { await ApiLog.debug("Local Listener: UDP socket closed gracefully.") }
+      apiLog(.debug, "Local Listener: UDP socket closed gracefully.") 
     }
 //    _udpSocket = nil
   }

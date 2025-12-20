@@ -22,24 +22,32 @@ public final class Tnf: Identifiable {
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+
     // get the id
     if let id = UInt32(properties[0].key, radix: 10) {
       let index = apiModel.tnfs.firstIndex(where: { $0.id == id })
       // is it in use?
       if inUse {
-        // YES, add it if not already present
-        if index == nil {
-          apiModel.tnfs.append(Tnf(id))
-          apiModel.tnfs.last!.parse(Array(properties.dropFirst(1)) )
+        let tnf: Tnf
+        if let index = index {
+          // exists, retrieve
+          tnf = apiModel.tnfs[index]
         } else {
-          // parse the properties
-          apiModel.tnfs[index!].parse(Array(properties.dropFirst(1)) )
+          // new, add
+          tnf = Tnf(id)
+          apiModel.tnfs.append(tnf)
         }
+        // parse
+        tnf.parse(Array(properties.dropFirst(1)))
         
       } else {
-        // NO, remove it
-        apiModel.tnfs.remove(at: index!)
-        Task { await ApiLog.debug("Tnf: REMOVED Id <\(id)>") }
+        // remove
+        if let index = index {
+          apiModel.tnfs.remove(at: index)
+          apiLog(.debug, "Tnf: REMOVED Id <\(id)>")
+        } else {
+          apiLog(.debug, "Tnf: attempt to remove a non-existing entry")
+        }
       }
     }
   }
@@ -55,23 +63,23 @@ public final class Tnf: Identifiable {
       // check for unknown Keys
       guard let token = Tnf.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("Tnf: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>") }
+        apiLog(.propertyWarning, "Tnf: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
       // known keys
       switch token {
         
-      case .depth:      depth = property.value.uValue
+      case .depth:      depth = property.value.tnfDepth
       case .frequency:  frequency = property.value.mhzToHz
       case .permanent:  permanent = property.value.bValue
       case .width:      width = property.value.mhzToHz
       }
-      // is it initialized?
-      if _initialized == false && frequency != 0 {
-        // NO, it is now
-        _initialized = true
-        Task { await ApiLog.debug("Tnf: ADDED Id <\(self.id.hex)> frequency <\(self.frequency.hzToMhz)>") }
-      }
+    }
+    // is it initialized?
+    if _initialized == false && frequency != 0 {
+      // NO, it is now
+      _initialized = true
+      apiLog(.debug, "Tnf: ADDED Id <\(self.id.hex)> frequency <\(self.frequency.hzToMhz)>")
     }
   }
   
@@ -80,7 +88,8 @@ public final class Tnf: Identifiable {
   
   public let id: UInt32
   
-  public private(set) var depth: UInt = 0
+//  public private(set) var depth: UInt = 0
+  public private(set) var depth: TnfDepth = .normal
   public private(set) var frequency: Hz = 0
   public private(set) var permanent = false
   public private(set) var width: Hz = 0

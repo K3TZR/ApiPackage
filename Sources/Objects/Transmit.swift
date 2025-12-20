@@ -91,7 +91,7 @@ public final class Transmit {
       // Check for Unknown Keys
       guard let token = Transmit.Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("Transmit: unknown property, \(property.key) = \(property.value)") }
+        apiLog(.propertyWarning, "Transmit: unknown property, \(property.key) = \(property.value)", property.key)
         continue
       }
       // Known tokens, in alphabetical order
@@ -146,12 +146,12 @@ public final class Transmit {
       case .voxDelay:                 voxDelay = property.value.iValue
       case .voxLevel:                 voxLevel = property.value.iValue
       }
-      // is it initialized?
-      if _initialized == false {
-        // NO, it is now
-        _initialized = true
-        Task { await ApiLog.debug("Transmit: initialized") }
-      }
+    }
+    // is it initialized?
+    if _initialized == false {
+      // NO, it is now
+      _initialized = true
+      apiLog(.debug, "Transmit: initialized")
     }
   }
 

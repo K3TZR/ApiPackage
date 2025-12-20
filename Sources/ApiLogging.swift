@@ -8,22 +8,22 @@
 import Foundation
 import os
 
-// Logger stub, must be initialized by app using this Package
-//public var log: Logger?
-
 // ----------------------------------------------------------------------------
 // MARK: - Logger Extension
 
-//extension Logger {
-//  public func warningExt(_ message: String) {
-//    ApiPackage.Task { await ApiLog.warning("\(message)")
-//    NotificationCenter.default.post(name: Notification.Name.logAlert, object: AlertInfo("WARNING logged", message))
-//  }
-//  public func errorExt(_ message: String) {
-//    ApiPackage.Task { await ApiLog.error("\(message)")
-//    NotificationCenter.default.post(name: Notification.Name.logAlert, object: AlertInfo("ERROR logged", message))
-//  }
-//}
+public enum LogLevel: String, Codable {
+  case debug, info, warning, propertyWarning, error
+}
+
+public func apiLog(_ level: LogLevel, _ message: String, _ key: String = "") {
+  switch level {
+  case .debug: Task { await ApiLog.shared.debug(message) }
+  case .info: Task { await ApiLog.shared.info(message) }
+  case .warning:  Task { await ApiLog.shared.warning(message) }
+  case .propertyWarning: Task { await ApiLog.shared.propertyWarning(message, key) }
+  case .error: Task { await ApiLog.shared.error(message) }
+  }
+}
 
 extension Notification.Name {
   public static let logAlertWarning = Notification.Name("LogAlertWarning")
@@ -32,7 +32,9 @@ extension Notification.Name {
 
 public actor ApiLog: LoggingActor {
   private let _logger: Logger
-  
+
+  private var _messageIssues: [String: String] = [:]
+    
   public static let shared = ApiLog()
   
   private init() {
@@ -55,6 +57,15 @@ public actor ApiLog: LoggingActor {
     )
   }
   
+  public func propertyWarning(_ message: String, _ key: String) async {
+    _messageIssues[key] = message
+    _logger.warning("\(message)")
+    NotificationCenter.default.post(
+      name: Notification.Name.logAlertWarning,
+      object: AlertInfo("A Property Warning has been logged", message)
+    )
+  }
+
   public func error(_ message: String) async {
     _logger.error("\(message)")
     NotificationCenter.default.post(
@@ -62,27 +73,35 @@ public actor ApiLog: LoggingActor {
       object: AlertInfo("An Error has been logged", message)
     )
   }
+  
+  public func fetchIssues() -> [String: String] {
+    _messageIssues
+  }
 }
 
-extension ApiLog {
-  public static func debug(_ message: String) async {
-    await shared.debug(message)
-  }
-  public static func info(_ message: String) async {
-    await shared.info(message)
-  }
-  public static func warning(_ message: String) async {
-    await shared.warning(message)
-  }
-  public static func error(_ message: String) async {
-    await shared.error(message)
-  }
-}
+//extension ApiLog {
+//  public static func debug(_ message: String) async {
+//    await shared.debug(message)
+//  }
+//  public static func info(_ message: String) async {
+//    await shared.info(message)
+//  }
+//  public static func warning(_ message: String) async {
+//    await shared.warning(message)
+//  }
+//  public static func propertyWarning(_ message: String, _ key: String) async {
+//    await shared.propertyWarning(key, message)
+//  }
+//  public static func error(_ message: String) async {
+//    await shared.error(message)
+//  }
+//}
 
 
 public protocol LoggingActor {
   func debug(_ message: String) async
   func info(_ message: String) async
   func warning(_ message: String) async
+  func propertyWarning(_ message: String, _ key: String) async
   func error(_ message: String) async
 }

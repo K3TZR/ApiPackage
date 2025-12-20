@@ -22,23 +22,33 @@ public final class Amplifier: Identifiable {
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+
     // get the id
     if let id = properties[0].key.objectId {
       let index = apiModel.amplifiers.firstIndex(where: { $0.id == id })
+      
       // is it in use?
       if inUse {
-        if index == nil {
-          apiModel.amplifiers.append(Amplifier(id))
-          apiModel.amplifiers.last!.parse(Array(properties.dropFirst(1)) )
+        let amplifier: Amplifier
+        if let index {
+          // exists, retrieve
+          amplifier = apiModel.amplifiers[index]
         } else {
-          // parse the properties
-          apiModel.amplifiers[index!].parse(Array(properties.dropFirst(1)) )
+          // new, add
+          amplifier = Amplifier(id)
+          apiModel.amplifiers.append(amplifier)
         }
+        // parse
+        amplifier.parse(Array(properties.dropFirst(1)) )
         
       } else {
-        // NO, remove it
-        apiModel.amplifiers.remove(at: index!)
-        Task { await ApiLog.debug("Amplifier: REMOVED Id <\(id.hex)>") }
+        // remove
+        if let index {
+          apiModel.amplifiers.remove(at: index)
+          apiLog(.debug, "Amplifier: REMOVED Id <\(id)>")
+        } else {
+          apiLog(.debug, "Amplifier: attempt to remove a non-existing entry")
+        }
       }
     }
   }
@@ -54,7 +64,7 @@ public final class Amplifier: Identifiable {
       // check for unknown Keys
       guard let token = Amplifier.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("Amplifier: unknown propety, \(property.key) = \(property.value)") }
+        apiLog(.propertyWarning, "Amplifier: unknown propety, \(property.key) = \(property.value)", property.key)
         continue
       }
       // known keys
@@ -68,12 +78,12 @@ public final class Amplifier: Identifiable {
       case .serialNumber: serialNumber = property.value
       case .state:        state = property.value
       }
-      // is it initialized?
-      if _initialized == false {
-        // NO, it is now
-        _initialized = true
-        Task { await ApiLog.debug("Amplifier: ADDED model <\(self.model)>") }
-      }
+    }
+    // is it initialized?
+    if _initialized == false {
+      // NO, it is now
+      _initialized = true
+      apiLog(.debug, "Amplifier: ADDED model <\(self.model)>")
     }
   }
   

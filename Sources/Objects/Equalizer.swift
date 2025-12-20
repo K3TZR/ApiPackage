@@ -22,26 +22,34 @@ public final class Equalizer: Identifiable {
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+    
     // get the id
     let id = properties[0].key
     if id == "tx" || id == "rx" { return } // legacy equalizer ids, ignore
     let index = apiModel.equalizers.firstIndex(where: { $0.id == id })
+    
     // is it in use?
     if inUse {
-      if index == nil {
-        apiModel.equalizers.append(Equalizer(id))
-        Task { await ApiLog.debug("Equalizer: ADDED Id <\(id)>") }
-        apiModel.equalizers.last!.parse(Array(properties.dropFirst(1)) )
+      let equalizer: Equalizer
+      if let index {
+        // exists, retrieve
+        equalizer = apiModel.equalizers[index]
       } else {
-        // parse the properties
-        apiModel.equalizers[index!].parse(Array(properties.dropFirst(1)) )
+        // new, add
+        equalizer = Equalizer(id)
+        apiModel.equalizers.append(equalizer)
       }
-
-
+      // parse
+      equalizer.parse(Array(properties.dropFirst(1)) )
+      
     } else {
-      // NO, remove it
-      apiModel.equalizers.remove(at: index!)
-      Task { await ApiLog.debug("Equalizer: REMOVED Id <\(id)>") }
+      // remove
+      if let index {
+        apiModel.equalizers.remove(at: index)
+        apiLog(.debug, "Equalizer: REMOVED Id <\(id)>")
+      } else {
+        apiLog(.debug, "Equalizer: attempt to remove a non-existing entry")
+      }
     }
   }
 
@@ -56,7 +64,7 @@ public final class Equalizer: Identifiable {
       // check for unknown Keys
       guard let token = Property(rawValue: property.key) else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("Equalizer: Id <\(id)> unknown property <\(property.key) = \(property.value)>") }
+        apiLog(.propertyWarning, "Equalizer: Id <\(id)> unknown property <\(property.key) = \(property.value)>", property.key) 
         continue
       }
       // known keys
@@ -73,11 +81,11 @@ public final class Equalizer: Identifiable {
       case .hz4000:  hz4000 = property.value.iValue
       case .hz8000:  hz8000 = property.value.iValue
       }
-      // is it initialized?
-      if _initialized == false {
-        // NO, it is now
-        _initialized = true
-      }
+    }
+    // is it initialized?
+    if _initialized == false {
+      // NO, it is now
+      _initialized = true
     }
   }
 

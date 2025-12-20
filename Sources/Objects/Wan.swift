@@ -27,7 +27,7 @@ public final class Wan {
       // Check for Unknown Keys
       guard let token = Wan.Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("Wan: unknown property <\(property.key) = \(property.value)>") }
+        apiLog(.propertyWarning, "Wan: unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
       // Known tokens, in alphabetical order
@@ -46,7 +46,7 @@ public final class Wan {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("Wan: initialized RadioAuthenticated <\(self.radioAuthenticated)> ServerConnected <\(self.serverConnected)>") }
+      apiLog(.debug, "Wan: initialized RadioAuthenticated <\(self.radioAuthenticated)> ServerConnected <\(self.serverConnected)>") 
     }
   }
   

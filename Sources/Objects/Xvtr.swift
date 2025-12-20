@@ -52,22 +52,51 @@ public final class Xvtr {
       let index = apiModel.xvtrs.firstIndex(where: { $0.id == id })
       // is it in use?
       if inUse {
-        // YES, add it if not already present
-        if index == nil {
-          apiModel.xvtrs.append(Xvtr(id))
-          apiModel.xvtrs.last!.parse(Array(properties.dropFirst(1)) )
+        let xvtr: Xvtr
+        if let index = index {
+          // exists, retrieve
+          xvtr = apiModel.xvtrs[index]
         } else {
-          // parse the properties
-          apiModel.xvtrs[index!].parse(Array(properties.dropFirst(1)) )
+          // new, add
+          xvtr = Xvtr(id)
+          apiModel.xvtrs.append(xvtr)
         }
+        // parse
+        xvtr.parse(Array(properties.dropFirst(1)))
         
       } else {
-        // NO, remove it
-        apiModel.xvtrs.remove(at: index!)
-        Task { await ApiLog.debug("Xvtr: REMOVED <\(id.hex)>") }
+        // remove
+        if let index = index {
+          apiModel.xvtrs.remove(at: index)
+          apiLog(.debug, "Xvtr: REMOVED Id <\(id)>")
+        } else {
+          apiLog(.debug, "Xvtr: attempt to remove a non-existing entry")
+        }
       }
     }
   }
+
+//  // get the id
+//    if let id = UInt32(properties[0].key, radix: 10) {
+//      let index = apiModel.xvtrs.firstIndex(where: { $0.id == id })
+//      // is it in use?
+//      if inUse {
+//        // YES, add it if not already present
+//        if index == nil {
+//          apiModel.xvtrs.append(Xvtr(id))
+//          apiModel.xvtrs.last!.parse(Array(properties.dropFirst(1)) )
+//        } else {
+//          // parse the properties
+//          apiModel.xvtrs[index!].parse(Array(properties.dropFirst(1)) )
+//        }
+//        
+//      } else {
+//        // NO, remove it
+//        apiModel.xvtrs.remove(at: index!)
+//        apiLog(.debug, "Xvtr: REMOVED <\(id.hex)>")
+//      }
+//    }
+//  }
   
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method
@@ -80,7 +109,7 @@ public final class Xvtr {
       // check for unknown Keys
       guard let token = Xvtr.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("Xvtr: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>") }
+        apiLog(.propertyWarning, "Xvtr: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
       // Known keys, in alphabetical order
@@ -106,7 +135,7 @@ public final class Xvtr {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("Xvtr: ADDED Id <\(self.id.hex)> name <\(self.name)>") }
+      apiLog(.debug, "Xvtr: ADDED Id <\(self.id.hex)> name <\(self.name)>") 
     }
   }
   

@@ -96,26 +96,57 @@ public final class Slice: Identifiable {
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+    
     // get the id
     if let id = properties[0].key.objectId {
       let index = apiModel.slices.firstIndex(where: { $0.id == id })
+      
       // is it in use?
       if inUse {
-        if index == nil {
-          apiModel.slices.append(Slice(id))
-          apiModel.slices.last!.parse(Array(properties.dropFirst(1)) )
+        let slice: Slice
+        if let index {
+          // exists, retrieve
+          slice = apiModel.slices[index]
         } else {
-          // parse the properties
-          apiModel.slices[index!].parse(Array(properties.dropFirst(1)) )
+          // new, add
+          slice = Slice(id)
+          apiModel.slices.append(slice)
         }
+        // parse
+        slice.parse(Array(properties.dropFirst(1)) )
         
       } else {
-        // NO, remove it
-        apiModel.slices.remove(at: index!)
-        Task { await ApiLog.debug("Slice: REMOVED Id <\(id)>") }
+        // remove
+        if let index {
+          apiModel.slices.remove(at: index)
+          apiLog(.debug, "Slice: REMOVED Id <\(id)>")
+        } else {
+          apiLog(.debug, "Slice: attempt to remove a non-existing entry")
+        }
       }
     }
   }
+
+//    // get the id
+//    if let id = properties[0].key.objectId {
+//      let index = apiModel.slices.firstIndex(where: { $0.id == id })
+//      // is it in use?
+//      if inUse {
+//        if index == nil {
+//          apiModel.slices.append(Slice(id))
+//          apiModel.slices.last!.parse(Array(properties.dropFirst(1)) )
+//        } else {
+//          // parse the properties
+//          apiModel.slices[index!].parse(Array(properties.dropFirst(1)) )
+//        }
+//        
+//      } else {
+//        // NO, remove it
+//        apiModel.slices.remove(at: index!)
+//        apiLog(.debug, "Slice: REMOVED Id <\(id)>")
+//      }
+//    }
+//  }
   
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method
@@ -128,7 +159,7 @@ public final class Slice: Identifiable {
       // check for unknown Keys
       guard let token = Slice.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("Slice: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>") }
+        apiLog(.propertyWarning, "Slice: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
       // Known keys, in alphabetical order
@@ -227,7 +258,7 @@ public final class Slice: Identifiable {
     if _initialized == false && panadapterId != 0 && frequency != 0 && mode != "" {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("Slice: ADDED Id <\(self.id.hex)> frequency <\(self.frequency.hzToMhz)> panadapter <\(self.panadapterId.hex)>") }
+      apiLog(.debug, "Slice: ADDED Id <\(self.id.hex)> frequency <\(self.frequency.hzToMhz)> panadapter <\(self.panadapterId.hex)>") 
     }
   }
   

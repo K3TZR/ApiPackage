@@ -25,21 +25,29 @@ public final class BandSetting: Identifiable {
     // get the id
     if let id = properties[0].key.objectId {
       let index = apiModel.bandSettings.firstIndex(where: { $0.id == id })
+      
       // is it in use?
       if inUse {
-        if index == nil {
-          apiModel.bandSettings.append(BandSetting(id))
-          apiModel.bandSettings.last!.parse(Array(properties.dropFirst(1)) )
+        let bandSetting: BandSetting
+        if let index {
+          // exists, retrieve
+          bandSetting = apiModel.bandSettings[index]
         } else {
-          // parse the properties
-          apiModel.bandSettings[index!].parse(Array(properties.dropFirst(1)) )
+          // new, add
+          bandSetting = BandSetting(id)
+          apiModel.bandSettings.append(bandSetting)
         }
+        // parse
+        bandSetting.parse(Array(properties.dropFirst(1)) )
         
       } else {
-        // NO, remove it
-        let name = apiModel.bandSettings[index!].name
-        apiModel.bandSettings.remove(at: index!)
-        Task { await ApiLog.debug("BandSetting: REMOVED Id <\(id.hex)> Name <\(name)>") }
+        // remove
+        if let index {
+          apiModel.bandSettings.remove(at: index)
+          apiLog(.debug, "BandSetting: REMOVED Id <\(id)>")
+        } else {
+          apiLog(.debug, "BandSetting: attempt to remove a non-existing entry")
+        }
       }
     }
   }
@@ -55,7 +63,7 @@ public final class BandSetting: Identifiable {
       // check for unknown Keys
       guard let token = BandSetting.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("BandSetting: unknown property, \(property.key) = \(property.value)") }
+        apiLog(.propertyWarning, "BandSetting: unknown property, \(property.key) = \(property.value)", property.key)
         continue
       }
       // known keys
@@ -73,12 +81,12 @@ public final class BandSetting: Identifiable {
       case .tx2Enabled:       tx2Enabled = property.value.bValue
       case .tx3Enabled:       tx3Enabled = property.value.bValue
       }
-      // is it initialized?
-      if _initialized == false {
-        // NO, it is now
-        _initialized = true
-        Task { await ApiLog.debug("BandSetting: ADDED Name <\(self.name)>") }
-      }
+    }
+    // is it initialized?
+    if _initialized == false {
+      // NO, it is now
+      _initialized = true
+      apiLog(.debug, "BandSetting: ADDED Name <\(self.name)>")
     }
   }
   

@@ -19,20 +19,38 @@ public final class DaxIq {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
-  public init() {}
-  
+  public init(_ id: UInt32) {
+    self.id = id
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Public static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray) {
     // get the id
     if let id = properties[0].key.streamId {
-      // add it if not already present
-      if apiModel.daxIqs[id] == nil { apiModel.daxIqs[id] = DaxIq() }
-      // parse the properties
-      apiModel.daxIqs[id]!.parse( Array(properties.dropFirst(1)) )
+      let daxIq: DaxIq
+      if let index = apiModel.daxIqs.firstIndex(where: { $0.id == id }) {
+        // exists, retrieve
+        daxIq = apiModel.daxIqs[index]
+      } else {
+        // new, add
+        daxIq = DaxIq(id)
+        apiModel.daxIqs.append(daxIq)
+      }
+      // parse
+      daxIq.parse(Array(properties.dropFirst(1)) )
     }
   }
+
+//  // get the id
+//    if let id = properties[0].key.streamId {
+//      // add it if not already present
+//      if apiModel.daxIqs[id] == nil { apiModel.daxIqs[id] = DaxIq() }
+//      // parse the properties
+//      apiModel.daxIqs[id]!.parse( Array(properties.dropFirst(1)) )
+//    }
+//  }
   
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method
@@ -45,7 +63,7 @@ public final class DaxIq {
       
       guard let token = Property(rawValue: property.key) else {
         // unknown Key, log it and ignore the Key
-        Task { await ApiLog.warning("DaxIq: unknown property, \(property.key) = \(property.value)") }
+        apiLog(.propertyWarning, "DaxIq: unknown property, \(property.key) = \(property.value)", property.key) 
         continue
       }
       // known keys, in alphabetical order
@@ -64,12 +82,14 @@ public final class DaxIq {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("DaxIq: ADDED channel <\(self.channel)>") }
+      apiLog(.debug, "DaxIq: ADDED channel <\(self.channel)>")
     }
   }
   
   // ------------------------------------------------------------------------------
   // MARK: - Public Properties
+  
+  public let id: UInt32
   
   public var delegate: StreamHandler?
   

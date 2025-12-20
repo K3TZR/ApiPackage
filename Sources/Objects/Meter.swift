@@ -26,26 +26,56 @@ public final class Meter: Identifiable, ObservableObject {
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+
     // get the id
     if let id = UInt32(properties[0].key.components(separatedBy: ".")[0], radix: 10) {
       let index = apiModel.meters.firstIndex(where: { $0.id == id })
+      
       // is it in use?
       if inUse {
-        if index == nil {
-          apiModel.meters.append(Meter(id))
-          apiModel.meters.last!.parse(properties)
+        let meter: Meter
+        if let index {
+          // exists, retrieve
+          meter = apiModel.meters[index]
         } else {
-          // parse the properties
-          apiModel.meters[index!].parse(properties)
+          // new, add
+          meter = Meter(id)
+          apiModel.meters.append(meter)
         }
+        // parse
+        meter.parse(Array(properties.dropFirst(1)) )
         
       } else {
-        // NO, remove it
-        apiModel.meters.remove(at: index!)
-        Task { await ApiLog.debug("Meter: REMOVED Id \(id)") }
+        // remove
+        if let index {
+          apiModel.meters.remove(at: index)
+          apiLog(.debug, "Meter: REMOVED Id <\(id)>")
+        } else {
+          apiLog(.debug, "Meter: attempt to remove a non-existing entry")
+        }
       }
     }
   }
+    // get the id
+//    if let id = UInt32(properties[0].key.components(separatedBy: ".")[0], radix: 10) {
+//      let index = apiModel.meters.firstIndex(where: { $0.id == id })
+//      // is it in use?
+//      if inUse {
+//        if index == nil {
+//          apiModel.meters.append(Meter(id))
+//          apiModel.meters.last!.parse(properties)
+//        } else {
+//          // parse the properties
+//          apiModel.meters[index!].parse(properties)
+//        }
+//        
+//      } else {
+//        // NO, remove it
+//        apiModel.meters.remove(at: index!)
+//        apiLog(.debug, "Meter: REMOVED Id \(id)")
+//      }
+//    }
+//  }
   
   // ----------------------------------------------------------------------------
   // MARK: - Public Parse methods
@@ -64,7 +94,7 @@ public final class Meter: Identifiable, ObservableObject {
       // check for unknown Keys
       guard let token = Meter.Property(rawValue: key) else {
         // unknown, log it and ignore the Key
-        Task { await ApiLog.warning("Meter: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>") }
+        apiLog(.propertyWarning, "Meter: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key) 
         continue
       }
       // known Keys, in alphabetical order
@@ -84,7 +114,7 @@ public final class Meter: Identifiable, ObservableObject {
     if _initialized == false && group != "" && units != "" {
       //NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("Meter: ADDED Id <\(self.id.hex)> Name <\(self.name)> source <\(self.source)> group <\(self.group)>") }
+      apiLog(.debug, "Meter: ADDED Id <\(self.id.hex)> Name <\(self.name)> source <\(self.source)> group <\(self.group)>") 
     }
   }
   

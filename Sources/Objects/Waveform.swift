@@ -37,7 +37,7 @@ public final class Waveform {
       // Check for Unknown Keys
       guard let token = Waveform.Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("Waveform: unknown property <\(property.key) = \(property.value)>") }
+        apiLog(.propertyWarning, "Waveform: unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
       // Known tokens, in alphabetical order
@@ -50,7 +50,7 @@ public final class Waveform {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("Waveform: initialized") }
+      apiLog(.debug, "Waveform: initialized") 
     }
   }
 

@@ -26,7 +26,7 @@ public final class Tcp: NSObject {
     _socket.isIPv4PreferredOverIPv6 = true
     _socket.isIPv6Enabled = false
     
-    Task { await ApiLog.debug("Tcp: socket initialized") }
+    apiLog(.debug, "Tcp: socket initialized")
   }
   
   // ----------------------------------------------------------------------------
@@ -61,21 +61,21 @@ public final class Tcp: NSObject {
         
         // connect via the localInterface
         try _socket.connect(toHost: packet.publicIp, onPort: UInt16(portToUse), viaInterface: localInterface, withTimeout: _timeout)
-        Task { await ApiLog.debug("Tcp: connect on <\(String(describing: localInterface))> to <\(packet.publicIp)> port <\(portToUse)>") }
+        apiLog(.debug, "Tcp: connect on <\(String(describing: localInterface))> to <\(packet.publicIp)> port <\(portToUse)>")
 
       } else {
         // connect on the default interface
         try _socket.connect(toHost: packet.publicIp, onPort: UInt16(portToUse), withTimeout: _timeout)
-        Task { await ApiLog.debug("Tcp: connect on <default interface> to <\(packet.publicIp)> port <\(portToUse)>") }
+        apiLog(.debug, "Tcp: connect on <default interface> to <\(packet.publicIp)> port <\(portToUse)>")
       }
       
 //    } catch _ {
 //      // connection attemp failed
-//      Task { await ApiLog.debug("Tcp: connection failed")
+//      apiLog(.debug, "Tcp: connection failed")
 //      success = false
 //    }
 //    if success {
-//      Task { await ApiLog.debug("Tcp: connection successful")
+//      apiLog(.debug, "Tcp: connection successful")
 //    }
 //    return success
   }
@@ -148,7 +148,7 @@ extension Tcp: GCDAsyncSocketDelegate {
   ///   - completionHandler: a completion handler
   public func socket(_ sock: GCDAsyncSocket, didReceive trust: SecTrust, completionHandler: @escaping (Bool) -> Void) {
     // no validation required
-    Task { await ApiLog.debug("Tcp: TLS socket did receive trust") }
+    apiLog(.debug, "Tcp: TLS socket did receive trust") 
     completionHandler(true)
   }
   

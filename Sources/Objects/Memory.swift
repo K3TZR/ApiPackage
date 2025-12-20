@@ -22,26 +22,57 @@ public final class Memory: Identifiable {
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+    
     // get the id
     if let id = properties[0].key.objectId {
       let index = apiModel.memories.firstIndex(where: { $0.id == id })
+      
       // is it in use?
       if inUse {
-        if index == nil {
-          apiModel.memories.append(Memory(id))
-          apiModel.memories.last!.parse(Array(properties.dropFirst(1)) )
+        let memory: Memory
+        if let index {
+          // exists, retrieve
+          memory = apiModel.memories[index]
         } else {
-          // parse the properties
-          apiModel.memories[index!].parse(Array(properties.dropFirst(1)) )
+          // new, add
+          memory = Memory(id)
+          apiModel.memories.append(memory)
         }
+        // parse
+        memory.parse(Array(properties.dropFirst(1)) )
         
       } else {
-        // NO, remove it
-        apiModel.memories.remove(at: index!)
-        Task { await ApiLog.debug("Memory: REMOVED Id <\(id)>") }
+        // remove
+        if let index {
+          apiModel.memories.remove(at: index)
+          apiLog(.debug, "Memory: REMOVED Id <\(id)>")
+        } else {
+          apiLog(.debug, "Memory: attempt to remove a non-existing entry")
+        }
       }
     }
   }
+
+//  // get the id
+//    if let id = properties[0].key.objectId {
+//      let index = apiModel.memories.firstIndex(where: { $0.id == id })
+//      // is it in use?
+//      if inUse {
+//        if index == nil {
+//          apiModel.memories.append(Memory(id))
+//          apiModel.memories.last!.parse(Array(properties.dropFirst(1)) )
+//        } else {
+//          // parse the properties
+//          apiModel.memories[index!].parse(Array(properties.dropFirst(1)) )
+//        }
+//        
+//      } else {
+//        // NO, remove it
+//        apiModel.memories.remove(at: index!)
+//        apiLog(.debug, "Memory: REMOVED Id <\(id)>")
+//      }
+//    }
+//  }
   
   // ----------------------------------------------------------------------------
   // MARK: - Public Parse method
@@ -54,7 +85,7 @@ public final class Memory: Identifiable {
       // check for unknown Keys
       guard let token = Memory.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("Memory: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>") }
+        apiLog(.propertyWarning, "Memory: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key) 
         continue
       }
       // known keys
@@ -89,7 +120,7 @@ public final class Memory: Identifiable {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("Memory: ADDED Id <\(self.id.hex)> Name <\(self.name)>") }
+      apiLog(.debug, "Memory: ADDED Id <\(self.id.hex)> Name <\(self.name)>") 
     }
   }
   

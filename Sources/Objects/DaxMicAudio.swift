@@ -18,7 +18,9 @@ public final class DaxMicAudio: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
-  public init(_ id: UInt32) { self.id = id }
+  public init(_ id: UInt32) {
+    self.id = id
+  }
   
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
@@ -44,7 +46,7 @@ public final class DaxMicAudio: Identifiable {
       // check for unknown keys
       guard let token = Property(rawValue: property.key) else {
         // unknown Key, log it and ignore the Key
-        Task { await ApiLog.warning("DaxMicAudio \(self.id.hex): unknown property, \(property.key) = \(property.value)") }
+        apiLog(.propertyWarning, "DaxMicAudio \(self.id.hex): unknown property, \(property.key) = \(property.value)", property.key) 
         continue
       }
       // known keys, in alphabetical order
@@ -59,7 +61,7 @@ public final class DaxMicAudio: Identifiable {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("DaxMicAudio: ADDED Id <\(self.id.hex)> handle <\(self.clientHandle.hex)>") }
+      apiLog(.debug, "DaxMicAudio: ADDED Id <\(self.id.hex)> handle <\(self.clientHandle.hex)>") 
     }
   }
   

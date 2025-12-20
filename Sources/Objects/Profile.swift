@@ -51,31 +51,59 @@ public final class Profile {
     let components = properties[0].key.components(separatedBy: " ")
     
     guard components.count == 2 else {
-      Task { await ApiLog.warning("Profile: unexpected format, \(properties[0].key)") }
+      apiLog(.warning, "Profile: unexpected format, \(properties[0].key)")
       return
     }
-    
     // get the id
     let id = components[0]
     let index = apiModel.profiles.firstIndex(where: { $0.id == id })
+    
     // is it in use?
     if inUse {
-      // YES, add it if not already present
-      if index == nil {
-        apiModel.profiles.append(Profile(id))
-        Task { await ApiLog.debug("Profile: ADDED Id <\(id)>") }
-        apiModel.profiles.last!.parse(properties)
+      let profile: Profile
+      if let index {
+        // exists, retrieve
+        profile = apiModel.profiles[index]
       } else {
-        // parse the properties
-        apiModel.profiles[index!].parse(properties)
+        // new, add
+        profile = Profile(id)
+        apiModel.profiles.append(profile)
       }
+      // parse
+      profile.parse(properties)
       
     } else {
-      // NO, remove it
-      apiModel.profiles.remove(at: index!)
-      Task { await ApiLog.debug("Profile: REMOVED Id <\(id)>") }
+      // remove
+      if let index {
+        apiModel.profiles.remove(at: index)
+        apiLog(.debug, "Profile: REMOVED Id <\(id)>")
+      } else {
+        apiLog(.debug, "Profile: attempt to remove a non-existing entry")
+      }
     }
   }
+
+//    // get the id
+//    let id = components[0]
+//    let index = apiModel.profiles.firstIndex(where: { $0.id == id })
+//    // is it in use?
+//    if inUse {
+//      // YES, add it if not already present
+//      if index == nil {
+//        apiModel.profiles.append(Profile(id))
+//        apiLog(.debug, "Profile: ADDED Id <\(id)>")
+//        apiModel.profiles.last!.parse(properties)
+//      } else {
+//        // parse the properties
+//        apiModel.profiles[index!].parse(properties)
+//      }
+//      
+//    } else {
+//      // NO, remove it
+//      apiModel.profiles.remove(at: index!)
+//      apiLog(.debug, "Profile: REMOVED Id <\(id)>") 
+//    }
+//  }
   
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method
@@ -86,14 +114,14 @@ public final class Profile {
     let components = properties[0].key.components(separatedBy: " ")
     
     guard components.count == 2 else {
-      Task { await ApiLog.warning("Profile: unexpected format, \(properties[0].key)") }
+      apiLog(.warning, "Profile: unexpected format, \(properties[0].key)")
       return
     }
     
     // check for unknown Key
     guard let token = Profile.Property(rawValue: components[1]) else {
       // log it and ignore the Key
-      Task { await ApiLog.warning("Profile: unknown property, \(properties[1].key)") }
+      apiLog(.propertyWarning, "Profile: unknown property, \(properties[1].key)", properties[1].key)
       return
     }
     // known keys

@@ -123,7 +123,7 @@ final public class StreamModel: StreamProcessor, ObservableObject {
       break
       
     default:
-//      Task { await ApiLog.debug("StreamModel: unknown Vita class code: \(vita.classCode.description()) Stream Id = \(vita.streamId.hex)") }
+//      apiLog(.debug, "StreamModel: unknown Vita class code: \(vita.classCode.description()) Stream Id = \(vita.streamId.hex)") 
       break
     }
   }

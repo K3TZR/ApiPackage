@@ -22,13 +22,13 @@ final public class FlexError {
     let number = UInt32(errorCode, radix: 16) ?? 0
     
     switch number {
-    case 0x10000001...0x10000003: Task { await ApiLog.info("FlexMsg: code <\(errorCode)> message <\(msgText)>") }
-    case 0x31000001...0x31000009: Task { await ApiLog.warning("FlexError: errorCode <\(errorCode)> description <\(description(errorCode))> message <\(msgText)>") }
-    case 0x50000001...0x500000A3: Task { await ApiLog.error("FlexError: errorCode <\(errorCode)> description <\(description(errorCode))> message <\(msgText)>") }
-    case 0x50001000...0x50001017: Task { await ApiLog.error("FlexError: errorCode <\(errorCode)> description <\(description(errorCode))> message <\(msgText)>") }
-    case 0xE2000000:              Task { await ApiLog.error("FlexError: errorCode <\(errorCode)> description <\(description(errorCode))> message <\(msgText)>") }
-    case 0xF3000001...0xF3000004: Task { await ApiLog.error("FlexError: errorCode <\(errorCode)> description <\(description(errorCode))> message <\(msgText)>") }
-    default:                      Task { await ApiLog.info("FlexMsg: code <\(errorCode)> message <\(msgText)>") }
+    case 0x10000001...0x10000003: apiLog(.info, "FlexMsg: code <\(errorCode)> message <\(msgText)>")
+    case 0x31000001...0x31000009: apiLog(.warning, "FlexError: errorCode <\(errorCode)> description <\(description(errorCode))> message <\(msgText)>")
+    case 0x50000001...0x500000A3: apiLog(.error, "FlexError: errorCode <\(errorCode)> description <\(description(errorCode))> message <\(msgText)>")
+    case 0x50001000...0x50001017: apiLog(.error, "FlexError: errorCode <\(errorCode)> description <\(description(errorCode))> message <\(msgText)>")
+    case 0xE2000000:              apiLog(.error, "FlexError: errorCode <\(errorCode)> description <\(description(errorCode))> message <\(msgText)>")
+    case 0xF3000001...0xF3000004: apiLog(.error, "FlexError: errorCode <\(errorCode)> description <\(description(errorCode))> message <\(msgText)>")
+    default:                      apiLog(.info, "FlexMsg: code <\(errorCode)> message <\(msgText)>")
     }
     }
       

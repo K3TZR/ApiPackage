@@ -27,9 +27,7 @@ public final class RemoteTxAudio: Identifiable {
     // get the id
     if let id = properties[0].key.streamId {
       // add it if not already present
-      if apiModel.remoteTxAudio == nil {
-        apiModel.remoteTxAudio = RemoteTxAudio(id)
-      }
+      if apiModel.remoteTxAudio == nil { apiModel.remoteTxAudio = RemoteTxAudio(id) }
       // parse the properties
       apiModel.remoteTxAudio?.parse( Array(properties.dropFirst(2)) )
     }
@@ -46,7 +44,7 @@ public final class RemoteTxAudio: Identifiable {
       // check for unknown Keys
       guard let token = Property(rawValue: property.key) else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("RemoteTxAudio: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>") }
+        apiLog(.propertyWarning, "RemoteTxAudio: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
       // known Keys, in alphabetical order
@@ -63,7 +61,7 @@ public final class RemoteTxAudio: Identifiable {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("RemoteTxAudio: ADDED Id <\(self.id.hex)> handle <\(self.clientHandle.hex)>") }
+      apiLog(.debug, "RemoteTxAudio: ADDED Id <\(self.id.hex)> handle <\(self.clientHandle.hex)>") 
     }
   }
 

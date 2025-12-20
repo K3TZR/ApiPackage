@@ -48,27 +48,57 @@ public final class Waterfall: Identifiable {
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+
     // get the id
     if let id = properties[0].key.streamId {
       let index = apiModel.waterfalls.firstIndex(where: { $0.id == id })
       // is it in use?
       if inUse {
-        // YES, add it if not already present
-        if index == nil {
-          apiModel.waterfalls.append(Waterfall(id))
-          apiModel.waterfalls.last!.parse(Array(properties.dropFirst(1)) )
+        let waterfall: Waterfall
+        if let index = index {
+          // exists, retrieve
+          waterfall = apiModel.waterfalls[index]
         } else {
-          // parse the properties
-          apiModel.waterfalls[index!].parse(Array(properties.dropFirst(1)) )
+          // new, add
+          waterfall = Waterfall(id)
+          apiModel.waterfalls.append(waterfall)
         }
+        // parse
+        waterfall.parse(Array(properties.dropFirst(1)))
         
       } else {
-        // NO, remove it
-        apiModel.waterfalls.remove(at: index!)
-        Task { await ApiLog.debug("Waterfall: REMOVED Id <\(id.hex)>") }
+        // remove
+        if let index = index {
+          apiModel.waterfalls.remove(at: index)
+          apiLog(.debug, "Waterfall: REMOVED Id <\(id)>")
+        } else {
+          apiLog(.debug, "Waterfall: attempt to remove a non-existing entry")
+        }
       }
     }
   }
+
+//  // get the id
+//    if let id = properties[0].key.streamId {
+//      let index = apiModel.waterfalls.firstIndex(where: { $0.id == id })
+//      // is it in use?
+//      if inUse {
+//        // YES, add it if not already present
+//        if index == nil {
+//          apiModel.waterfalls.append(Waterfall(id))
+//          apiModel.waterfalls.last!.parse(Array(properties.dropFirst(1)) )
+//        } else {
+//          // parse the properties
+//          apiModel.waterfalls[index!].parse(Array(properties.dropFirst(1)) )
+//        }
+//        
+//      } else {
+//        // NO, remove it
+//        apiModel.waterfalls.remove(at: index!)
+//        apiLog(.debug, "Waterfall: REMOVED Id <\(id.hex)>")
+//      }
+//    }
+//  }
   
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method
@@ -81,7 +111,7 @@ public final class Waterfall: Identifiable {
       // check for unknown Keys
       guard let token = Waterfall.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        Task { await ApiLog.warning("Waterfall: Id <\(id.hex)> unknown property <\(property.key) = \(property.value)>") }
+        apiLog(.propertyWarning, "Waterfall: Id <\(id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
       // Known keys, in alphabetical order
@@ -103,7 +133,7 @@ public final class Waterfall: Identifiable {
     if _initialized == false && panadapterId != 0 {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("Waterfall: ADDED Id <\(self.id.hex)> handle <\(self.clientHandle.hex)>") }
+      apiLog(.debug, "Waterfall: ADDED Id <\(self.id.hex)> handle <\(self.clientHandle.hex)>") 
     }
   }
   

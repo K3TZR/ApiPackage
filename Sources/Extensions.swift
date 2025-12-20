@@ -319,6 +319,7 @@ public extension String {
   var objectId        : UInt32?         { UInt32(self, radix: 10) }
   var sequenceNumber  : Int             { Int(self, radix: 10) ?? 0 }
   var streamId        : UInt32?         { self.hasPrefix("0x") ? UInt32(String(self.dropFirst(2)), radix: 16) : UInt32(self, radix: 16) }
+  var tnfDepth        : TnfDepth        { TnfDepth(rawValue: self) ?? .normal }
   var trimmed         : String          { self.trimmingCharacters(in: CharacterSet.whitespaces) }
   var tValue          : Bool            { self.lowercased() == "true" ? true : false }
   var uValue          : UInt            { UInt(self) ?? 0 }

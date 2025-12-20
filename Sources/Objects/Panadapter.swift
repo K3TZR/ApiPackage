@@ -22,26 +22,57 @@ public final class Panadapter: Identifiable {
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+    
     // get the id
     if let id = properties[0].key.streamId {
       let index = apiModel.panadapters.firstIndex(where: { $0.id == id })
+      
       // is it in use?
       if inUse {
-        if index == nil {
-          apiModel.panadapters.append(Panadapter(id))
-          apiModel.panadapters.last!.parse(Array(properties.dropFirst(1)) )
+        let panadapter: Panadapter
+        if let index {
+          // exists, retrieve
+          panadapter = apiModel.panadapters[index]
         } else {
-          // parse the properties
-          apiModel.panadapters[index!].parse(Array(properties.dropFirst(1)) )
+          // new, add
+          panadapter = Panadapter(id)
+          apiModel.panadapters.append(panadapter)
         }
-
+        // parse
+        panadapter.parse(Array(properties.dropFirst(1)) )
+        
       } else {
-        // NO, remove it
-        apiModel.panadapters.remove(at: index!)
-        Task { await ApiLog.debug("Panadapter: REMOVED Id <\(id.hex)>") }
+        // remove
+        if let index {
+          apiModel.panadapters.remove(at: index)
+          apiLog(.debug, "Panadapter: REMOVED Id <\(id)>")
+        } else {
+          apiLog(.debug, "Panadapter: attempt to remove a non-existing entry")
+        }
       }
     }
   }
+  
+//    // get the id
+//    if let id = properties[0].key.streamId {
+//      let index = apiModel.panadapters.firstIndex(where: { $0.id == id })
+//      // is it in use?
+//      if inUse {
+//        if index == nil {
+//          apiModel.panadapters.append(Panadapter(id))
+//          apiModel.panadapters.last!.parse(Array(properties.dropFirst(1)) )
+//        } else {
+//          // parse the properties
+//          apiModel.panadapters[index!].parse(Array(properties.dropFirst(1)) )
+//        }
+//
+//      } else {
+//        // NO, remove it
+//        apiModel.panadapters.remove(at: index!)
+//        apiLog(.debug, "Panadapter: REMOVED Id <\(id.hex)>")
+//      }
+//    }
+//  }
 
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method
@@ -53,7 +84,7 @@ public final class Panadapter: Identifiable {
       // check for unknown Keys
       guard let token = Panadapter.Property(rawValue: property.key) else {
         // unknown, log it and ignore the Key
-        Task { await ApiLog.warning("Panadapter: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>") }
+        apiLog(.propertyWarning, "Panadapter: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
       // Known keys, in alphabetical order
@@ -96,7 +127,7 @@ public final class Panadapter: Identifiable {
     if _initialized == false && center != 0 && bandwidth != 0 && (minDbm != 0.0 || maxDbm != 0.0) {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("Panadapter:  ADDED Id <\(self.id.hex)> center <\(self.center.hzToMhz)> bandwidth <\(self.bandwidth.hzToMhz)>") }
+      apiLog(.debug, "Panadapter:  ADDED Id <\(self.id.hex)> center <\(self.center.hzToMhz)> bandwidth <\(self.bandwidth.hzToMhz)>") 
       
       // FIXME: ????
 //      _apiModel.activePanadapter = self

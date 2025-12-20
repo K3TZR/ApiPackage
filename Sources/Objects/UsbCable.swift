@@ -75,26 +75,56 @@ public final class UsbCable {
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
+    
     // get the id
     let id = properties[0].key
     let index = apiModel.usbCables.firstIndex(where: { $0.id == id })
+    
     // is it in use?
     if inUse {
-      // YES, add it if not already present
-      if index == nil {
-        apiModel.usbCables.append(UsbCable(id))
-        apiModel.usbCables.last!.parse(Array(properties.dropFirst(1)) )
+      let usbCable: UsbCable
+      if let index {
+        // exists, retrieve
+        usbCable = apiModel.usbCables[index]
       } else {
-        // parse the properties
-        apiModel.usbCables[index!].parse(Array(properties.dropFirst(1)) )
+        // new, add
+        usbCable = UsbCable(id)
+        apiModel.usbCables.append(usbCable)
       }
+      // parse
+      usbCable.parse(Array(properties.dropFirst(1)) )
       
     } else {
-      // NO, remove it
-      apiModel.usbCables.remove(at: index!)
-      Task { await ApiLog.debug("UsbCable: REMOVED Id <\(id)>") }
+      // remove
+      if let index {
+        apiModel.usbCables.remove(at: index)
+        apiLog(.debug, "UsbCable: REMOVED Id <\(id)>")
+      } else {
+        apiLog(.debug, "UsbCable: attempt to remove a non-existing entry")
+      }
     }
   }
+
+//  // get the id
+//    let id = properties[0].key
+//    let index = apiModel.usbCables.firstIndex(where: { $0.id == id })
+//    // is it in use?
+//    if inUse {
+//      // YES, add it if not already present
+//      if index == nil {
+//        apiModel.usbCables.append(UsbCable(id))
+//        apiModel.usbCables.last!.parse(Array(properties.dropFirst(1)) )
+//      } else {
+//        // parse the properties
+//        apiModel.usbCables[index!].parse(Array(properties.dropFirst(1)) )
+//      }
+//      
+//    } else {
+//      // NO, remove it
+//      apiModel.usbCables.remove(at: index!)
+//      apiLog(.debug, "UsbCable: REMOVED Id <\(id)>")
+//    }
+//  }
 
   // TODO: - incomplete
   
@@ -116,7 +146,7 @@ public final class UsbCable {
         // check for unknown Keys
         guard let token = UsbCable.Property(rawValue: property.key) else {
           // log it and ignore the Key
-          Task { await ApiLog.warning("USBCable: Id <\(id)> unknown property <\(property.key) = \(property.value)>") }
+          apiLog(.propertyWarning, "USBCable: Id <\(id)> unknown property <\(property.key) = \(property.value)>", property.key)
           continue
         }
         // Known keys, in alphabetical order
@@ -152,7 +182,7 @@ public final class UsbCable {
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("USBCable: ADDED Id <\(self.id)> Name <\(self.name)>") }
+      apiLog(.debug, "USBCable: ADDED Id <\(self.id)> Name <\(self.name)>") 
     }
   }
 

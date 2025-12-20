@@ -338,6 +338,12 @@ public enum DaxChoice: String, CaseIterable, Sendable {
   case rx3
 }
 
+public enum TnfDepth: String, CaseIterable, Sendable {
+  case normal = "Normal"
+  case deep = "Deep"
+  case veryDeep = "Very Deep"
+}
+
 // Helper struct used by Audio routines
 //public struct AudioDevice : Identifiable, Equatable {
 //  public var id: AudioDeviceID

@@ -41,7 +41,7 @@ public final class Radio: Identifiable, Equatable {
       } else {
         // NO, remove it
         apiModel.radios.remove(at: index)
-        Task { await ApiLog.debug("Radio: REMOVED id <\(apiModel.activeSelection!.radioId)>") }
+        apiLog(.debug, "Radio: REMOVED id <\(apiModel.activeSelection!.radioId)>") 
       }
     }
   }
@@ -136,7 +136,7 @@ public final class Radio: Identifiable, Equatable {
         // Check for Unknown Keys
         guard let token = Radio.Property(rawValue: property.key)  else {
           // log it and ignore the Key
-          Task { await ApiLog.warning("Radio: unknown property, \(property.key) = \(property.value)") }
+          apiLog(.propertyWarning, "Radio: unknown property, \(property.key) = \(property.value)", property.key)
           continue
         }
         // Known tokens, in alphabetical order
@@ -233,14 +233,14 @@ public final class Radio: Identifiable, Equatable {
         case .psocMbTrx:    psocMbtrxVersion = property.value
         case .psocMbPa100:  psocMbPa100Version = property.value
         case .fpgaMb:       fpgaMbVersion = property.value
-        default:            Task { await ApiLog.warning("Radio: token not processed, \(property.key)") }
+        default:            apiLog(.warning, "Radio: token not processed, \(property.key)")
         }
       }
     // is the Radio initialized?
     if !_initialized {
       // YES, notify all observers
       _initialized = true
-      Task { await ApiLog.debug("Radio: ADDED Name <\(self.name)>") }
+      apiLog(.debug, "Radio: ADDED Name <\(self.name)>") 
     }
   }
   

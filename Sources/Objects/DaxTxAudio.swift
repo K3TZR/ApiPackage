@@ -19,20 +19,39 @@ public final class DaxTxAudio {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
-  public init(_ id: UInt32) { self.id = id}
+  public init(_ id: UInt32) {
+    self.id = id
+  }
 
   // ----------------------------------------------------------------------------
   // MARK: - Public Static status method
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray) {
+    
     // get the id
     if let id = properties[0].key.streamId {
-      // add it if not already present
-      if apiModel.daxTxAudio == nil { apiModel.daxTxAudio = DaxTxAudio(id) }
-      // parse the properties
-      apiModel.daxTxAudio?.parse( Array(properties.dropFirst(1)) )
+      let daxTxAudio: DaxTxAudio
+      if let index = apiModel.daxTxAudios.firstIndex(where: { $0.id == id }) {      
+        // exists, retrieve
+        daxTxAudio = apiModel.daxTxAudios[index]
+      } else {
+        // new, add
+        daxTxAudio = DaxTxAudio(id)
+        apiModel.daxTxAudios.append(daxTxAudio)
+      }
+      // parse
+      daxTxAudio.parse(Array(properties.dropFirst(1)) )
     }
   }
+
+//  // get the id
+//    if let id = properties[0].key.streamId {
+//      // add it if not already present
+//      if apiModel.daxTxAudio == nil { apiModel.daxTxAudio = DaxTxAudio(id) }
+//      // parse the properties
+//      apiModel.daxTxAudio?.parse( Array(properties.dropFirst(1)) )
+//    }
+//  }
 
   // ----------------------------------------------------------------------------
   // MARK: - Public parse method
@@ -45,7 +64,7 @@ public final class DaxTxAudio {
       // check for unknown keys
       guard let token = Property(rawValue: property.key) else {
         // unknown Key, log it and ignore the Key
-        Task { await ApiLog.warning("DaxTxAudio: unknown property, \(property.key) = \(property.value)") }
+        apiLog(.propertyWarning, "DaxTxAudio: unknown property, \(property.key) = \(property.value)", property.key) 
         continue
       }
       // known keys, in alphabetical order
@@ -61,7 +80,7 @@ public final class DaxTxAudio {
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
-      Task { await ApiLog.debug("DaxTxAudio: ADDED handle <\(self.clientHandle.hex)>") }
+      apiLog(.debug, "DaxTxAudio: ADDED handle <\(self.clientHandle.hex)>") 
     }
   }
   
