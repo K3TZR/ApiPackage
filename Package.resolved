@@ -1,5 +1,4 @@
 {
-  "originHash" : "3b4d9342a1717fb44efe412927a0b5152d8736592d22bece5cce41ff497e6d5d",
   "pins" : [
     {
       "identity" : "cocoaasyncsocket",
@@ -15,10 +14,10 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/auth0/JWTDecode.swift",
       "state" : {
-        "revision" : "3cd207fb9e943b6168a117baa3936c823204c2dc",
-        "version" : "2.6.3"
+        "revision" : "36a5ce735a61c4bc119593f43ce2c027b4ca7392",
+        "version" : "3.3.0"
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }
