@@ -136,7 +136,7 @@ public final class Radio: Identifiable, Equatable {
         // Check for Unknown Keys
         guard let token = Radio.Property(rawValue: property.key)  else {
           // log it and ignore the Key
-          apiLog(.propertyWarning, "Radio: unknown property, \(property.key) = \(property.value)", property.key)
+          apiLog(.propertyWarning, "Radio: Id <\(self.id)> unknown property <\(property.key) = \(property.value)>", property.key)
           continue
         }
         // Known tokens, in alphabetical order
@@ -240,10 +240,115 @@ public final class Radio: Identifiable, Equatable {
     if !_initialized {
       // YES, notify all observers
       _initialized = true
-      apiLog(.debug, "Radio: ADDED Name <\(self.name)>") 
+      apiLog(.debug, "Radio: ADDED Id <\(self.id)> name <\(self.name)>")
     }
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Radio.Property, value: String) {
+    switch property {
+      
+    case .alpha:                    alpha = value.bValue                               //
+    case .antList:                  antList = value.valuesArray()
+    case .atuPresent:               atuPresent = value.bValue
+    case .autoSave:                 autoSave = value.bValue
+    case .backlight:                backlight = value.iValue                           //
+    case .bandPersistenceEnabled:   bandPersistenceEnabled = value.bValue              //
+    case .binauralRxEnabled:        binauralRxEnabled = value.bValue                   //
+    case .calFreq:                  calFreq = Int(value.dValue * 1_000_000)            //
+    case .callsign:                 callsign = value                                   //
+    case .chassisSerial:            chassisSerial = value
+    case .daxIqAvailable:           daxIqAvailable = value.iValue
+    case .daxIqCapacity:            daxIqCapacity = value.iValue                       //
+    case .enforcePrivateIpEnabled:  enforcePrivateIpEnabled = value.bValue             //
+    case .freqErrorPpb:             freqErrorPpb = value.iValue                        //
+    case .fullDuplexEnabled:        fullDuplexEnabled = value.bValue                   //
+    case .frontSpeakerMute:         frontSpeakerMute = value.bValue
+    case .gateway:                  gateway = value
+    case .gnss:                     gnssPresent = (value != "\"Not Present\"")
+    case .gps:                      gpsPresent = (value != "\"Not Present\"")
+    case .headphoneGain, .headphonegain:            headphoneGain = value.iValue       //
+    case .headphoneMute, .headphonemute:            headphoneMute = value.bValue       //
+    case .ipAddress:                ipAddress = value
+    case .lineoutGain, .lineoutgain:              lineoutGain = value.iValue           //
+    case .lineoutMute, .lineoutmute:              lineoutMute = value.bValue           //
+    case .location:                 location = value
+    case .lowLatencyDigital:        lowLatencyDigital = value.bValue                   //
+    case .macAddress:               macAddress = value
+    case .micList:                  micList = value.valuesArray()
+    case .model:                    radioModel = value
+    case .multiflexEnabled:         multiflexEnabled = value.bValue
+    case .muteLocalAudio:           muteLocalAudio = value.bValue                      //
+    case .name:                     name = value
+    case .nickname:                 name = value                                       //
+    case .netmask:                  netmask = value
+    case .numberOfScus:             numberOfScus = value.iValue
+    case .numberOfSlices:           numberOfSlices = value.iValue
+    case .numberOfTx:               numberOfTx = value.iValue
+    case .options:                  radioOptions = value
+    case .panadapters:              availablePanadapters = value.iValue                //
+    case .pllDone:                  startCalibration = value.bValue                    //
+//        case .radioAuthenticated:       radioAuthenticated = value.bValue
+    case .region:                   region = value
+    case .screensaver:              radioScreenSaver = value
+    case .remoteOnEnabled:          remoteOnEnabled = value.bValue                     //
+    case .rttyMark:                 rttyMark = value.iValue                            //
+//        case .serverConnected:          serverConnected = value.bValue
+    case .slices:                   availableSlices = value.iValue                     //
+//        case .snapTuneEnabled:          snapTuneEnabled = value.bValue
+    case .softwareVersion:          softwareVersion = value
+    case .tnfsEnabled:              tnfsEnabled = value.bValue                         //
+    case .uptime:                   uptime = value.iValue
+      
+//        case .flexControlEnabled:       flexControlEnabled = value.bValue
+      
+      
+    case .cw:                       _cw = true
+    case .digital:                  _digital = true
+    case .voice:                    _voice = true
+      
+    case .autoLevel:
+      if _cw                   { filterCwAutoEnabled = value.bValue ; _cw = false }
+      if _digital              { filterDigitalAutoEnabled = value.bValue ; _digital = false }
+      if _voice                { filterVoiceAutoEnabled = value.bValue ; _voice = false }
+    case .level:
+      if _cw                   { filterCwLevel = value.iValue ; _cw = false}
+      if _digital              { filterDigitalLevel = value.iValue ; _digital = false}
+      if _voice                { filterVoiceLevel = value.iValue ; _voice = false}
+      
+//        case .staticGateway:            staticGateway = value
+//        case .staticIp:                 staticIp = value
+//        case .staticMask:               staticMask = value
+      
+    case .extPresent:               extPresent = value.bValue
+    case .gpsdoPresent:             gpsdoPresent = value.bValue
+    case .locked:                   locked = value.bValue
+    case .setting:                  setting = value
+    case .state:                    state = value
+    case .tcxoPresent:              tcxoPresent = value.bValue
+      
+    case .filterSharpness:          break
+    case .staticNetParams:          break
+    case .oscillator:               break
+//        case .calibrate:                break
+//        case .reboot:                   break
+//        case .addressType:              addressType = value
+
+    case .smartSdrMB:   smartSdrMB = value
+    case .picDecpu:     picDecpuVersion = value
+    case .psocMbTrx:    psocMbtrxVersion = value
+    case .psocMbPa100:  psocMbPa100Version = value
+    case .fpgaMb:       fpgaMbVersion = value
+    default:            apiLog(.warning, "Radio: token not processed, \(property.rawValue)")
+    }
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Public set property methods
   
@@ -512,3 +617,4 @@ public final class Radio: Identifiable, Equatable {
 //  private let _apiModel: ObjectModel
   private var _voice = false
 }
+

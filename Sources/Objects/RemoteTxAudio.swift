@@ -47,21 +47,29 @@ public final class RemoteTxAudio: Identifiable {
         apiLog(.propertyWarning, "RemoteTxAudio: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
-      // known Keys, in alphabetical order
-      switch token {
-        
-        // Note: only supports "opus", not sure why the compression property exists (future?)
-        
-      case .clientHandle: clientHandle = property.value.handle ?? 0
-      case .compression:  compression = property.value.lowercased()
-      case .ip:           ip = property.value
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false && clientHandle != 0 {
       // NO, it is now
       _initialized = true
       apiLog(.debug, "RemoteTxAudio: ADDED Id <\(self.id.hex)> handle <\(self.clientHandle.hex)>") 
+    }
+  }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: RemoteTxAudio.Property, value: String) {
+    switch property {
+      
+    case .clientHandle: clientHandle = value.handle ?? 0
+    case .compression:  compression = value.lowercased()
+    case .ip:           ip = value
     }
   }
 

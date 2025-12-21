@@ -27,25 +27,35 @@ public final class Atu {
       // Check for Unknown Keys
       guard let token = Atu.Property(rawValue: property.key)  else {
         // log it and ignore the Key
-        apiLog(.propertyWarning, "Atu: unknown property, \(property.key) = \(property.value)", property.key)
+        apiLog(.propertyWarning, "Atu: unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
-      // Known tokens, in alphabetical order
-      switch token {
-        
-      case .enabled:          enabled = property.value.bValue
-      case .memoriesEnabled:  memoriesEnabled = property.value.bValue
-      case .status:           status = Atu.Status(rawValue: property.value) ?? .none
-      case .usingMemory:      usingMemory = property.value.bValue
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false{
       // NO, it is now
       _initialized = true
-      apiLog(.debug, "Atu: initialized") 
+      apiLog(.debug, "Atu: ADDED") 
     }
   }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+   private func apply(property: Atu.Property, value: String) {
+     switch property {
+       
+     case .enabled:          enabled = value.bValue
+     case .memoriesEnabled:  memoriesEnabled = value.bValue
+     case .status:           status = Atu.Status(rawValue: value) ?? .none
+     case .usingMemory:      usingMemory = value.bValue
+     }
+   }
 
   // ----------------------------------------------------------------------------
   // MARK: - Public Properties
@@ -103,3 +113,4 @@ public final class Atu {
     "atu start"
   }
 }
+

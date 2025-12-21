@@ -61,32 +61,37 @@ public final class Amplifier: Identifiable {
   public func parse(_ properties: KeyValuesArray) {
     // process each key/value pair, <key=value>
     for property in properties {
-      // check for unknown Keys
       guard let token = Amplifier.Property(rawValue: property.key) else {
-        // log it and ignore the Key
-        apiLog(.propertyWarning, "Amplifier: unknown propety, \(property.key) = \(property.value)", property.key)
+        apiLog(.propertyWarning, "Amplifier: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
-      // known keys
-      switch token {
-        
-      case .ant:          ant = property.value ; antennaDict = antennaSettings( property.value)
-      case .handle:       handle = property.value.handle ?? 0
-      case .ip:           ip = property.value
-      case .model:        model = property.value
-      case .port:         port = property.value.iValue
-      case .serialNumber: serialNumber = property.value
-      case .state:        state = property.value
-      }
+      apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      apiLog(.debug, "Amplifier: ADDED model <\(self.model)>")
+      apiLog(.debug, "Amplifier: ADDED Id <\(self.id.hex)> model <\(self.model)>")
     }
   }
   
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Amplifier.Property, value: String) {
+    switch property {
+
+    case .ant:          ant = value; antennaDict = antennaSettings(value)
+    case .handle:       handle = value.handle ?? 0
+    case .ip:           ip = value
+    case .model:        model = value
+    case .port:         port = value.iValue
+    case .serialNumber: serialNumber = value
+    case .state:        state = value
+    }
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Private Helper methods
   
@@ -141,3 +146,4 @@ public final class Amplifier: Identifiable {
   
   // TODO:
 }
+

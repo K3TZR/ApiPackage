@@ -112,24 +112,7 @@ public final class Xvtr {
         apiLog(.propertyWarning, "Xvtr: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
-      // Known keys, in alphabetical order
-      switch token {
-        
-      case .name:         name = String(property.value.prefix(4))
-      case .ifFrequency:  ifFrequency = property.value.mhzToHz
-      case .isValid:      isValid = property.value.bValue
-      case .loError:      loError = property.value.iValue
-      case .maxPower:     maxPower = property.value.iValue
-      case .order:        order = property.value.iValue
-      case .preferred:    preferred = property.value.bValue
-      case .rfFrequency:  rfFrequency = property.value.mhzToHz
-      case .rxGain:       rxGain = property.value.iValue
-      case .rxOnly:       rxOnly = property.value.bValue
-      case .twoMeterInt:  twoMeterInt = property.value.iValue
-        
-      case .create:       break  // ignored here
-      case .remove:       break  // ignored here
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false {
@@ -139,6 +122,33 @@ public final class Xvtr {
     }
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Xvtr.Property, value: String) {
+    switch property {
+      
+    case .name:         name = String(value.prefix(4))
+    case .ifFrequency:  ifFrequency = value.mhzToHz
+    case .isValid:      isValid = value.bValue
+    case .loError:      loError = value.iValue
+    case .maxPower:     maxPower = value.iValue
+    case .order:        order = value.iValue
+    case .preferred:    preferred = value.bValue
+    case .rfFrequency:  rfFrequency = value.mhzToHz
+    case .rxGain:       rxGain = value.iValue
+    case .rxOnly:       rxOnly = value.bValue
+    case .twoMeterInt:  twoMeterInt = value.iValue
+      
+    case .create:       break  // ignored here
+    case .remove:       break  // ignored here
+    }
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Properties
   

@@ -66,21 +66,7 @@ public final class BandSetting: Identifiable {
         apiLog(.propertyWarning, "BandSetting: unknown property, \(property.key) = \(property.value)", property.key)
         continue
       }
-      // known keys
-      switch token {
-        
-      case .accTxEnabled:     accTxEnabled = property.value.bValue
-      case .accTxReqEnabled:  accTxReqEnabled = property.value.bValue
-      case .name:             name = property.value
-      case .hwAlcEnabled:     hwAlcEnabled = property.value.bValue
-      case .inhibit:          inhibit = property.value.bValue
-      case .rcaTxReqEnabled:  rcaTxReqEnabled = property.value.bValue
-      case .rfPower:          rfPower = property.value.iValue
-      case .tunePower:        tunePower = property.value.iValue
-      case .tx1Enabled:       tx1Enabled = property.value.bValue
-      case .tx2Enabled:       tx2Enabled = property.value.bValue
-      case .tx3Enabled:       tx3Enabled = property.value.bValue
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false {
@@ -90,6 +76,30 @@ public final class BandSetting: Identifiable {
     }
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: BandSetting.Property, value: String) {
+    switch property {
+      
+    case .accTxEnabled:     accTxEnabled = value.bValue
+    case .accTxReqEnabled:  accTxReqEnabled = value.bValue
+    case .name:             name = value
+    case .hwAlcEnabled:     hwAlcEnabled = value.bValue
+    case .inhibit:          inhibit = value.bValue
+    case .rcaTxReqEnabled:  rcaTxReqEnabled = value.bValue
+    case .rfPower:          rfPower = value.iValue
+    case .tunePower:        tunePower = value.iValue
+    case .tx1Enabled:       tx1Enabled = value.bValue
+    case .tx2Enabled:       tx2Enabled = value.bValue
+    case .tx3Enabled:       tx3Enabled = value.bValue
+    }
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Public Properties
   

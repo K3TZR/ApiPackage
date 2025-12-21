@@ -73,7 +73,7 @@ public final class Memory: Identifiable {
 //      }
 //    }
 //  }
-  
+
   // ----------------------------------------------------------------------------
   // MARK: - Public Parse method
   
@@ -85,45 +85,55 @@ public final class Memory: Identifiable {
       // check for unknown Keys
       guard let token = Memory.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        apiLog(.propertyWarning, "Memory: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key) 
+        apiLog(.propertyWarning, "Memory: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
-      // known keys
-      switch token {
-        
-      case .digitalLowerOffset:       digitalLowerOffset = property.value.iValue
-      case .digitalUpperOffset:       digitalUpperOffset = property.value.iValue
-      case .frequency:                frequency = property.value.mhzToHz
-      case .group:                    group = property.value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
-      case .highlight:                break   // ignored here
-      case .highlightColor:           break   // ignored here
-      case .mode:                     mode = property.value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
-      case .name:                     name = property.value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
-      case .owner:                    owner = property.value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
-      case .repeaterOffsetDirection:  offsetDirection = property.value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
-      case .repeaterOffset:           offset = property.value.iValue
-      case .rfPower:                  rfPower = property.value.iValue
-      case .rttyMark:                 rttyMark = property.value.iValue
-      case .rttyShift:                rttyShift = property.value.iValue
-      case .rxFilterHigh:             filterHigh = property.value.iValue
-      case .rxFilterLow:              filterLow = property.value.iValue
-      case .squelchEnabled:           squelchEnabled = property.value.bValue
-      case .squelchLevel:             squelchLevel = property.value.iValue
-      case .step:                     step = property.value.iValue
-      case .toneMode:                 toneMode = property.value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
-      case .toneValue:                toneValue = property.value.fValue
-        
-      case .apply, .create, .remove:  break   // ignored here
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false {
       // NO, it is now
       _initialized = true
-      apiLog(.debug, "Memory: ADDED Id <\(self.id.hex)> Name <\(self.name)>") 
+      apiLog(.debug, "Memory: ADDED Id <\(self.id.hex)> name <\(self.name)>")
     }
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Memory.Property, value: String) {
+    switch property {
+      
+    case .digitalLowerOffset:       digitalLowerOffset = value.iValue
+    case .digitalUpperOffset:       digitalUpperOffset = value.iValue
+    case .frequency:                frequency = value.mhzToHz
+    case .group:                    group = value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
+    case .highlight:                break   // ignored here
+    case .highlightColor:           break   // ignored here
+    case .mode:                     mode = value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
+    case .name:                     name = value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
+    case .owner:                    owner = value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
+    case .repeaterOffsetDirection:  offsetDirection = value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
+    case .repeaterOffset:           offset = value.iValue
+    case .rfPower:                  rfPower = value.iValue
+    case .rttyMark:                 rttyMark = value.iValue
+    case .rttyShift:                rttyShift = value.iValue
+    case .rxFilterHigh:             filterHigh = value.iValue
+    case .rxFilterLow:              filterLow = value.iValue
+    case .squelchEnabled:           squelchEnabled = value.bValue
+    case .squelchLevel:             squelchLevel = value.iValue
+    case .step:                     step = value.iValue
+    case .toneMode:                 toneMode = value.replacingOccurrences(of: "\u{7F}", with: "").replacingSpaces()
+    case .toneValue:                toneValue = value.fValue
+      
+    case .apply, .create, .remove:  break   // ignored here
+    }
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Public Properties
   
@@ -224,3 +234,4 @@ public final class Memory: Identifiable {
     "memory set \(id) \(property.rawValue)=\(value)"
   }
 }
+

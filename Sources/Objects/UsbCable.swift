@@ -149,28 +149,7 @@ public final class UsbCable {
           apiLog(.propertyWarning, "USBCable: Id <\(id)> unknown property <\(property.key) = \(property.value)>", property.key)
           continue
         }
-        // Known keys, in alphabetical order
-        switch token {
-          
-        case .autoReport:   autoReport = property.value.bValue
-        case .band:         band = property.value
-        case .cableType:    cableType = properties[0].value
-        case .dataBits:     dataBits = property.value.iValue
-        case .enable:       enable = property.value.bValue
-        case .flowControl:  flowControl = property.value
-        case .name:         name = property.value
-        case .parity:       parity = property.value
-        case .pluggedIn:    pluggedIn = property.value.bValue
-        case .polarity:     polarity = property.value
-        case .preamp:       preamp = property.value
-        case .source:       source = property.value
-        case .sourceRxAnt:  sourceRxAnt = property.value
-        case .sourceSlice:  sourceSlice = property.value.iValue
-        case .sourceTxAnt:  sourceTxAnt = property.value
-        case .speed:        speed = property.value.iValue
-        case .stopBits:     stopBits = property.value.iValue
-        case .usbLog:       usbLog = property.value.bValue
-        }
+        self.apply(property: token, value: property.value)
       }
       
 //    } else {
@@ -185,6 +164,37 @@ public final class UsbCable {
       apiLog(.debug, "USBCable: ADDED Id <\(self.id)> Name <\(self.name)>") 
     }
   }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: UsbCable.Property, value: String) {
+    switch property {
+      
+    case .autoReport:   autoReport = value.bValue
+    case .band:         band = value
+//    case .cableType:    cableType = properties[0].value
+    case .dataBits:     dataBits = value.iValue
+    case .enable:       enable = value.bValue
+    case .flowControl:  flowControl = value
+    case .name:         name = value
+    case .parity:       parity = value
+    case .pluggedIn:    pluggedIn = value.bValue
+    case .polarity:     polarity = value
+    case .preamp:       preamp = value
+    case .source:       source = value
+    case .sourceRxAnt:  sourceRxAnt = value
+    case .sourceSlice:  sourceSlice = value.iValue
+    case .sourceTxAnt:  sourceTxAnt = value
+    case .speed:        speed = value.iValue
+    case .stopBits:     stopBits = value.iValue
+    case .usbLog:       usbLog = value.bValue
+    }
+  }
 
   // ----------------------------------------------------------------------------
   // MARK: - Properties
@@ -193,7 +203,7 @@ public final class UsbCable {
 
   public var autoReport = false
   public var band = ""
-  public var cableType = "bcd"
+//  public var cableType = "bcd"
   public var dataBits = 0
   public var enable = false
   public var flowControl = ""
@@ -222,7 +232,7 @@ public final class UsbCable {
   public enum Property: String {
     case autoReport  = "auto_report"
     case band
-    case cableType   = "type"
+//    case cableType   = "type"
     case dataBits    = "data_bits"
     case enable
     case flowControl = "flow_control"

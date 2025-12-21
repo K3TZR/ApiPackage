@@ -162,97 +162,7 @@ public final class Slice: Identifiable {
         apiLog(.propertyWarning, "Slice: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
-      // Known keys, in alphabetical order
-      switch token {
-        
-      case .active:                   active = property.value.bValue
-      case .agcMode:                  agcMode = property.value
-      case .agcOffLevel:              agcOffLevel = property.value.iValue
-      case .agcThreshold:             agcThreshold = property.value.iValue
-      case .anfEnabled:               anfEnabled = property.value.bValue
-      case .anfLevel:                 anfLevel = property.value.iValue
-      case .apfEnabled:               apfEnabled = property.value.bValue
-      case .apfLevel:                 apfLevel = property.value.iValue
-      case .audioGain:                audioGain = property.value.iValue
-      case .audioLevel:               audioGain = property.value.iValue
-      case .audioMute:                audioMute = property.value.bValue
-      case .audioPan:                 audioPan = property.value.iValue
-      case .clientHandle:             clientHandle = property.value.handle ?? 0
-      case .daxChannel:
-        if daxChannel != 0 && property.value.iValue == 0 {
-          // remove this slice from the AudioStream it was using
-          //          if let daxRxAudioStream = radio.findDaxRxAudioStream(with: daxChannel) { daxRxAudioStream.slice = nil }
-        }
-        daxChannel = property.value.iValue
-      case .daxTxEnabled:             daxTxEnabled = property.value.bValue
-      case .detached:                 detached = property.value.bValue
-      case .dfmPreDeEmphasisEnabled:  dfmPreDeEmphasisEnabled = property.value.bValue
-      case .digitalLowerOffset:       digitalLowerOffset = property.value.iValue
-      case .digitalUpperOffset:       digitalUpperOffset = property.value.iValue
-      case .diversityEnabled:         diversityEnabled = property.value.bValue
-      case .diversityChild:           diversityChild = property.value.bValue
-      case .diversityIndex:           diversityIndex = property.value.iValue
-      case .filterHigh:               filterHigh = property.value.iValue
-      case .filterLow:                filterLow = property.value.iValue
-      case .fmDeviation:              fmDeviation = property.value.iValue
-      case .fmRepeaterOffset:         fmRepeaterOffset = property.value.fValue
-      case .fmToneBurstEnabled:       fmToneBurstEnabled = property.value.bValue
-      case .fmToneMode:               fmToneMode = property.value
-      case .fmToneFreq:               fmToneFreq = property.value.fValue
-      case .frequency:                frequency = property.value.mhzToHz
-      case .inUse:                    inUse = property.value.bValue
-      case .locked:                   locked = property.value.bValue
-      case .loopAEnabled:             loopAEnabled = property.value.bValue
-      case .loopBEnabled:             loopBEnabled = property.value.bValue
-      case .mode:                     mode = property.value.uppercased() ; filters = filterDefaults[mode]!
-      case .modeList:                 modeList = property.value.list
-      case .nbEnabled:                nbEnabled = property.value.bValue
-      case .nbLevel:                  nbLevel = property.value.iValue
-      case .nrEnabled:                nrEnabled = property.value.bValue
-      case .nrLevel:                  nrLevel = property.value.iValue
-      case .nr2:                      nr2 = property.value.iValue
-      case .owner:                    nr2 = property.value.iValue
-      case .panadapterId:             panadapterId = property.value.streamId ?? 0
-      case .playbackEnabled:          playbackEnabled = (property.value == "enabled") || (property.value == "1")
-      case .postDemodBypassEnabled:   postDemodBypassEnabled = property.value.bValue
-      case .postDemodLow:             postDemodLow = property.value.iValue
-      case .postDemodHigh:            postDemodHigh = property.value.iValue
-      case .qskEnabled:               qskEnabled = property.value.bValue
-      case .recordEnabled:            recordEnabled = property.value.bValue
-      case .repeaterOffsetDirection:  repeaterOffsetDirection = property.value
-      case .rfGain:                   rfGain = property.value.iValue
-      case .ritOffset:                ritOffset = property.value.iValue
-      case .ritEnabled:               ritEnabled = property.value.bValue
-      case .rttyMark:                 rttyMark = property.value.iValue
-      case .rttyShift:                rttyShift = property.value.iValue
-      case .rxAnt:                    rxAnt = property.value
-      case .rxErrormHz:               rxErrormHz = property.value.fValue
-      case .rxAntList:                rxAntList = property.value.list
-      case .sampleRate:               sampleRate = property.value.iValue         // FIXME: ????? not in v3.2.15 source code
-      case .sliceLetter:              sliceLetter = property.value
-      case .squelchAvgFactor:         squelchAvgFactor = property.value.iValue
-      case .squelchEnabled:           squelchEnabled = property.value.bValue
-      case .squelchHangDelay:         squelchHangDelay = property.value.iValue
-      case .squelchLevel:             squelchLevel = property.value.iValue
-      case .squelchTriggeredWeight:   squelchTriggeredWeight = property.value.iValue
-      case .step:                     step = property.value.iValue
-      case .stepList:                 stepList = property.value
-      case .txEnabled:                txEnabled = property.value.bValue
-      case .txAnt:                    txAnt = property.value
-      case .txAntList:                txAntList = property.value.list
-      case .txOffsetFreq:             txOffsetFreq = property.value.fValue
-      case .wide:                     wide = property.value.bValue
-      case .wnbEnabled:               wnbEnabled = property.value.bValue
-      case .wnbLevel:                 wnbLevel = property.value.iValue
-      case .xitOffset:                xitOffset = property.value.iValue
-      case .xitEnabled:               xitEnabled = property.value.bValue
-        
-        // the following are ignored here
-      case .daxClients:               break
-      case .diversityParent:          break
-      case .recordTime:               break
-      case .ghost /*, .tune */:       break
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false && panadapterId != 0 && frequency != 0 && mode != "" {
@@ -262,6 +172,106 @@ public final class Slice: Identifiable {
     }
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Slice.Property, value: String) {
+    switch property {
+      
+    case .active:                   active = value.bValue
+    case .agcMode:                  agcMode = value
+    case .agcOffLevel:              agcOffLevel = value.iValue
+    case .agcThreshold:             agcThreshold = value.iValue
+    case .anfEnabled:               anfEnabled = value.bValue
+    case .anfLevel:                 anfLevel = value.iValue
+    case .apfEnabled:               apfEnabled = value.bValue
+    case .apfLevel:                 apfLevel = value.iValue
+    case .audioGain:                audioGain = value.iValue
+    case .audioLevel:               audioGain = value.iValue
+    case .audioMute:                audioMute = value.bValue
+    case .audioPan:                 audioPan = value.iValue
+    case .clientHandle:             clientHandle = value.handle ?? 0
+    case .daxChannel:
+      if daxChannel != 0 && value.iValue == 0 {
+        // remove this slice from the AudioStream it was using
+        //          if let daxRxAudioStream = radio.findDaxRxAudioStream(with: daxChannel) { daxRxAudioStream.slice = nil }
+      }
+      daxChannel = value.iValue
+    case .daxTxEnabled:             daxTxEnabled = value.bValue
+    case .detached:                 detached = value.bValue
+    case .dfmPreDeEmphasisEnabled:  dfmPreDeEmphasisEnabled = value.bValue
+    case .digitalLowerOffset:       digitalLowerOffset = value.iValue
+    case .digitalUpperOffset:       digitalUpperOffset = value.iValue
+    case .diversityEnabled:         diversityEnabled = value.bValue
+    case .diversityChild:           diversityChild = value.bValue
+    case .diversityIndex:           diversityIndex = value.iValue
+    case .filterHigh:               filterHigh = value.iValue
+    case .filterLow:                filterLow = value.iValue
+    case .fmDeviation:              fmDeviation = value.iValue
+    case .fmRepeaterOffset:         fmRepeaterOffset = value.fValue
+    case .fmToneBurstEnabled:       fmToneBurstEnabled = value.bValue
+    case .fmToneMode:               fmToneMode = value
+    case .fmToneFreq:               fmToneFreq = value.fValue
+    case .frequency:                frequency = value.mhzToHz
+    case .inUse:                    inUse = value.bValue
+    case .locked:                   locked = value.bValue
+    case .loopAEnabled:             loopAEnabled = value.bValue
+    case .loopBEnabled:             loopBEnabled = value.bValue
+    case .mode:                     mode = value.uppercased() ; filters = filterDefaults[mode]!
+    case .modeList:                 modeList = value.list
+    case .nbEnabled:                nbEnabled = value.bValue
+    case .nbLevel:                  nbLevel = value.iValue
+    case .nrEnabled:                nrEnabled = value.bValue
+    case .nrLevel:                  nrLevel = value.iValue
+    case .nr2:                      nr2 = value.iValue
+    case .owner:                    nr2 = value.iValue
+    case .panadapterId:             panadapterId = value.streamId ?? 0
+    case .playbackEnabled:          playbackEnabled = (value == "enabled") || (value == "1")
+    case .postDemodBypassEnabled:   postDemodBypassEnabled = value.bValue
+    case .postDemodLow:             postDemodLow = value.iValue
+    case .postDemodHigh:            postDemodHigh = value.iValue
+    case .qskEnabled:               qskEnabled = value.bValue
+    case .recordEnabled:            recordEnabled = value.bValue
+    case .repeaterOffsetDirection:  repeaterOffsetDirection = value
+    case .rfGain:                   rfGain = value.iValue
+    case .ritOffset:                ritOffset = value.iValue
+    case .ritEnabled:               ritEnabled = value.bValue
+    case .rttyMark:                 rttyMark = value.iValue
+    case .rttyShift:                rttyShift = value.iValue
+    case .rxAnt:                    rxAnt = value
+    case .rxErrormHz:               rxErrormHz = value.fValue
+    case .rxAntList:                rxAntList = value.list
+    case .sampleRate:               sampleRate = value.iValue         // FIXME: ????? not in v3.2.15 source code
+    case .sliceLetter:              sliceLetter = value
+    case .squelchAvgFactor:         squelchAvgFactor = value.iValue
+    case .squelchEnabled:           squelchEnabled = value.bValue
+    case .squelchHangDelay:         squelchHangDelay = value.iValue
+    case .squelchLevel:             squelchLevel = value.iValue
+    case .squelchTriggeredWeight:   squelchTriggeredWeight = value.iValue
+    case .step:                     step = value.iValue
+    case .stepList:                 stepList = value
+    case .txEnabled:                txEnabled = value.bValue
+    case .txAnt:                    txAnt = value
+    case .txAntList:                txAntList = value.list
+    case .txOffsetFreq:             txOffsetFreq = value.fValue
+    case .wide:                     wide = value.bValue
+    case .wnbEnabled:               wnbEnabled = value.bValue
+    case .wnbLevel:                 wnbLevel = value.iValue
+    case .xitOffset:                xitOffset = value.iValue
+    case .xitEnabled:               xitEnabled = value.bValue
+      
+      // the following are ignored here
+    case .daxClients:               break
+    case .diversityParent:          break
+    case .recordTime:               break
+    case .ghost /*, .tune */:       break
+    }
+  }
+
   /// Set the default Filter widths
   /// - Parameters:
   ///   - mode:       demod mode
@@ -519,3 +529,4 @@ public final class Slice: Identifiable {
   
   private var _initialized = false
 }
+

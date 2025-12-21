@@ -70,13 +70,7 @@ public final class DaxRxAudio {
         apiLog(.propertyWarning, "DaxRxAudio: unknown property, \(property.key) = \(property.value)", property.key) 
         continue
       }
-      // known keys, in alphabetical order
-      switch token {
-        
-      case .clientHandle: clientHandle = property.value.handle ?? 0
-      case .daxChannel:   daxChannel = property.value.iValue
-      case .ip:           ip = property.value
-      case .sliceLetter:  sliceLetter = property.value
+      self.apply(property: token, value: property.value)
         //        // do we have a good reference to the GUI Client?
         //        if let handle = radio.findHandle(for: radio.boundClientId) {
         //          // YES,
@@ -89,9 +83,6 @@ public final class DaxRxAudio {
         //          slice = nil
         //          continue
         //        }
-        
-      case .type:         break  // included to inhibit unknown token warnings
-      }
     }
     // is it initialized?
     if _initialized == false && clientHandle != 0 {
@@ -101,6 +92,23 @@ public final class DaxRxAudio {
     }
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: DaxRxAudio.Property, value: String) {
+    switch property {
+      
+    case .clientHandle: clientHandle = value.handle ?? 0
+    case .daxChannel:   daxChannel = value.iValue
+    case .ip:           ip = value
+    case .sliceLetter:  sliceLetter = value
+    }
+  }
+
   // ------------------------------------------------------------------------------
   // MARK: - Properties
   
@@ -119,7 +127,7 @@ public final class DaxRxAudio {
     case daxChannel     = "dax_channel"
     case ip
     case sliceLetter    = "slice"
-    case type
+//    case type
   }
   
   private var _initialized = false

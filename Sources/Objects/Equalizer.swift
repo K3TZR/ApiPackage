@@ -67,25 +67,34 @@ public final class Equalizer: Identifiable {
         apiLog(.propertyWarning, "Equalizer: Id <\(id)> unknown property <\(property.key) = \(property.value)>", property.key) 
         continue
       }
-      // known keys
-      switch token {
-        
-      case .eqEnabled:        eqEnabled = property.value.bValue
-
-      case .hz63:      hz63 = property.value.iValue
-      case .hz125:    hz125 = property.value.iValue
-      case .hz250:    hz250 = property.value.iValue
-      case .hz500:    hz500 = property.value.iValue
-      case .hz1000:  hz1000 = property.value.iValue
-      case .hz2000:  hz2000 = property.value.iValue
-      case .hz4000:  hz4000 = property.value.iValue
-      case .hz8000:  hz8000 = property.value.iValue
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false {
       // NO, it is now
       _initialized = true
+    }
+  }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Equalizer.Property, value: String) {
+    switch property {
+      
+    case .eqEnabled:  eqEnabled = value.bValue
+    case .hz63:       hz63 = value.iValue
+    case .hz125:      hz125 = value.iValue
+    case .hz250:      hz250 = value.iValue
+    case .hz500:      hz500 = value.iValue
+    case .hz1000:     hz1000 = value.iValue
+    case .hz2000:     hz2000 = value.iValue
+    case .hz4000:     hz4000 = value.iValue
+    case .hz8000:     hz8000 = value.iValue
     }
   }
 

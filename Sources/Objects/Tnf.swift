@@ -79,10 +79,13 @@ public final class Tnf: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Private Methods
   
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
    private func apply(property: Tnf.Property, value: String) {
     switch property {
       
-      // these fields in the received packet are copied to the Packet struct
     case .depth:      depth = value.tnfDepth
     case .frequency:  frequency = value.mhzToHz
     case .permanent:  permanent = value.bValue

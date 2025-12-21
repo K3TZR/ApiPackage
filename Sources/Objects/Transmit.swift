@@ -94,64 +94,74 @@ public final class Transmit {
         apiLog(.propertyWarning, "Transmit: unknown property, \(property.key) = \(property.value)", property.key)
         continue
       }
-      // Known tokens, in alphabetical order
-      switch token {
-        
-      case .amCarrierLevel:           carrierLevel = property.value.iValue
-      case .companderEnabled:         companderEnabled = property.value.bValue
-      case .companderLevel:           companderLevel = property.value.iValue
-      case .cwBreakInEnabled:         cwBreakInEnabled = property.value.bValue
-      case .cwBreakInDelay:           cwBreakInDelay = property.value.iValue
-      case .cwIambicEnabled:          cwIambicEnabled = property.value.bValue
-      case .cwIambicMode:             cwIambicMode = property.value.bValue
-      case .cwlEnabled:               cwlEnabled = property.value.bValue
-      case .cwMonitorGain:            cwMonitorGain = property.value.iValue
-      case .cwMonitorPan:             cwMonitorPan = property.value.iValue
-      case .cwPitch:                  cwPitch = property.value.iValue
-      case .cwSidetoneEnabled:        cwSidetoneEnabled = property.value.bValue
-      case .cwSpeed:                  cwSpeed = property.value.iValue
-      case .cwSwapPaddles:            cwSwapPaddles = property.value.bValue
-      case .cwSyncCwxEnabled:         cwSyncCwxEnabled = property.value.bValue
-      case .daxEnabled:               daxEnabled = property.value.bValue
-      case .frequency:                frequency = property.value.mhzToHz
-      case .hwAlcEnabled:             hwAlcEnabled = property.value.bValue
-      case .maxPowerLevel:            maxPowerLevel = property.value.iValue
-      case .meterInRxEnabled:         meterInRxEnabled = property.value.bValue
-      case .micAccEnabled:            micAccEnabled = property.value.bValue
-      case .micBoostEnabled:          micBoostEnabled = property.value.bValue
-      case .micBiasEnabled:           micBiasEnabled = property.value.bValue
-      case .micLevel:                 micLevel = property.value.iValue
-      case .micSelection:             micSelection = property.value
-      case .mox:                      mox = property.value.bValue
-      case .rawIqEnabled:             rawIqEnabled = property.value.bValue
-      case .rfPower:                  rfPower = property.value.iValue
-      case .speechProcessorEnabled:   speechProcessorEnabled = property.value.bValue
-      case .speechProcessorLevel:     speechProcessorLevel = property.value.iValue
-      case .ssbMonitorGain:           ssbMonitorGain = property.value.iValue
-      case .ssbMonitorPan:            ssbMonitorPan = property.value.iValue
-      case .tuneMode:                 tuneMode = property.value
-      case .txAntenna:                txAntenna = property.value
-      case .txFilterChanges:          txFilterChanges = property.value.bValue
-      case .txFilterHigh:             txFilterHigh = property.value.iValue
-      case .txFilterLow:              txFilterLow = property.value.iValue
-      case .inhibit:                  inhibit = property.value.bValue
-      case .txInWaterfallEnabled:     txInWaterfallEnabled = property.value.bValue
-      case .txMonitorAvailable:       txMonitorAvailable = property.value.bValue
-      case .txMonitorEnabled:         txMonitorEnabled = property.value.bValue
-      case .txRfPowerChanges:         txRfPowerChanges = property.value.bValue
-      case .txSliceMode:              txSliceMode = property.value
-      case .tune:                     tune = property.value.bValue
-      case .tunePower:                tunePower = property.value.iValue
-      case .voxEnabled:               voxEnabled = property.value.bValue
-      case .voxDelay:                 voxDelay = property.value.iValue
-      case .voxLevel:                 voxLevel = property.value.iValue
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false {
       // NO, it is now
       _initialized = true
       apiLog(.debug, "Transmit: initialized")
+    }
+  }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Transmit.Property, value: String) {
+    switch property {
+      
+    case .amCarrierLevel:           carrierLevel = value.iValue
+    case .companderEnabled:         companderEnabled = value.bValue
+    case .companderLevel:           companderLevel = value.iValue
+    case .cwBreakInEnabled:         cwBreakInEnabled = value.bValue
+    case .cwBreakInDelay:           cwBreakInDelay = value.iValue
+    case .cwIambicEnabled:          cwIambicEnabled = value.bValue
+    case .cwIambicMode:             cwIambicMode = value.bValue
+    case .cwlEnabled:               cwlEnabled = value.bValue
+    case .cwMonitorGain:            cwMonitorGain = value.iValue
+    case .cwMonitorPan:             cwMonitorPan = value.iValue
+    case .cwPitch:                  cwPitch = value.iValue
+    case .cwSidetoneEnabled:        cwSidetoneEnabled = value.bValue
+    case .cwSpeed:                  cwSpeed = value.iValue
+    case .cwSwapPaddles:            cwSwapPaddles = value.bValue
+    case .cwSyncCwxEnabled:         cwSyncCwxEnabled = value.bValue
+    case .daxEnabled:               daxEnabled = value.bValue
+    case .frequency:                frequency = value.mhzToHz
+    case .hwAlcEnabled:             hwAlcEnabled = value.bValue
+    case .maxPowerLevel:            maxPowerLevel = value.iValue
+    case .meterInRxEnabled:         meterInRxEnabled = value.bValue
+    case .micAccEnabled:            micAccEnabled = value.bValue
+    case .micBoostEnabled:          micBoostEnabled = value.bValue
+    case .micBiasEnabled:           micBiasEnabled = value.bValue
+    case .micLevel:                 micLevel = value.iValue
+    case .micSelection:             micSelection = value
+    case .mox:                      mox = value.bValue
+    case .rawIqEnabled:             rawIqEnabled = value.bValue
+    case .rfPower:                  rfPower = value.iValue
+    case .speechProcessorEnabled:   speechProcessorEnabled = value.bValue
+    case .speechProcessorLevel:     speechProcessorLevel = value.iValue
+    case .ssbMonitorGain:           ssbMonitorGain = value.iValue
+    case .ssbMonitorPan:            ssbMonitorPan = value.iValue
+    case .tuneMode:                 tuneMode = value
+    case .txAntenna:                txAntenna = value
+    case .txFilterChanges:          txFilterChanges = value.bValue
+    case .txFilterHigh:             txFilterHigh = value.iValue
+    case .txFilterLow:              txFilterLow = value.iValue
+    case .inhibit:                  inhibit = value.bValue
+    case .txInWaterfallEnabled:     txInWaterfallEnabled = value.bValue
+    case .txMonitorAvailable:       txMonitorAvailable = value.bValue
+    case .txMonitorEnabled:         txMonitorEnabled = value.bValue
+    case .txRfPowerChanges:         txRfPowerChanges = value.bValue
+    case .txSliceMode:              txSliceMode = value
+    case .tune:                     tune = value.bValue
+    case .tunePower:                tunePower = value.iValue
+    case .voxEnabled:               voxEnabled = value.bValue
+    case .voxDelay:                 voxDelay = value.iValue
+    case .voxLevel:                 voxLevel = value.iValue
     }
   }
 

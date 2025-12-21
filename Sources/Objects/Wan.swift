@@ -31,16 +31,7 @@ public final class Wan {
         continue
       }
       // Known tokens, in alphabetical order
-      switch token {
-        
-      case .serverConnected:      serverConnected = property.value.bValue
-      case .radioAuthenticated:   radioAuthenticated = property.value.bValue
-      case .publicTlsPort:        publicTlsPort = property.value.iValue
-      case .publicUdpPort:        publicUdpPort = property.value.iValue
-      case .publicUpnpTlsPort:    publicUpnpTlsPort = property.value.iValue
-      case .publicUpnpUdpPort:    publicUpnpUdpPort = property.value.iValue
-      case .upnpSupported:        upnpSupported = property.value.bValue
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false {
@@ -50,6 +41,26 @@ public final class Wan {
     }
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Wan.Property, value: String) {
+    switch property {
+      
+    case .serverConnected:      serverConnected = value.bValue
+    case .radioAuthenticated:   radioAuthenticated = value.bValue
+    case .publicTlsPort:        publicTlsPort = value.iValue
+    case .publicUdpPort:        publicUdpPort = value.iValue
+    case .publicUpnpTlsPort:    publicUpnpTlsPort = value.iValue
+    case .publicUpnpUdpPort:    publicUpnpUdpPort = value.iValue
+    case .upnpSupported:        upnpSupported = value.bValue
+    }
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Properties
   

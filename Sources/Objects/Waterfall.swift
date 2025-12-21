@@ -111,23 +111,10 @@ public final class Waterfall: Identifiable {
       // check for unknown Keys
       guard let token = Waterfall.Property(rawValue: property.key) else {
         // log it and ignore the Key
-        apiLog(.propertyWarning, "Waterfall: Id <\(id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
+        apiLog(.propertyWarning, "Waterfall: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
-      // Known keys, in alphabetical order
-      switch token {
-        
-      case .autoBlackEnabled:   autoBlackEnabled = property.value.bValue
-      case .blackLevel:         blackLevel = property.value.iValue
-      case .clientHandle:       clientHandle = property.value.handle ?? 0
-      case .colorGain:          colorGain = property.value.iValue
-      case .gradientIndex:      gradientIndex = property.value.iValue
-      case .lineDuration:       lineDuration = property.value.iValue
-      case .panadapterId:       panadapterId = property.value.streamId ?? 0
-        // the following are ignwater.ored here
-      case .available, .band, .bandwidth, .bandZoomEnabled, .capacity, .center, .daxIq, .daxIqChannel,
-          .daxIqRate, .loopA, .loopB, .rfGain, .rxAnt, .segmentZoomEnabled, .wide, .xPixels, .xvtr:  break
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false && panadapterId != 0 {
@@ -137,6 +124,29 @@ public final class Waterfall: Identifiable {
     }
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Waterfall.Property, value: String) {
+    switch property {
+      
+    case .autoBlackEnabled:   autoBlackEnabled = value.bValue
+    case .blackLevel:         blackLevel = value.iValue
+    case .clientHandle:       clientHandle = value.handle ?? 0
+    case .colorGain:          colorGain = value.iValue
+    case .gradientIndex:      gradientIndex = value.iValue
+    case .lineDuration:       lineDuration = value.iValue
+    case .panadapterId:       panadapterId = value.streamId ?? 0
+      // the following are ignwater.ored here
+    case .available, .band, .bandwidth, .bandZoomEnabled, .capacity, .center, .daxIq, .daxIqChannel,
+        .daxIqRate, .loopA, .loopB, .rfGain, .rxAnt, .segmentZoomEnabled, .wide, .xPixels, .xvtr:  break
+    }
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Properties
   
@@ -195,3 +205,4 @@ public final class Waterfall: Identifiable {
   
   private var _initialized = false
 }
+

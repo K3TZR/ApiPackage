@@ -35,26 +35,37 @@ public final class Gps {
         apiLog(.propertyWarning, "Gps: unknown property, \(property.key) = \(property.value)", property.key) 
         continue
       }
-      // Known tokens, in alphabetical order
-      switch token {
-      case .altitude:       altitude = property.value
-      case .frequencyError: frequencyError = property.value.dValue
-      case .grid:           grid = property.value
-      case .installed:      installed = property.value == "present" ? true : false
-      case .latitude:       latitude = property.value
-      case .longitude:      longitude = property.value
-      case .speed:          speed = property.value
-      case .time:           time = property.value
-      case .track:          track = property.value.dValue
-      case .tracked:        tracked = property.value.bValue
-      case .visible:        visible = property.value.bValue
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false{
       // NO, it is now
       _initialized = true
       apiLog(.debug, "Gps: initialized") 
+    }
+  }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Gps.Property, value: String) {
+    switch property {
+      
+    case .altitude:       altitude = value
+    case .frequencyError: frequencyError = value.dValue
+    case .grid:           grid = value
+    case .installed:      installed = value == "present" ? true : false
+    case .latitude:       latitude = value
+    case .longitude:      longitude = value
+    case .speed:          speed = value
+    case .time:           time = value
+    case .track:          track = value.dValue
+    case .tracked:        tracked = value.bValue
+    case .visible:        visible = value.bValue
     }
   }
 

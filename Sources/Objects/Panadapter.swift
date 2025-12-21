@@ -87,50 +87,61 @@ public final class Panadapter: Identifiable {
         apiLog(.propertyWarning, "Panadapter: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
         continue
       }
-      // Known keys, in alphabetical order
-      switch token {
-      case .antList:                antList = property.value.list
-      case .average:                average = property.value.iValue
-      case .band:                   band = property.value
-      case .bandwidth:              bandwidth = property.value.mhzToHz
-      case .bandZoomEnabled:        bandZoomEnabled = property.value.bValue
-      case .center:                 center = property.value.mhzToHz
-      case .clientHandle:           clientHandle = property.value.handle ?? 0
-      case .daxIq:                  daxIqChannel = property.value.iValue
-      case .daxIqChannel:           daxIqChannel = property.value.iValue
-      case .fps:                    fps = property.value.iValue
-      case .loopAEnabled:           loopAEnabled = property.value.bValue
-      case .loopBEnabled:           loopBEnabled = property.value.bValue
-      case .maxBw:                  maxBw = property.value.mhzToHz
-      case .maxDbm:                 maxDbm = min(property.value.cgValue, Panadapter.dbmMax)
-      case .minBw:                  minBw = property.value.mhzToHz
-      case .minDbm:                 minDbm = max(property.value.cgValue, Panadapter.dbmMin)
-      case .preamp:                 preamp = property.value
-      case .rfGain:                 rfGain = property.value.iValue
-      case .rxAnt:                  rxAnt = property.value
-      case .segmentZoomEnabled:     segmentZoomEnabled = property.value.bValue
-      case .waterfallId:            waterfallId = property.value.streamId ?? 0
-      case .wide:                   wide = property.value.bValue
-      case .weightedAverageEnabled: weightedAverageEnabled = property.value.bValue
-      case .wnbEnabled:             wnbEnabled = property.value.bValue
-      case .wnbLevel:               wnbLevel = property.value.iValue
-      case .wnbUpdating:            wnbUpdating = property.value.bValue
-      case .xvtrLabel:              xvtrLabel = property.value
-        
-      case .available, .capacity, .daxIqRate, .xpixels, .ypixels:     break // ignored by Panadapter
-      case .xPixels, .yPixels:                                        break // not sent in status messages
-      case .n1mmSpectrumEnable, .n1mmAddress, .n1mmPort, .n1mmRadio:  break // not sent in status messages
-//      case .fillLevel:                                                break // not sent in status messages
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?∫
     if _initialized == false && center != 0 && bandwidth != 0 && (minDbm != 0.0 || maxDbm != 0.0) {
       // NO, it is now
       _initialized = true
-      apiLog(.debug, "Panadapter:  ADDED Id <\(self.id.hex)> center <\(self.center.hzToMhz)> bandwidth <\(self.bandwidth.hzToMhz)>") 
+      apiLog(.debug, "Panadapter: ADDED Id <\(self.id.hex)> center <\(self.center.hzToMhz)> bandwidth <\(self.bandwidth.hzToMhz)>") 
       
       // FIXME: ????
 //      _apiModel.activePanadapter = self
+    }
+  }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Panadapter.Property, value: String) {
+    switch property {
+      
+    case .antList:                antList = value.list
+    case .average:                average = value.iValue
+    case .band:                   band = value
+    case .bandwidth:              bandwidth = value.mhzToHz
+    case .bandZoomEnabled:        bandZoomEnabled = value.bValue
+    case .center:                 center = value.mhzToHz
+    case .clientHandle:           clientHandle = value.handle ?? 0
+    case .daxIq:                  daxIqChannel = value.iValue
+    case .daxIqChannel:           daxIqChannel = value.iValue
+    case .fps:                    fps = value.iValue
+    case .loopAEnabled:           loopAEnabled = value.bValue
+    case .loopBEnabled:           loopBEnabled = value.bValue
+    case .maxBw:                  maxBw = value.mhzToHz
+    case .maxDbm:                 maxDbm = min(value.cgValue, Panadapter.dbmMax)
+    case .minBw:                  minBw = value.mhzToHz
+    case .minDbm:                 minDbm = max(value.cgValue, Panadapter.dbmMin)
+    case .preamp:                 preamp = value
+    case .rfGain:                 rfGain = value.iValue
+    case .rxAnt:                  rxAnt = value
+    case .segmentZoomEnabled:     segmentZoomEnabled = value.bValue
+    case .waterfallId:            waterfallId = value.streamId ?? 0
+    case .wide:                   wide = value.bValue
+    case .weightedAverageEnabled: weightedAverageEnabled = value.bValue
+    case .wnbEnabled:             wnbEnabled = value.bValue
+    case .wnbLevel:               wnbLevel = value.iValue
+    case .wnbUpdating:            wnbUpdating = value.bValue
+    case .xvtrLabel:              xvtrLabel = value
+      
+    case .available, .capacity, .daxIqRate, .xpixels, .ypixels:     break // ignored by Panadapter
+    case .xPixels, .yPixels:                                        break // not sent in status messages
+    case .n1mmSpectrumEnable, .n1mmAddress, .n1mmPort, .n1mmRadio:  break // not sent in status messages
+//      case .fillLevel:                                                break // not sent in status messages
     }
   }
 

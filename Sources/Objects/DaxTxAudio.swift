@@ -67,14 +67,7 @@ public final class DaxTxAudio {
         apiLog(.propertyWarning, "DaxTxAudio: unknown property, \(property.key) = \(property.value)", property.key) 
         continue
       }
-      // known keys, in alphabetical order
-      switch token {
-        
-      case .clientHandle:       clientHandle = property.value.handle ?? 0
-      case .ip:                 ip = property.value
-      case .isTransmitChannel:  isTransmitChannel = property.value.bValue
-      case .type:               break  // included to inhibit unknown token warnings
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false && clientHandle != 0 {
@@ -84,6 +77,23 @@ public final class DaxTxAudio {
     }
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: DaxTxAudio.Property, value: String) {
+    switch property {
+      
+    case .clientHandle:       clientHandle = value.handle ?? 0
+    case .ip:                 ip = value
+    case .isTransmitChannel:  isTransmitChannel = value.bValue
+    case .type:               break  // included to inhibit unknown token warnings
+    }
+  }
+
   // ------------------------------------------------------------------------------
   // MARK: - Public Properties
   

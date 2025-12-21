@@ -54,30 +54,7 @@ public final class Interlock {
         apiLog(.propertyWarning, "Interlock: unknown property, \(property.key) = \(property.value)", property.key) 
         continue
       }
-      // Known tokens, in alphabetical order
-      switch token {
-        
-      case .accTxEnabled:     accTxEnabled = property.value.bValue
-      case .accTxDelay:       accTxDelay = property.value.iValue
-      case .accTxReqEnabled:  accTxReqEnabled = property.value.bValue
-      case .accTxReqPolarity: accTxReqPolarity = property.value.bValue
-      case .amplifier:        amplifier = property.value
-      case .rcaTxReqEnabled:  rcaTxReqEnabled = property.value.bValue
-      case .rcaTxReqPolarity: rcaTxReqPolarity = property.value.bValue
-      case .reason:           reason = property.value
-      case .source:           source = property.value
-      case .state:            state = property.value
-      case .timeout:          timeout = property.value.iValue
-      case .txAllowed:        txAllowed = property.value.bValue
-      case .txClientHandle:   txClientHandle = property.value.handle ?? 0
-      case .txDelay:          txDelay = property.value.iValue
-      case .tx1Delay:         tx1Delay = property.value.iValue
-      case .tx1Enabled:       tx1Enabled = property.value.bValue
-      case .tx2Delay:         tx2Delay = property.value.iValue
-      case .tx2Enabled:       tx2Enabled = property.value.bValue
-      case .tx3Delay:         tx3Delay = property.value.iValue
-      case .tx3Enabled:       tx3Enabled = property.value.bValue
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false {
@@ -87,6 +64,39 @@ public final class Interlock {
     }
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Interlock.Property, value: String) {
+    switch property {
+      
+    case .accTxEnabled:     accTxEnabled = value.bValue
+    case .accTxDelay:       accTxDelay = value.iValue
+    case .accTxReqEnabled:  accTxReqEnabled = value.bValue
+    case .accTxReqPolarity: accTxReqPolarity = value.bValue
+    case .amplifier:        amplifier = value
+    case .rcaTxReqEnabled:  rcaTxReqEnabled = value.bValue
+    case .rcaTxReqPolarity: rcaTxReqPolarity = value.bValue
+    case .reason:           reason = value
+    case .source:           source = value
+    case .state:            state = value
+    case .timeout:          timeout = value.iValue
+    case .txAllowed:        txAllowed = value.bValue
+    case .txClientHandle:   txClientHandle = value.handle ?? 0
+    case .txDelay:          txDelay = value.iValue
+    case .tx1Delay:         tx1Delay = value.iValue
+    case .tx1Enabled:       tx1Enabled = value.bValue
+    case .tx2Delay:         tx2Delay = value.iValue
+    case .tx2Enabled:       tx2Enabled = value.bValue
+    case .tx3Delay:         tx3Delay = value.iValue
+    case .tx3Enabled:       tx3Enabled = value.bValue
+    }
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Properties
   

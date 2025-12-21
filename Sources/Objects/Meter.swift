@@ -97,27 +97,37 @@ public final class Meter: Identifiable, ObservableObject {
         apiLog(.propertyWarning, "Meter: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key) 
         continue
       }
-      // known Keys, in alphabetical order
-      switch token {
-        
-      case .desc:     desc = property.value
-      case .fps:      fps = property.value.iValue
-      case .high:     high = property.value.fValue
-      case .low:      low = property.value.fValue
-      case .name:     name = property.value.lowercased()
-      case .group:    group = property.value
-      case .source:   source = property.value.lowercased()
-      case .units:    units = property.value.lowercased()
-      }
+      self.apply(property: token, value: property.value)
     }
     // is it initialized?
     if _initialized == false && group != "" && units != "" {
       //NO, it is now
       _initialized = true
-      apiLog(.debug, "Meter: ADDED Id <\(self.id.hex)> Name <\(self.name)> source <\(self.source)> group <\(self.group)>") 
+      apiLog(.debug, "Meter: ADDED Id <\(self.id.hex)> name <\(self.name)> source <\(self.source)> group <\(self.group)>") 
     }
   }
   
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Methods
+  
+  /// Apply a single property value
+  /// - Parameters:
+  ///   - property: Property enum value
+  ///   - value: String to apply
+  private func apply(property: Meter.Property, value: String) {
+    switch property {
+      
+    case .desc:     desc = value
+    case .fps:      fps = value.iValue
+    case .high:     high = value.fValue
+    case .low:      low = value.fValue
+    case .name:     name = value.lowercased()
+    case .group:    group = value
+    case .source:   source = value.lowercased()
+    case .units:    units = value.lowercased()
+    }
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Public set property methods
   
@@ -188,3 +198,4 @@ public final class Meter: Identifiable, ObservableObject {
     case units      = "unit"
   }
 }
+
