@@ -11,6 +11,26 @@ import SwiftUI
 import CocoaAsyncSocket
 import JWTDecode
 
+public struct SmartlinkAuthConfig {
+  public let domain: URL
+  public let clientId: String
+  public let authenticateURL: URL
+  public let delegationURL: URL
+  public let connection: String
+  public let device: String
+  public let scope: String
+
+  public static let production = SmartlinkAuthConfig(
+    domain: URL(string: "https://frtest.auth0.com/")!,
+    clientId: "4Y9fEIIsVYyQo5u6jr7yBWc4lV5ugC2m",
+    authenticateURL: URL(string: "https://frtest.auth0.com/oauth/ro")!,
+    delegationURL: URL(string: "https://frtest.auth0.com/delegation")!,
+    connection: "Username-Password-Authentication",
+    device: "any",
+    scope: "openid offline_access email picture"
+  )
+}
+
 public enum ListenerError: String, Error {
   case wanConnect = "WanConnect Failed"
   case wanValidation = "WanValidation Failed"
@@ -25,18 +45,19 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   // ----------------------------------------------------------------------------
   // MARK: - Initialization
   
-  public init(_ apiModel: ApiModel, timeout: Double = 5.0) {
+  public init(_ apiModel: ApiModel, authConfig: SmartlinkAuthConfig = .production, timeout: Double = 5.0) {
     _apiModel = apiModel
+    _authConfig = authConfig
     
     super.init()
     
-    _appName = (Bundle.main.infoDictionary!["CFBundleName"] as! String)
+    _appName = (Bundle.main.infoDictionary?["CFBundleName"] as? String) ?? "ApiPackage"
     _timeout = timeout
     
     // get a socket & set it's parameters
     _tcpSocket = GCDAsyncSocket(delegate: self, delegateQueue: _socketQ)
-    _tcpSocket.isIPv4PreferredOverIPv6 = true
-    _tcpSocket.isIPv6Enabled = false
+    _tcpSocket?.isIPv4PreferredOverIPv6 = true
+    _tcpSocket?.isIPv6Enabled = false
   }
   
   // ----------------------------------------------------------------------------
@@ -70,10 +91,13 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   
   /// stop the listener
   public func stop() {
+    _state = .stopping
     _pingTimer?.cancel()
+    _pingTimer = nil
     //    _tcpSocket?.disconnect()
     _tcpSocket?.disconnectAfterReadingAndWriting()
     apiLog(.debug, "Smartlink Listener: STOPPED")
+    _state = .disconnected
   }
   
   /// Initiate a smartlink connection to a radio
@@ -87,7 +111,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
       _awaitWanHandle = continuation
       apiLog(.debug, "Smartlink Listener: Connect sent to serial <\(serial)>")
       // send a command to SmartLink to request a connection to the specified Radio
-      sendTlsCommand("application connect serial=\(serial) hole_punch_port=\(holePunchPort))")
+      sendTlsCommand("application connect serial=\(serial) hole_punch_port=\(holePunchPort)")
     }
   }
   
@@ -114,20 +138,27 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   
   public func connect(_ tokens: Tokens) -> Bool {
     _currentTokens = tokens
+    _state = .connecting
     // use the ID Token to connect to the Smartlink service
+    guard let socket = _tcpSocket else {
+      apiLog(.error, "Smartlink Listener: Socket not initialized")
+      _state = .disconnected
+      return false
+    }
     do {
-      try _tcpSocket.connect(toHost: kSmartlinkHost, onPort: kSmartlinkPort, withTimeout: _timeout)
+      try socket.connect(toHost: kSmartlinkHost, onPort: kSmartlinkPort, withTimeout: _timeout)
       apiLog(.debug, "Smartlink Listener: TCP Socket connection initiated")
       return true
       
     } catch {
       apiLog(.debug, "Smartlink Listener: TCP Socket connection FAILED")
+      _state = .disconnected
       return false
     }
   }
   
   private func readData() {
-    _tcpSocket.readData(to: GCDAsyncSocket.lfData(), withTimeout: -1, tag: 0)
+    _tcpSocket?.readData(to: GCDAsyncSocket.lfData(), withTimeout: -1, tag: 0)
   }
   
   /// Test connection
@@ -144,35 +175,44 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   /// Send a command to the server using TLS
   /// - Parameter cmd:                command text
   private func sendTlsCommand(_ cmd: String, timeout: TimeInterval = 5.0, tag: Int = 1) {
+    if _state != .ready {
+      apiLog(.warning, "Smartlink Listener: sending TLS command while state=\(_state)")
+    }
     // send the specified command to the SmartLink server using TLS
     let command = cmd + "\n"
-    _tcpSocket.write(command.data(using: String.Encoding.utf8, allowLossyConversion: false)!, withTimeout: timeout, tag: 0)
+    _tcpSocket?.write(command.data(using: .utf8, allowLossyConversion: false) ?? Data(), withTimeout: timeout, tag: tag)
   }
   
   /// Ping the SmartLink server
   private func startPinging() {
+    if _pingTimer != nil { return }
     // create the timer's dispatch source
     _pingTimer = DispatchSource.makeTimerSource(queue: _pingQ)
     
     // Setup the timer
-    _pingTimer.schedule(deadline: DispatchTime.now(), repeating: .seconds(10))
+    _pingTimer?.schedule(deadline: .now() + .seconds(10), repeating: .seconds(10))
     
     // set the event handler
-    _pingTimer.setEventHandler(handler: { [self] in
+    _pingTimer?.setEventHandler(handler: { [self] in
       // send another Ping
       sendTlsCommand("ping from client", timeout: -1)
     })
     // start the timer
-    _pingTimer.resume()
+    _pingTimer?.resume()
     apiLog(.debug, "Smartlink Listener: STARTED pinging")
   }
   
   private func startTLS(_ tlsSettings: [String : NSObject]) {
-    _tcpSocket.startTLS(tlsSettings)
+    _tcpSocket?.startTLS(tlsSettings)
   }
   
   // ----------------------------------------------------------------------------
   // MARK: - Properties
+  
+  private enum ConnectionState { case disconnected, connecting, tlsSecuring, ready, stopping }
+  
+  private var _authConfig: SmartlinkAuthConfig
+  private var _state: ConnectionState = .disconnected
   
   private var _appName: String?
   private var _awaitWanHandle: CheckedContinuation<String, Error>?
@@ -184,7 +224,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   private var _lastName: String?
   private let _apiModel: ApiModel!
   private let _pingQ = DispatchQueue(label: "SmartlinkListener.pingQ")
-  private var _pingTimer: DispatchSourceTimer!
+  private var _pingTimer: DispatchSourceTimer?
   private var _platform: String?
   private var _previousIdToken: IdToken?
   private var _publicIp: String?
@@ -192,7 +232,7 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   private var _serial: String?
   private var _smartlinkImage: Image?
   private let _socketQ = DispatchQueue(label: "WanListener.socketQ")
-  private var _tcpSocket: GCDAsyncSocket!
+  private var _tcpSocket: GCDAsyncSocket?
   private var _timeout = 0.0                // seconds
   private var _user: String?
   private var _wanHandle: String?
@@ -201,24 +241,11 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   private let kSmartlinkPort: UInt16 = 443
   private let kPlatform = "macOS"
   
-  private let kDomain             = "https://frtest.auth0.com/"
-  private let kClientId           = "4Y9fEIIsVYyQo5u6jr7yBWc4lV5ugC2m"
-  private let kServiceName        = ".oauth-token"
-  
   private let kApplicationJson    = "application/json"
-  private let kAuth0Authenticate  = "https://frtest.auth0.com/oauth/ro"
-  private let kAuth0AuthenticateURL = URL(string: "https://frtest.auth0.com/oauth/ro")!
-  
-  private let kAuth0Delegation    = "https://frtest.auth0.com/delegation"
-  private let kClaimEmail         = "email"
-  private let kClaimPicture       = "picture"
-  private let kGrantType          = "password"
-  private let kGrantTypeRefresh   = "urn:ietf:params:oauth:grant-type:jwt-bearer"
   private let kHttpHeaderField    = "content-type"
   private let kHttpPost           = "POST"
-  private let kConnection         = "Username-Password-Authentication"
-  private let kDevice             = "any"
-  private let kScope              = "openid offline_access email picture"
+  private let kGrantType          = "password"
+  private let kGrantTypeRefresh   = "refresh_token"
   
   private let kKeyClientId        = "client_id"       // dictionary keys
   private let kKeyConnection      = "connection"
@@ -232,6 +259,8 @@ public final class ListenerSmartlink: NSObject, ObservableObject {
   private let kKeyUserName        = "username"
   
   private let kDefaultPicture     = "person.fill"
+  private let kClaimPicture       = "picture"
+  private let kClaimEmail         = "email"
 }
 
 // ----------------------------------------------------------------------------
@@ -260,6 +289,7 @@ extension ListenerSmartlink: GCDAsyncSocketDelegate {
     Task {
       await startTLS(tlsSettings)
       apiLog(.debug, "Smartlink Listener: TLS Socket connection initiated")
+      await MainActor.run { _state = .tlsSecuring }
     }
   }
   
@@ -270,13 +300,19 @@ extension ListenerSmartlink: GCDAsyncSocketDelegate {
       
       // start pinging SmartLink server
       await startPinging()
-      // register the Application / token pair with the SmartLink server
-      await sendTlsCommand("application register name=\(_appName!) platform=\(kPlatform) token=\(_currentTokens!.idToken)", timeout: _timeout, tag: 0)
-      apiLog(.debug, "Smartlink Listener: Application registered, name <\(await self._appName!)> platform <\(self.kPlatform)>")
+      
+      if let appName = await _appName, let token = await _currentTokens?.idToken {
+        await sendTlsCommand("application register name=\(appName) platform=\(kPlatform) token=\(token)", timeout: _timeout, tag: 0)
+        apiLog(.debug, "Smartlink Listener: Application registered, name <\(appName)> platform <\(kPlatform)>")
+      } else {
+        apiLog(.error, "Smartlink Listener: Missing appName or idToken during registration")
+      }
+      
       // start reading
       await readData()
 
       apiLog(.info, "Smartlink Listener: STARTED")
+      await MainActor.run { _state = .ready }
     }
   }
   
@@ -298,6 +334,7 @@ extension ListenerSmartlink: GCDAsyncSocketDelegate {
     } else {
       apiLog(.error, "SmartlinkListener: TCP socketDidDisconnect <\(error)>")
     }
+    Task { await MainActor.run { _state = .disconnected } }
 //    if err != nil { stop() }
   }
   
@@ -315,14 +352,20 @@ extension ListenerSmartlink: GCDAsyncSocketDelegate {
 
 extension ListenerSmartlink {
   
+  private struct TokenResponse: Decodable {
+    let id_token: String?
+    let refresh_token: String?
+  }
+  
   /// Given a UserId / Password, request an ID Token & Refresh Token
   /// - Parameters:
   ///   - user:       User name
   ///   - pwd:        User password
   /// - Returns:      an Id Token (if any)
   public func requestTokens(_ user: String, _ password: String) async -> Tokens? {
+    let url = _authConfig.authenticateURL
     // build the request
-    var request = URLRequest(url: URL(string: kAuth0Authenticate)!)
+    var request = URLRequest(url: url)
     request.httpMethod = kHttpPost
     request.addValue(kApplicationJson, forHTTPHeaderField: kHttpHeaderField)
     
@@ -330,42 +373,48 @@ extension ListenerSmartlink {
     if let data = createTokensBodyData(user: user, password: password) {
       request.httpBody = data
       
-      let result = try! await performRequest(request, for: [kKeyIdToken, kKeyRefreshToken])
-      
-      // validate the Id Token
-      if result.count == 2 && isValid(result[0]) {
-        // save the email & picture
-        updateClaims(from: result[0])
-        return Tokens(result[0]!, result[1]!)
+      do {
+        let result: TokenResponse = try await performRequest(request)
+        if let id = result.id_token, isValid(id) {
+          updateClaims(from: id)
+          if let refresh = result.refresh_token {
+            return Tokens(id, refresh)
+          }
+        }
+        return nil
+      } catch {
+        apiLog(.error, "Smartlink Listener: Token request failed <\(error)>")
+        return nil
       }
-      return nil
     }
     // invalid Id Token or request failure
     return nil
   }
+  
   /// Given a Refresh Token, request an ID Token
   /// - Parameter refreshToken:     a Refresh Token
   /// - Returns:                    an Id Token (if any)
   public func requestIdToken(refreshToken: String) async -> IdToken? {
+    let url = _authConfig.delegationURL
     // build the request
-    var request = URLRequest(url: URL(string: kAuth0Delegation)!)
+    var request = URLRequest(url: url)
     request.httpMethod = kHttpPost
     request.addValue(kApplicationJson, forHTTPHeaderField: kHttpHeaderField)
     
     // add the body data & perform the request
     if let data = createRefreshTokenBodyData(for: refreshToken) {
       request.httpBody = data
-      let result = try! await performRequest(request, for: [kKeyIdToken, kKeyRefreshToken])
-      
-      // validate the Id Token
-      if result.count > 0, isValid(result[0]) {
-        // save the email & picture
-        updateClaims(from: result[0])
-        // save the Tokens
-        return result[0]
+      do {
+        let result: TokenResponse = try await performRequest(request)
+        if let id = result.id_token, isValid(id) {
+          updateClaims(from: id)
+          return id
+        }
+        return nil
+      } catch {
+        apiLog(.error, "Smartlink Listener: IdToken refresh failed <\(error)>")
+        return nil
       }
-      // invalid response
-      return nil
     }
     // invalid Id Token
     return nil
@@ -386,12 +435,13 @@ extension ListenerSmartlink {
   
   /// Perform a URL Request
   /// - Parameter urlRequest:     the Request
-  /// - Returns:                  an Id Token (if any)
-  private func performRequest(_ request: URLRequest, for keys: [String]) async throws -> [String?] {
-    
-    let (responseData, _) = try await URLSession.shared.data(for: request)
-    
-    return parseJson(responseData, for: keys)
+  /// - Returns:                  a Decoded type
+  private func performRequest<T: Decodable>(_ request: URLRequest) async throws -> T {
+    let (responseData, response) = try await URLSession.shared.data(for: request)
+    if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+      throw URLError(.badServerResponse)
+    }
+    return try JSONDecoder().decode(T.self, from: responseData)
   }
   
   /// Create the Body Data for obtaining an Id Token give a Refresh Token
@@ -399,11 +449,11 @@ extension ListenerSmartlink {
   private func createRefreshTokenBodyData(for refreshToken: String) -> Data? {
     var dict = [String : String]()
     
-    dict[kKeyClientId]      = kClientId
+    dict[kKeyClientId]      = _authConfig.clientId
     dict[kKeyGrantType]     = kGrantTypeRefresh
     dict[kKeyRefreshToken]  = refreshToken
-    dict[kKeyTarget]        = kClientId
-    dict[kKeyScope]         = kScope
+    dict[kKeyTarget]        = _authConfig.clientId
+    dict[kKeyScope]         = _authConfig.scope
     
     return serialize(dict)
   }
@@ -413,33 +463,15 @@ extension ListenerSmartlink {
   private func createTokensBodyData(user: String, password: String) -> Data? {
     var dict = [String : String]()
     
-    dict[kKeyClientId]      = kClientId
-    dict[kKeyConnection]    = kConnection
-    dict[kKeyDevice]        = kDevice
+    dict[kKeyClientId]      = _authConfig.clientId
+    dict[kKeyConnection]    = _authConfig.connection
+    dict[kKeyDevice]        = _authConfig.device
     dict[kKeyGrantType]     = kGrantType
     dict[kKeyPassword]      = password
-    dict[kKeyScope]         = kScope
+    dict[kKeyScope]         = _authConfig.scope
     dict[kKeyUserName]      = user
     
     return serialize(dict)
-  }
-  
-  /// Convert a Data to a JSON dictionary and return the values of the specified keys
-  /// - Parameters:
-  ///   - data:       the Data
-  ///   - keys:       an array of keys
-  /// - Returns:      an array of values (some may be nil)
-  private func parseJson(_ data: Data, for keys: [String]) -> [String?] {
-    var values = [String?]()
-    
-    // convert data to a dict
-    if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-      // get the value for each key (some may be nil)
-      for key in keys {
-        values.append(json[key] as? String)
-      }
-    }
-    return values
   }
   
   /// Convert a JSON dictionary to a Data
@@ -454,8 +486,11 @@ extension ListenerSmartlink {
   /// - Parameter idToken:    the Id Token
   private func updateClaims(from idToken: IdToken?) {
     if let idToken = idToken, let jwt = try? decode(jwt: idToken) {
-      Task {
-        await _smartlinkImage = getImage(jwt.claim(name: kClaimPicture).string) }
+      Task { [weak self] in
+        guard let self else { return }
+        let image = await self.getImage(jwt.claim(name: kClaimPicture).string)
+        await MainActor.run { self._smartlinkImage = image }
+      }
     }
     //      settingModel.shared.smartlinkUser = jwt.claim(name: kClaimEmail).string ?? ""
   }
@@ -511,11 +546,9 @@ extension ListenerSmartlink {
     let msg = text.trimmingCharacters(in: .whitespacesAndNewlines)
     
     let properties = msg.keyValuesArray()
-    
-    // Check for unknown properties
-    guard let token = Property(rawValue: properties[0].key)  else {
+    guard let first = properties.first, let token = Property(rawValue: first.key) else {
       // log it
-      apiLog(.warning, "Smartlink Listener: unknown message property <\(msg)>")
+      apiLog(.warning, "Smartlink Listener: unknown or malformed message property <\(msg)>")
       return
     }
     // which primary message type?
@@ -539,10 +572,8 @@ extension ListenerSmartlink {
       case userSettings        = "user_settings"
     }
     
-    // Check for unknown properties
-    guard let token = Property(rawValue: properties[0].key)  else {
-      // log it and ignore the message
-      apiLog(.warning, "Smartlink Listener: unknown application property <\(properties[1].key)>")
+    guard let first = properties.first, let token = Property(rawValue: first.key) else {
+      apiLog(.warning, "Smartlink Listener: unknown application property <\(properties.first?.key ?? "")>")
       return
     }
     switch token {
@@ -562,10 +593,8 @@ extension ListenerSmartlink {
       case testConnection = "test_connection"
     }
     
-    // Check for unknown properties
-    guard let token = Property(rawValue: properties[0].key)  else {
-      // log it and ignore the message
-      apiLog(.warning, "Smartlink Listener: unknown radio property <\(properties[1].key)>")
+    guard let first = properties.first, let token = Property(rawValue: first.key) else {
+      apiLog(.warning, "Smartlink Listener: unknown radio property <\(properties.first?.key ?? "")>")
       return
     }
     // which secondary message type?
@@ -589,13 +618,10 @@ extension ListenerSmartlink {
     
     // process each key/value pair, <key=value>
     for property in properties {
-      // Check for unknown properties
-      guard let token = Property(rawValue: property.key)  else {
-        // log it and ignore the Key
+      guard let token = Property(rawValue: property.key) else {
         apiLog(.warning, "Smartlink Listener: unknown info property <\(property.key)>")
         continue
       }
-      // Known tokens, in alphabetical order
       switch token {
         
       case .publicIp:       _publicIp = property.value
@@ -630,13 +656,10 @@ extension ListenerSmartlink {
     
     // process each key/value pair, <key=value>
     for property in properties {
-      // Check for Unknown properties
-      guard let token = Property(rawValue: property.key)  else {
-        // log it and ignore the Key
+      guard let token = Property(rawValue: property.key) else {
         apiLog(.warning, "Smartlink Listener: unknown user setting <\(property.key)>")
         continue
       }
-      // Known tokens, in alphabetical order
       switch token {
         
       case .callsign:       _callsign = property.value
@@ -661,29 +684,25 @@ extension ListenerSmartlink {
       case serial
     }
     
-    apiLog(.debug, "Smartlink Listener: ConnectReady received") 
+    apiLog(.debug, "Smartlink Listener: ConnectReady received")
     
-    // process each key/value pair, <key=value>
     for property in properties {
-      // Check for unknown properties
-      guard let token = Property(rawValue: property.key)  else {
-        // log it and ignore the Key
+      guard let token = Property(rawValue: property.key) else {
         apiLog(.warning, "Smartlink Listener: unknown connect property, \(property.key)")
         continue
       }
-      // Known tokens, in alphabetical order
       switch token {
         
       case .handle:         _wanHandle = property.value
       case .serial:         _serial = property.value
       }
     }
-    // return to the waiting caller
-    if _wanHandle != nil && _serial != nil {
-      _awaitWanHandle?.resume(returning: _wanHandle!)
+    if let wanHandle = _wanHandle, let _ = _serial {
+      _awaitWanHandle?.resume(returning: wanHandle)
     } else {
       _awaitWanHandle?.resume(throwing: ListenerError.wanConnect)
     }
+    _awaitWanHandle = nil
   }
   
   /// Parse a received "radio list" message
@@ -719,7 +738,7 @@ extension ListenerSmartlink {
       packet.publicTlsPort = publicTlsPortToUse
       packet.publicUdpPort = publicUdpPortToUse
       
-      if let localAddr = _tcpSocket.localHost {
+      if let localAddr = _tcpSocket?.localHost {
         packet.localInterfaceIP = localAddr
       }
       
@@ -748,14 +767,11 @@ extension ListenerSmartlink {
     
     // process each key/value pair, <key=value>
     for property in properties {
-      // Check for unknown properties
-      guard let token = Property(rawValue: property.key)  else {
-        // log it and ignore the Key
-        apiLog(.warning, "Smartlink Listener: unknown testConnection property <\(property.key)>") 
+      guard let token = Property(rawValue: property.key) else {
+        apiLog(.warning, "Smartlink Listener: unknown testConnection property <\(property.key)>")
         continue
       }
       
-      // Known tokens, in alphabetical order
       switch token {
         
       case .forwardTcpPortWorking:      result.forwardTcpPortWorking = property.value.tValue
