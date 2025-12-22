@@ -43,7 +43,7 @@ public final class Meter: Identifiable, ObservableObject {
           apiModel.meters.append(meter)
         }
         // parse
-        meter.parse(Array(properties.dropFirst(1)) )
+        meter.parse(Array(properties) )
         
       } else {
         // remove
