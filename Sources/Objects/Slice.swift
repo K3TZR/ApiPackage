@@ -186,8 +186,18 @@ public final class Slice: Identifiable {
     case .agcMode:                  agcMode = value
     case .agcOffLevel:              agcOffLevel = value.iValue
     case .agcThreshold:             agcThreshold = value.iValue
+    case .anfAdaptMode:             anfAdaptMode = value.iValue
+    case .anfDelay:                 anfDelay = value.iValue
     case .anfEnabled:               anfEnabled = value.bValue
+    case .anfIsdftMode:             anfIsdftMode = value.bValue
     case .anfLevel:                 anfLevel = value.iValue
+    case .anfWlen:                  anfWlen = value.iValue
+    case .anfl:                     anfl = value.bValue
+    case .anflLevel:                anflLevel = value.iValue
+    case .anflFilterSize:           anflFilterSize = value.iValue
+    case .anflDelay:                anflDelay = value.iValue
+    case .anflLeakageLevel:         anflLeakageLevel = value.iValue
+    case .anft:                     anft = value.bValue
     case .apfEnabled:               apfEnabled = value.bValue
     case .apfLevel:                 apfLevel = value.iValue
     case .audioGain:                audioGain = value.iValue
@@ -201,6 +211,7 @@ public final class Slice: Identifiable {
         //          if let daxRxAudioStream = radio.findDaxRxAudioStream(with: daxChannel) { daxRxAudioStream.slice = nil }
       }
       daxChannel = value.iValue
+    case .daxIqChannel:             daxIqChannel = value.iValue
     case .daxTxEnabled:             daxTxEnabled = value.bValue
     case .detached:                 detached = value.bValue
     case .dfmPreDeEmphasisEnabled:  dfmPreDeEmphasisEnabled = value.bValue
@@ -209,6 +220,9 @@ public final class Slice: Identifiable {
     case .diversityEnabled:         diversityEnabled = value.bValue
     case .diversityChild:           diversityChild = value.bValue
     case .diversityIndex:           diversityIndex = value.iValue
+    case .esc:                      esc = value.bValue
+    case .escGain:                  escGain = value.fValue
+    case .escPhaseShift:            escPhaseShift = value.fValue
     case .filterHigh:               filterHigh = value.iValue
     case .filterLow:                filterLow = value.iValue
     case .fmDeviation:              fmDeviation = value.iValue
@@ -225,8 +239,20 @@ public final class Slice: Identifiable {
     case .modeList:                 modeList = value.list
     case .nbEnabled:                nbEnabled = value.bValue
     case .nbLevel:                  nbLevel = value.iValue
+    case .nrAdaptMode:              nrAdaptMode = value.bValue
+    case .nrDelay:                  nrDelay = value.iValue
     case .nrEnabled:                nrEnabled = value.bValue
+    case .nrf:                      nrf = value.bValue
+    case .nrfWinc:                  nrfWinc = value.iValue
+    case .nrfWlen:                  nrfWlen = value.iValue
+    case .nrIsdftMode:              nrIsdftMode = value.bValue
+    case .nrl:                      nrl = value.bValue
+    case .nrlDelay:                 nrlDelay = value.iValue
+    case .nrlFilterSize:            nrlFilterSize = value.iValue
+    case .nrlLeakageLevel:          nrlLeakageLevel = value.iValue
+    case .nrlLevel:                 nrlLevel = value.iValue
     case .nrLevel:                  nrLevel = value.iValue
+    case .nrWlen:                   nrWlen = value.iValue
     case .nr2:                      nr2 = value.iValue
     case .owner:                    nr2 = value.iValue
     case .panadapterId:             panadapterId = value.streamId ?? 0
@@ -313,6 +339,7 @@ public final class Slice: Identifiable {
   public var autoPan: Bool = false
   public var clientHandle: UInt32 = 0
   public var daxClients: Int = 0
+  public var daxIqChannel = 0
   public var daxTxEnabled: Bool = false
   public var detached: Bool = false
   public var diversityChild: Bool = false
@@ -337,8 +364,18 @@ public final class Slice: Identifiable {
   public var agcMode: String = AgcMode.off.rawValue
   public var agcOffLevel: Int = 0
   public var agcThreshold = 0
+  public var anfAdaptMode = 0
+  public var anfDelay: Int = 0
   public var anfEnabled: Bool = false
+  public var anfIsdftMode: Bool = false
+  public var anfWlen: Int = 0
   public var anfLevel = 0
+  public var anfl = false
+  public var anflLevel = 0
+  public var anflFilterSize = 0
+  public var anflDelay = 0
+  public var anflLeakageLevel = 0
+  public var anft = false
   public var apfEnabled: Bool = false
   public var apfLevel: Int = 0
   public var audioGain = 0
@@ -349,6 +386,9 @@ public final class Slice: Identifiable {
   public var digitalLowerOffset: Int = 0
   public var digitalUpperOffset: Int = 0
   public var diversityEnabled: Bool = false
+  public var esc = false
+  public var escGain: Float = 0
+  public var escPhaseShift: Float = 0
   public var filterHigh: Int = 0
   public var filterLow: Int = 0
   public var fmDeviation: Int = 0
@@ -363,8 +403,20 @@ public final class Slice: Identifiable {
   public var mode: String = ""
   public var nbEnabled: Bool = false
   public var nbLevel = 0
+  public var nrAdaptMode = false
+  public var nrDelay = 0
   public var nrEnabled: Bool = false
+  public var nrf = false
+  public var nrfWinc = 0
+  public var nrfWlen = 0
+  public var nrIsdftMode = false
+  public var nrl = false
+  public var nrlDelay = 0
+  public var nrlFilterSize = 0
+  public var nrlLeakageLevel = 0
+  public var nrlLevel = 0
   public var nrLevel = 0
+  public var nrWlen = 0
   public var playbackEnabled: Bool = false
   public var recordEnabled: Bool = false
   public var repeaterOffsetDirection: String = ""
@@ -449,6 +501,16 @@ public final class Slice: Identifiable {
     case agcThreshold               = "agc_threshold"
     case anfEnabled                 = "anf"
     case anfLevel                   = "anf_level"
+    case anfAdaptMode               = "anf_adapt_mode"
+    case anfDelay                   = "anf_delay"
+    case anfIsdftMode               = "anf_isdft_mode"
+    case anfWlen                    = "anf_wlen"
+    case anfl                       = "anfl"
+    case anflLevel                  = "anfl_level"
+    case anflFilterSize             = "anfl_filter_size"
+    case anflDelay                  = "anfl_delay"
+    case anflLeakageLevel           = "anfl_leakage_level"
+    case anft                       = "anft"
     case apfEnabled                 = "apf"
     case apfLevel                   = "apf_level"
     case audioGain                  = "audio_gain"
@@ -458,6 +520,7 @@ public final class Slice: Identifiable {
     case clientHandle               = "client_handle"
     case daxChannel                 = "dax"
     case daxClients                 = "dax_clients"
+    case daxIqChannel               = "dax_iq_channel"
     case daxTxEnabled               = "dax_tx"
     case detached
     case dfmPreDeEmphasisEnabled    = "dfm_pre_de_emphasis"
@@ -467,6 +530,9 @@ public final class Slice: Identifiable {
     case diversityChild             = "diversity_child"
     case diversityIndex             = "diversity_index"
     case diversityParent            = "diversity_parent"
+    case esc                        = "esc"
+    case escGain                    = "esc_gain"
+    case escPhaseShift              = "esc_phase_shift"
     case filterHigh                 = "filter_hi"
     case filterLow                  = "filter_lo"
     case fmDeviation                = "fm_deviation"
@@ -484,8 +550,20 @@ public final class Slice: Identifiable {
     case modeList                   = "mode_list"
     case nbEnabled                  = "nb"
     case nbLevel                    = "nb_level"
+    case nrDelay                    = "nr_delay"
+    case nrAdaptMode                = "nr_adapt_mode"
     case nrEnabled                  = "nr"
+    case nrf                        = "nrf"
+    case nrfWinc                    = "nrf_winc"
+    case nrfWlen                    = "nrf_wlen"
+    case nrIsdftMode                = "nr_isdft_mode"
+    case nrl                        = "nrl"
+    case nrlDelay                   = "nrl_delay"
+    case nrlFilterSize              = "nrl_filter_size"
+    case nrlLeakageLevel            = "nrl_leakage_level"
+    case nrlLevel                   = "nrl_level"
     case nrLevel                    = "nr_level"
+    case nrWlen                     = "nr_wlen"
     case nr2
     case owner
     case panadapterId               = "pan"
