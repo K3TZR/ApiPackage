@@ -110,33 +110,35 @@ public final class Panadapter: Identifiable {
   private func apply(property: Panadapter.Property, value: String) {
     switch property {
       
-    case .antList:                antList = value.list
-    case .average:                average = value.iValue
-    case .band:                   band = value
-    case .bandwidth:              bandwidth = value.mhzToHz
-    case .bandZoomEnabled:        bandZoomEnabled = value.bValue
-    case .center:                 center = value.mhzToHz
-    case .clientHandle:           clientHandle = value.handle ?? 0
-    case .daxIq:                  daxIqChannel = value.iValue
-    case .daxIqChannel:           daxIqChannel = value.iValue
-    case .fps:                    fps = value.iValue
-    case .loopAEnabled:           loopAEnabled = value.bValue
-    case .loopBEnabled:           loopBEnabled = value.bValue
-    case .maxBw:                  maxBw = value.mhzToHz
-    case .maxDbm:                 maxDbm = min(value.cgValue, Panadapter.dbmMax)
-    case .minBw:                  minBw = value.mhzToHz
-    case .minDbm:                 minDbm = max(value.cgValue, Panadapter.dbmMin)
-    case .preamp:                 preamp = value
-    case .rfGain:                 rfGain = value.iValue
-    case .rxAnt:                  rxAnt = value
-    case .segmentZoomEnabled:     segmentZoomEnabled = value.bValue
-    case .waterfallId:            waterfallId = value.streamId ?? 0
-    case .wide:                   wide = value.bValue
-    case .weightedAverageEnabled: weightedAverageEnabled = value.bValue
-    case .wnbEnabled:             wnbEnabled = value.bValue
-    case .wnbLevel:               wnbLevel = value.iValue
-    case .wnbUpdating:            wnbUpdating = value.bValue
-    case .xvtrLabel:              xvtrLabel = value
+    case .antList:                  antList = value.list
+    case .average:                  average = value.iValue
+    case .band:                     band = value
+    case .bandwidth:                bandwidth = value.mhzToHz
+    case .bandZoomEnabled:          bandZoomEnabled = value.bValue
+    case .center:                   center = value.mhzToHz
+    case .clientHandle:             clientHandle = value.handle ?? 0
+    case .daxIq:                    daxIqChannel = value.iValue
+    case .daxIqChannel:             daxIqChannel = value.iValue
+    case .fps:                      fps = value.iValue
+    case .loopAEnabled:             loopAEnabled = value.bValue
+    case .loopBEnabled:             loopBEnabled = value.bValue
+    case .maxBw:                    maxBw = value.mhzToHz
+    case .maxDbm:                   maxDbm = min(value.cgValue, Panadapter.dbmMax)
+    case .minBw:                    minBw = value.mhzToHz
+    case .minDbm:                   minDbm = max(value.cgValue, Panadapter.dbmMin)
+    case .noiseFloorPosition:       noiseFloorPosition = value.iValue
+    case .noiseFloorPositionEnable: noiseFloorPositionEnable = value.bValue
+    case .preamp:                   preamp = value
+    case .rfGain:                   rfGain = value.iValue
+    case .rxAnt:                    rxAnt = value
+    case .segmentZoomEnabled:       segmentZoomEnabled = value.bValue
+    case .waterfallId:              waterfallId = value.streamId ?? 0
+    case .wide:                     wide = value.bValue
+    case .weightedAverageEnabled:   weightedAverageEnabled = value.bValue
+    case .wnbEnabled:               wnbEnabled = value.bValue
+    case .wnbLevel:                 wnbLevel = value.iValue
+    case .wnbUpdating:              wnbUpdating = value.bValue
+    case .xvtrLabel:                xvtrLabel = value
       
     case .available, .capacity, .daxIqRate, .xpixels, .ypixels:     break // ignored by Panadapter
     case .xPixels, .yPixels:                                        break // not sent in status messages
@@ -230,6 +232,8 @@ public final class Panadapter: Identifiable {
   public var loggerDisplayRadioNumber: Int = 0
   public var loopAEnabled: Bool = false
   public var loopBEnabled: Bool = false
+  public var noiseFloorPosition = 0
+  public var noiseFloorPositionEnable = false
   public var maxDbm: CGFloat = 0
   public var minDbm: CGFloat = 0
   public var rfGain: Int = 0
@@ -262,6 +266,8 @@ public final class Panadapter: Identifiable {
     case maxDbm                     = "max_dbm"
     case minBw                      = "min_bw"
     case minDbm                     = "min_dbm"
+    case noiseFloorPositionEnable   = "noise_floor_position_enable"
+    case noiseFloorPosition         = "noise_floor_position"
     case preamp                     = "pre"
     case rfGain                     = "rfgain"
     case rxAnt                      = "rxant"

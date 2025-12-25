@@ -98,28 +98,35 @@ extension ApiModel {
     sendTcp("eq " + eqType + " info", replyHandler: replyHandler)
   }
   
-  public func equalizerSet(_ id: String, _ property: Equalizer.Property, _ value: String) {
-    //    equalizers[id]?.parse([(property.rawValue, value)])
-    //    var rawProperty = property.rawValue
-    //
-    //    // is there an alternate property REQUIRED when sending to the radio?
-    //    if let altValue = Equalizer.altProperty[property] {
-    //      // YES
-    //      rawProperty = altValue
-    //    }
-    //    sendTcp("eq \(id) \(rawProperty)=\(value)")
-    //  }
-    //
-    //  public func equalizerFlat(_ id: String) {
-    //    equalizerSet(id, .hz63, "0")
-    //    equalizerSet(id, .hz125, "0")
-    //    equalizerSet(id, .hz250, "0")
-    //    equalizerSet(id, .hz500, "0")
-    //    equalizerSet(id, .hz1000, "0")
-    //    equalizerSet(id, .hz2000, "0")
-    //    equalizerSet(id, .hz4000, "0")
-    //    equalizerSet(id, .hz8000, "0")
+  public func equalizerSet(_ id: String, _ property: Equalizer.Property, _ propertyValue: String) {
+    let propertyName: String
+    
+    if let index = equalizers.firstIndex(where: { $0.id == id }) {
+      equalizers[index].parse([(property.rawValue, propertyValue)])
+      
+      // is there an alternate property REQUIRED when sending to the radio?
+      if let alternate = Equalizer.AlternateProperty(rawValue: property.rawValue) {
+        // YES
+        propertyName = alternate.rawValue
+      } else {
+        // NO
+        propertyName = property.rawValue
+      }
+      sendTcp("eq \(id) \(propertyName)=\(propertyValue)")
+    }
   }
+  
+  public func equalizerFlat(_ id: String) {
+    sendTcp("eq \(id) \(Equalizer.AlternateProperty.hz63.rawValue)=0")
+    sendTcp("eq \(id) \(Equalizer.AlternateProperty.hz125.rawValue)=0")
+    sendTcp("eq \(id) \(Equalizer.AlternateProperty.hz250.rawValue)=0")
+    sendTcp("eq \(id) \(Equalizer.AlternateProperty.hz500.rawValue)=0")
+    sendTcp("eq \(id) \(Equalizer.AlternateProperty.hz1000.rawValue)=0")
+    sendTcp("eq \(id) \(Equalizer.AlternateProperty.hz2000.rawValue)=0")
+    sendTcp("eq \(id) \(Equalizer.AlternateProperty.hz4000.rawValue)=0")
+    sendTcp("eq \(id) \(Equalizer.AlternateProperty.hz8000.rawValue)=0")
+  }
+  
   
   // ----------------------------------------------------------------------------
   // MARK: - Memory methods
@@ -231,6 +238,67 @@ extension ApiModel {
   // ----------------------------------------------------------------------------
   // MARK: - Radio methods
   
+  public func set(_ property: Radio.Property, _ value: String = "") {
+    if let radio {
+      radio.parse([(property.rawValue, value)])
+      send(property, value)
+    }
+  }
+  
+  public func setFilter(_ type: Radio.Property, _ property: Radio.Property, _ value: String) {
+    if let radio {
+      guard type == .cw || type == .voice || type == .digital else { return }
+      radio.parse([(type.rawValue, "")])
+      radio.parse([(property.rawValue, value)])
+      sendTcp("radio filter_sharpness \(type.rawValue) \(property.rawValue)=\(value)")
+    }
+  }
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - Private Send methods
+  
+  private func send(_ property: Radio.Property, _ value: String) {
+    switch property {
+    case .autoSave, .binauralRxEnabled, .calFreq, .diversityAllowed, .enforcePrivateIpEnabled, .externalPaAllowed, .freqErrorPpb, .fullDuplexEnabled,
+        .maxInternalPaPower, .multiflexEnabled, .muteLocalAudio, .remoteOnEnabled, .rttyMark, .snapTuneEnabled, .tnfsEnabled,
+        .toneBurst1750:
+      sendTcp("radio set \(property.rawValue)=\(value)")
+    case .backlight, .callsign, .gps, .name, .reboot, .screensaver:
+      sendTcp("radio \(property.rawValue) \(value)")
+      break
+    case .calibrate:
+      sendTcp("radio pll_start")
+      break
+    case .lineoutgain, .lineoutmute, .headphonegain, .headphonemute:
+      sendTcp("mixer \(property.rawValue) \(value)")
+      break
+    case .addressType:
+      break   // FIXME:
+      
+      // not sendable
+    case .alpha, .atuPresent, .bandPersistenceEnabled, .chassisSerial, .daxIqAvailable:
+      break
+    case .daxIqCapacity, .flexControlEnabled, .frontSpeakerMute, .gateway, .gnss, .headphoneGain, .headphoneMute:
+      break
+    case .ipAddress, .lineoutGain, .lineoutMute, .location, .lowLatencyDigital, .macAddress:
+      break
+    case .model, .netmask, .nickname, .numberOfScus, .numberOfSlices, .numberOfTx, .options:
+      break
+    case .panadapters, .pllDone, .radioAuthenticated, .region, .serverConnected, .slices:
+      break
+    case .softwareVersion, .cw, .digital, .voice, .autoLevel, .level, .filterSharpness:
+      break
+    case .staticNetParams, .oscillator, .staticGateway, .staticIp, .staticMask, .extPresent:
+      break
+    case .gpsdoPresent, .locked, .setting, .state, .tcxoPresent:
+      break
+    case .fpgaMb, .picDecpu, .psocMbTrx, .psocMbPa100, .smartSdrMB:
+      break
+    case .antList, .micList, .uptime:
+      break
+    }
+  }
+  
   public func infoRequest(replyHandler: ReplyHandler? = nil) {
     sendTcp("info", replyHandler: replyHandler )
   }
@@ -337,33 +405,37 @@ extension ApiModel {
   // ----------------------------------------------------------------------------
   // MARK: - Transmit methods
   
-  public func transmitSet(_ property: Transmit.Property, _ value: String) {
-    transmit.parse([(property.rawValue, value)])
-    var rawProperty = property.rawValue
+  public func transmitSet(_ property: Transmit.Property, _ propertyValue: String) {
+    let propertyName: String
+    
+    transmit.parse([(property.rawValue, propertyValue)])
     
     // is there an alternate property REQUIRED when sending to the radio?
-    if let altValue = Transmit.Property(rawValue: rawProperty) {
+    if let alternate = Transmit.AlternateProperty(rawValue: property.rawValue) {
       // YES
-      rawProperty = altValue.rawValue
+      propertyName = alternate.rawValue
+    } else {
+      // NO
+      propertyName = property.rawValue
     }
     
     switch property {
     case .mox:
-      sendTcp("xmit \(value)")
+      sendTcp("xmit \(propertyValue)")
       
     case .cwBreakInEnabled, .cwBreakInDelay, .cwlEnabled, .cwIambicEnabled,
         .cwPitch, .cwSidetoneEnabled, .cwSyncCwxEnabled, .cwIambicMode,
         .cwSwapPaddles, .cwSpeed:
-      sendTcp("cw \(rawProperty) \(value)")
+      sendTcp("cw \(propertyName) \(propertyValue)")
       
     case .micBiasEnabled, .micBoostEnabled, .micSelection, .micAccEnabled:
-      sendTcp("mic \(rawProperty) \(value)")
+      sendTcp("mic \(propertyName) \(propertyValue)")
       
     case .tune:
-      sendTcp("transmit \(rawProperty) \(value)")
+      sendTcp("transmit \(propertyName) \(propertyValue)")
       
     default:
-      sendTcp("transmit set \(rawProperty)=\(value)")
+      sendTcp("transmit set \(propertyName)=\(propertyValue)")
     }
   }
   

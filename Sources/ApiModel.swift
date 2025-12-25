@@ -66,7 +66,7 @@ public class ApiModel: TcpProcessor {
   public internal(set) var clientInitialized = false
   public internal(set) var connectionHandle: UInt32?
   public internal(set) var hardwareVersion: String?
-  //  public internal(set) var radio: Radio?
+  public internal(set) var radio: Radio?
   public var smartlinkTestResult = SmartlinkTestResult()
   public var testDelegate: TcpProcessor?
   

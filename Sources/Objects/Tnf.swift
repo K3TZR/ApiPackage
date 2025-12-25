@@ -144,3 +144,64 @@ public final class Tnf: Identifiable {
     "tnf set \(id) \(property.rawValue)=\(value)"
   }
 }
+
+
+//public final actor TnfActor {
+//  
+//  // ----------------------------------------------------------------------------
+//  // MARK: - Initialization
+//  
+//  public init(_ id: UInt32) {
+//    self.id = id
+//  }
+//  
+//  // ----------------------------------------------------------------------------
+//  // MARK: - Properties
+//  
+//  public let id: UInt32
+//  private var _initialized = false
+//
+//  
+//  public var depth: TnfDepth = .normal
+//  public var frequency: Hz = 0
+//  public var permanent = false
+//  public var width: Hz = 0
+//  
+//  /// Parse Tnf properties
+//  /// - Parameter properties: a KeyValuesArray
+//  public func parse(_ properties: KeyValuesArray) {
+//    // process each key/value pair, <key=value>
+//    for property in properties {
+//      // check for unknown Keys
+//      guard let token = Tnf.Property(rawValue: property.key) else {
+//        // log it and ignore the Key
+//        apiLog(.propertyWarning, "Tnf: Id <\(self.id.hex)> unknown property <\(property.key) = \(property.value)>", property.key)
+//        continue
+//      }
+//      self.apply(property: token, value: property.value)
+//    }
+//    // is it initialized?
+//    if _initialized == false && frequency != 0 {
+//      // NO, it is now
+//      _initialized = true
+//      apiLog(.debug, "Tnf: ADDED Id <\(self.id.hex)> frequency <\(self.frequency.hzToMhz)>")
+//    }
+//  }
+//  
+//  // ----------------------------------------------------------------------------
+//  // MARK: - Private Methods
+//  
+//  /// Apply a single property value
+//  /// - Parameters:
+//  ///   - property: Property enum value
+//  ///   - value: String to apply
+//   private func apply(property: Tnf.Property, value: String) {
+//    switch property {
+//      
+//    case .depth:      depth = value.tnfDepth
+//    case .frequency:  frequency = value.mhzToHz
+//    case .permanent:  permanent = value.bValue
+//    case .width:      width = value.mhzToHz
+//    }
+//  }
+//}

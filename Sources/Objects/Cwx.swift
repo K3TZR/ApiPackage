@@ -67,9 +67,11 @@ public final class Cwx {
             // inform the Event Handler (if any)
             eraseSentEventHandler?(start, stop)
           }
-        case .breakInDelay: breakInDelay = property.value.iValue
-        case .qskEnabled:   qskEnabled = property.value.bValue
-        case .wpm:          wpm = property.value.iValue
+        case .breakInDelay:       breakInDelay = property.value.iValue
+        case .daxSidetoneEnabled: daxSidetoneEnabled = property.value.bValue
+        case .mfSidetoneEnabled:  mfSidetoneEnabled = property.value.bValue
+        case .qskEnabled:         qskEnabled = property.value.bValue
+        case .wpm:                wpm = property.value.iValue
           
         case .sent:         charSentEventHandler?(property.value.iValue)
         }
@@ -251,6 +253,8 @@ public final class Cwx {
   // MARK: - Public Properties
   
   public internal(set) var breakInDelay = 0
+  public internal(set) var daxSidetoneEnabled = false
+  public internal(set) var mfSidetoneEnabled = false
   public internal(set) var qskEnabled = false
   public internal(set) var wpm = 0
   
@@ -259,11 +263,13 @@ public final class Cwx {
   public var messageQueuedEventHandler: ((_ sequence: Int, _ bufferIndex: Int) -> Void)?
 
   public enum Property: String {
-    case breakInDelay   = "break_in_delay"
-    case qskEnabled     = "qsk_enabled"
+    case breakInDelay       = "break_in_delay"
+    case daxSidetoneEnabled = "dax_sidetone_enabled"
+    case mfSidetoneEnabled  = "mf_sidetone_enabled"
+    case qskEnabled         = "qsk_enabled"
     case erase
     case sent
-    case wpm            = "wpm"
+    case wpm                = "wpm"
   }
   
   var macros: [String]

@@ -127,27 +127,23 @@ public final class Equalizer: Identifiable {
     case hz8000 = "8000hz"
   }
 
+  public enum AlternateProperty: String {
+    // properties sent to the radio
+    case hz63   = "63Hz"
+    case hz125  = "125Hz"
+    case hz250  = "250Hz"
+    case hz500  = "500Hz"
+    case hz1000 = "1000Hz"
+    case hz2000 = "2000Hz"
+    case hz4000 = "4000Hz"
+    case hz8000 = "8000Hz"
+  }
+
   // ----------------------------------------------------------------------------
   // MARK: - Private Properties
   
-  private enum SendableProperty: String {
-    // properties sent to the radio
-    case eqEnabled = "mode"
-    case hZ63   = "63Hz"
-    case hZ125  = "125Hz"
-    case hZ250  = "250Hz"
-    case hZ500  = "500Hz"
-    case hZ1000 = "1000Hz"
-    case hZ2000 = "2000Hz"
-    case hZ4000 = "4000Hz"
-    case hZ8000 = "8000Hz"
-  }
-
   private var _initialized = false
 
-  // ----------------------------------------------------------------------------
-  // MARK: - Public Static command methods
-  
   /* ----- from the FlexApi source -----
    eq " + id + "mode="   + 1/0
    eq " + id + "32Hz="   + hz32
@@ -166,25 +162,4 @@ public final class Equalizer: Identifiable {
    eq apf mode=" + apfMode
    eq apf qfactor=" + apfQFactor
    */
-
-  public static func set(id: String, property: Property, value: String) -> String {
-    var sendableProperty: SendableProperty
-    
-    switch property {
-    case .eqEnabled:  sendableProperty = .eqEnabled
-    case .hz63:       sendableProperty = .hZ63
-    case .hz125:      sendableProperty = .hZ125
-    case .hz250:      sendableProperty = .hZ250
-    case .hz500:      sendableProperty = .hZ500
-    case .hz1000:     sendableProperty = .hZ1000
-    case .hz2000:     sendableProperty = .hZ2000
-    case .hz4000:     sendableProperty = .hZ4000
-    case .hz8000:     sendableProperty = .hZ8000
-    }
-    return "eq \(id) \(sendableProperty.rawValue)=\(value)"
-  }
-
-  public static func infof(id: String) -> String {
-    "eq \(id) info"
-  }
 }

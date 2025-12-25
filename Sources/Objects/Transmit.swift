@@ -269,55 +269,20 @@ public final class Transmit {
     case voxLevel                 = "vox_level"
   }
   
-  public enum AltProperty: String {
+  public enum AlternateProperty: String {
     // properties sent to the radio
     case amCarrierLevel           = "am_carrier"                    // "am_carrier"
-    case companderEnabled         = "compander"
-    case companderLevel           = "compander_level"
-    case cwBreakInDelay           = "break_in_delay"
-    case cwBreakInEnabled         = "break_in"
-    case cwIambicEnabled          = "iambic"
     case cwIambicMode             = "mode"                          // "mode"
-    case cwlEnabled               = "cwl_enabled"
-    case cwMonitorGain            = "mon_gain_cw"
-    case cwMonitorPan             = "mon_pan_cw"
-    case cwPitch                  = "pitch"
-    case cwSidetoneEnabled        = "sidetone"
     case cwSpeed                  = "wpm"                           // "wpm"
     case cwSwapPaddles            = "swap"                          // "swap"
-    case cwSyncCwxEnabled         = "synccwx"
-    case daxEnabled               = "dax"
-    case frequency                = "freq"
-    case hwAlcEnabled             = "hwalc_enabled"
-    case inhibit                  = "inhibit"
-    case maxPowerLevel            = "max_power_level"
-    case meterInRxEnabled         = "met_in_rx"
     case micAccEnabled            = "acc"                           // "acc"
     case micBoostEnabled          = "boost"                         // "boost"
     case micBiasEnabled           = "bias"                          // "bias"
     case micLevel                 = "miclevel"                      // "miclevel"
     case micSelection             = "input"                         // "input"
-    case mox
-    case rawIqEnabled             = "raw_iq_enable"
-    case rfPower                  = "rfpower"
-    case speechProcessorEnabled   = "speech_processor_enable"
-    case speechProcessorLevel     = "speech_processor_level"
-    case ssbMonitorGain           = "mon_gain_sb"
-    case ssbMonitorPan            = "mon_pan_sb"
-    case tune
-    case tunePower                = "tunepower"
-    case txAntenna                = "tx_antenna"
-    case txFilterChanges          = "tx_filter_changes_allowed"
     case txFilterHigh             = "filter_high"                   // "filter_high"
     case txFilterLow              = "filter_low"                    // "filter_low"
-    case txInWaterfallEnabled     = "show_tx_in_waterfall"
-    case txMonitorAvailable       = "mon_available"
     case txMonitorEnabled         = "mon"                           // "mon"
-    case txRfPowerChanges         = "tx_rf_power_changes_allowed"
-    case txSliceMode              = "tx_slice_mode"
-    case voxEnabled               = "vox_enable"
-    case voxDelay                 = "vox_delay"
-    case voxLevel                 = "vox_level"
   }
   
   private var _initialized = false

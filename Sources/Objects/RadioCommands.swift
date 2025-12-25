@@ -231,10 +231,7 @@
   //        // none found
   //        return nil
   //    }
-  
-  // ----------------------------------------------------------------------------
-  // MARK: - Radio methods
-  
+
 //  public func requestSubAll(callback: ReplyProcessor? = nil) {
 //    apiModel.sendTcp("sub tx all")
 //    apiModel.sendTcp("sub atu all")
