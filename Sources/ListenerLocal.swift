@@ -46,35 +46,34 @@ actor ListenerLocalActor: NSObject {
     self.delegate = ListenerLocalSocketDelegate(actor: nil)
     super.init()
     self.delegate.actor = self
-    let socket = GCDAsyncUdpSocket(delegate: delegate, delegateQueue: udpQueue)
-    socket.setPreferIPv4()
-    socket.setIPv6Enabled(false)
-    do {
-      try socket.enableReusePort(true)
-      apiLog(.debug, "Local Listener: socket REUSE enabled")
-    } catch let error as NSError {
-      apiLog(.error, "Local Listener: socket REUSE, error <\(error.localizedDescription)> code <\(error.code)>")
-    }
-    self.udpSocket = socket
   }
   
   /// Binds the UDP socket to the specified port and begins receiving.
   /// - Parameter port: The port number to bind the socket to.
   /// - Throws: Errors thrown during binding or receiving.
-  func start(port: UInt16) throws {
-    guard let socket = udpSocket else {
+  func start(port: Int) throws {
+    udpSocket = GCDAsyncUdpSocket(delegate: delegate, delegateQueue: udpQueue)
+    guard let udpSocket else {
       throw NSError(domain: "ListenerLocalActor", code: 0, userInfo: [NSLocalizedDescriptionKey: "Socket not initialized"])
     }
+    udpSocket.setPreferIPv4()
+    udpSocket.setIPv6Enabled(false)
     do {
-      try socket.bind(toPort: port)
+      try udpSocket.enableReusePort(true)
+      apiLog(.debug, "Local Listener: socket REUSE enabled")
+    } catch let error as NSError {
+      apiLog(.error, "Local Listener: socket REUSE, error <\(error.localizedDescription)> code <\(error.code)>")
+    }
+    do {
+      try udpSocket.bind(toPort: UInt16(port))
       apiLog(.debug, "Local Listener: socket bound to port <\(port)>")
     } catch let error as NSError {
       apiLog(.error, "Local Listener: Error binding to port <\(port)> <\(error.localizedDescription)> code <\(error.code)>")
       throw error
     }
     do {
-      try socket.beginReceiving()
-      apiLog(.debug, "Local Listener: socket STARTED")
+      try udpSocket.beginReceiving()
+      apiLog(.debug, "Local Listener: socket OPENED")
     } catch let error as NSError {
       apiLog(.error, "Local Listener: Error starting to receive <\(error.localizedDescription)> code <\(error.code)>")
       throw error
@@ -85,7 +84,7 @@ actor ListenerLocalActor: NSObject {
   func stop() {
     udpSocket?.close()
     udpSocket = nil
-    apiLog(.debug, "Local Listener: socket STOPPED")
+    apiLog(.debug, "Local Listener: socket CLOSED")
   }
   
   // MARK: - Nonisolated delegate callbacks
@@ -125,7 +124,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
   
   /// Creates a ListenerLocal instance bound to the given ApiModel.
   /// - Parameter apiModel: The ApiModel instance to send processed data to.
-  public init(_ apiModel: ApiModel) {
+  public init(_ apiModel: ApiModel, port: Int) {
     self._api = apiModel
     self.socketActor = ListenerLocalActor()
     super.init()
@@ -153,7 +152,7 @@ public final class ListenerLocal: NSObject, ObservableObject {
   ///
   /// - Parameter port: The UDP port to bind and listen on.
   /// - Throws: Errors if binding or starting reception fails.
-  public func start(port: UInt16) async throws {
+  public func start(port: Int) async throws {
     try await socketActor.start(port: port)
   }
   

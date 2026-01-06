@@ -491,10 +491,9 @@ public struct AlertInfo: Sendable {
 }
 
 public enum DiscoveryDisplayType: String, CaseIterable {
-  case vitaHeader = "Vita Header"
-  case vitaPayload = "Vita Payload"
-  case vitaByteMap = "Vita byte map"
-//  case vitaByteMapOld = "Vita byte map Old"
-  case timing = "Timing"
+  case vitaHeaderView = "Vita Header View"
+  case vitaPayloadView = "Vita Payload View"
+  case vitaHexView = "Vita Hex View"
+  case discoveryTimingView = "Discovery Timing View"
 }
 
