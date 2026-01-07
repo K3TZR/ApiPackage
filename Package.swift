@@ -9,6 +9,8 @@ let package = Package(
     
     products: [
       .library(name: "ApiPackage", targets: ["ApiPackage"]),
+      .library(name: "AudioPackage", targets: ["AudioPackage"]),
+      .library(name: "RingBufferPackage", targets: ["RingBufferPackage"]),
     ],
     
     dependencies: [
@@ -23,5 +25,16 @@ let package = Package(
         .product(name: "JWTDecode", package: "JWTDecode.swift"),
         .product(name: "CocoaAsyncSocket", package: "CocoaAsyncSocket"),
       ]),
+
+       // AudioPackage
+      .target( name: "AudioPackage", dependencies: [
+        .target(name: "RingBufferPackage"),
+//        .target(name: "ApiPackage"),
+      ]),
+
+      // RingBufferPackage
+      .target( name: "RingBufferPackage", dependencies: [
+      ]),
     ]
 )
+
