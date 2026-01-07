@@ -494,6 +494,6 @@ public enum DiscoveryDisplayType: String, CaseIterable {
   case vitaHeaderView = "Vita Header View"
   case vitaPayloadView = "Vita Payload View"
   case vitaHexView = "Vita Hex View"
-  case discoveryTimingView = "Discovery Timing View"
+  case vitaTimingView = "Vita Timing View"
 }
 
