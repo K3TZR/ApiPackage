@@ -67,7 +67,7 @@ final public class StreamModel: StreamProcessor, ObservableObject {
     StreamStatus(.waterfall),           // = 9
   ]
 
-//  public var onDaxRxAudioPayload: (@Sendable(_ streamId: UInt32, _ vitaType: VitaType, _ payload: Data) -> Void)?
+  public var onDaxRxAudioPayload: (@Sendable(_ streamId: UInt32, _ payload: [UInt8]) -> Void)?
   
   // single streams
 //  public var daxMicAudioStream: DaxMicAudioStream?
@@ -111,7 +111,7 @@ final public class StreamModel: StreamProcessor, ObservableObject {
     case .daxAudio, .daxAudioReducedBw:
 //      if daxRxAudioStreams[id: vita.streamId] == nil { daxRxAudioStreams.append( DaxRxAudioStream(vita.streamId)) }
 //      await daxRxAudioStreams[id: vita.streamId]?.streamProcessor(vita)
-//      onDaxRxAudioPayload?(vita.streamId, vita.classCode, vita.payloadData)
+      onDaxRxAudioPayload?(vita.streamId, vita.payloadData)
       break
       
     case .meter:
