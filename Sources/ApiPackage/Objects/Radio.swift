@@ -33,7 +33,7 @@ public final class Radio: Identifiable, Equatable {
   
   public static func status(_ apiModel: ApiModel, _ properties: KeyValuesArray, _ inUse: Bool) {
     // get the id
-    if let index = apiModel.radios.firstIndex(where: { $0.id == apiModel.activeSelection!.radioId }) {
+    if let activeSelection = apiModel.activeSelection, let index = apiModel.radios.firstIndex(where: { $0.id == activeSelection.radioId }) {
       // in use?
       if inUse {
         // YES, parse the properties
@@ -41,7 +41,7 @@ public final class Radio: Identifiable, Equatable {
       } else {
         // NO, remove it
         apiModel.radios.remove(at: index)
-        apiLog(.debug, "Radio: REMOVED id <\(apiModel.activeSelection!.radioId)>") 
+        apiLog(.debug, "Radio: REMOVED id <\(String(describing: apiModel.activeSelection?.radioId))>") 
       }
     }
   }

@@ -532,7 +532,7 @@ public class ApiModel: TcpProcessor {
       case "info":          keyValues = additionalData.keyValuesArray(delimiter: ",")
       default: return
       }
-      if let radio = radios.first(where: {$0.id == activeSelection!.radioId }) {
+      if let activeSelection, let radio = radios.first(where: { $0.id == activeSelection.radioId }) {
         radio.parse(keyValues)
       }
     }
@@ -620,7 +620,7 @@ public class ApiModel: TcpProcessor {
       }
     }
     
-    if let radio = radios.first(where: {$0.id == activeSelection?.radioId}) {
+    if let activeSelection, let radio = radios.first(where: { $0.id == activeSelection.radioId }) {
       if let index = radio.guiClients.firstIndex(where: { $0.handle == handle.hex }) {
         radio.guiClients[index].clientId = UUID(uuidString: clientId)!
         radio.guiClients[index].program = program
@@ -631,7 +631,7 @@ public class ApiModel: TcpProcessor {
         apiLog(.debug, "ApiModel: STATION  UPDATED Name <\(station)> Radio <\(radio.packet.nickname)> Program <\(program)> Ip <\(ip)> Host <\(host)> Handle <\(handle.hex)> ClientId <\(UUID(uuidString: clientId)!)>")
         
         // if needed, bind to the Station
-        if connectionIsGui == false && station == activeSelection?.station && boundClientId == nil {
+        if connectionIsGui == false && station == activeSelection.station && boundClientId == nil {
           bind(station, clientId)
         }
         
@@ -640,7 +640,7 @@ public class ApiModel: TcpProcessor {
         apiLog(.debug, "ApiModel: STATION  ADDED   Name <\(station)> Radio <\(radio.packet.nickname)> Program <\(program)> Handle <\(handle.hex)> Client Id <\(UUID(uuidString: clientId)!)>")
         
         // if needed, bind to the Station
-        if connectionIsGui == false && station == activeSelection?.station && boundClientId == nil {
+        if connectionIsGui == false && station == activeSelection.station && boundClientId == nil {
           bind(station, clientId)
         }
       }
@@ -1140,7 +1140,7 @@ public class ApiModel: TcpProcessor {
   /// Change the MOX property when an Interlock state change occurs
   /// - Parameter state:            a new Interloack state
   private func interlockStateChange(_ state: String) {
-    if let radio = radios.first(where: { $0.id == activeSelection?.radioId }) {
+    if let activeSelection, let radio = radios.first(where: { $0.id == activeSelection.radioId }) {
       let currentMox = radio.mox
       
       // if PTT_REQUESTED or TRANSMITTING
