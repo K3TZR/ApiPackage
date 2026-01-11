@@ -338,6 +338,21 @@ extension ApiModel {
     sendTcp("version", replyHandler: replyHandler )
   }
   
+  
+  // ----------------------------------------------------------------------------
+  // MARK: - RemoteRxAudio methods
+  
+  public func remoteRxAudioRequest(compressed: Bool = true, replyHandler: ReplyHandler? = nil) {
+    sendTcp(RemoteRxAudio.create(compressed: compressed))
+  }
+
+  public func remoteRxAudioRemove(replyHandler: ReplyHandler? = nil) {
+    if let id = remoteRxAudio?.id {
+      sendTcp(RemoteRxAudio.remove(id))
+    }
+  }
+
+  
   // ----------------------------------------------------------------------------
   // MARK: - Slice methods
   

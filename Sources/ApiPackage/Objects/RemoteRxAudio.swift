@@ -106,8 +106,8 @@ public final class RemoteRxAudio: Identifiable {
   // ----------------------------------------------------------------------------
   // MARK: - Public Static command methods
   
-  public static func create(compression: String) -> String {
-    "stream create type=remote_audio_rx compression=\(compression)"
+  public static func create(compressed: Bool) -> String {
+    "stream create type=\(StreamType.remoteRxAudioStream.rawValue) compression=\(compressed ? Compression.opus.rawValue : Compression.none.rawValue)"
   }
   public static func remove(_ id: UInt32) -> String {
     "stream remove \(id.hex)"
